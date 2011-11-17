@@ -1,7 +1,7 @@
-#ifndef PSIL_CORE_TOKEN_TOKENIZER_HPP
-#define PSIL_CORE_TOKEN_TOKENIZER_HPP
+#ifndef PSIL_CORE_TOKEN_TOKENIZER_HH
+#define PSIL_CORE_TOKEN_TOKENIZER_HH
 
-#include "token.hpp"
+#include "token.hh"
 
 namespace psil {
 namespace core {

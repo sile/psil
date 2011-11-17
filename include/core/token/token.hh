@@ -1,5 +1,5 @@
-#ifndef PSIL_CORE_TOKEN_TOKEN_HPP
-#define PSIL_CORE_TOKEN_TOKEN_HPP
+#ifndef PSIL_CORE_TOKEN_TOKEN_HH
+#define PSIL_CORE_TOKEN_TOKEN_HH
 
 namespace psil {
 namespace core {

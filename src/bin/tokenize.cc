@@ -1,4 +1,4 @@
-#include "core/psil_core.hpp"
+#include "core/psil_core.hh"
 
 using namespace psil::core::token;
 

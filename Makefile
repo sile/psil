@@ -9,7 +9,7 @@ bin:
 object:
 	mkdir object
 
-bin/tokenize: src/bin/tokenize.cpp include/core/psil_core.hpp include/core/token/token.hpp include/core/token/tokenizer.hpp
+bin/tokenize: src/bin/tokenize.cc include/core/psil_core.hh include/core/token/token.hh include/core/token/tokenizer.hh
 	${CC} ${CC_FLAGS} -o ${@} ${<}
 
 clean:
