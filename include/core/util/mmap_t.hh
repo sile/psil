@@ -9,6 +9,7 @@
 namespace psil {
 namespace core {
 namespace util {
+  template<typename T>
   class mmap_t {
   public:
     mmap_t(const char* path, bool write_mode=false, int flags=MAP_SHARED){
@@ -29,6 +30,9 @@ namespace util {
     ~mmap_t() { munmap(ptr, size); }
     
     operator bool () const { return ptr!=reinterpret_cast<void*>(-1); }
+
+    T* start() { return reinterpret_cast<char*>(ptr); }
+    const T* end() { return reinterpret_cast<const T*>(reinterpret_cast<char*>(ptr)+size); }
     
   private:
     size_t size;
