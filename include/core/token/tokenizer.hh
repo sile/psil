@@ -2,6 +2,7 @@
 #define PSIL_CORE_TOKEN_TOKENIZER_HH
 
 #include "token.hh"
+#include "../util/char_stream.hh"
 
 namespace psil {
 namespace core {
