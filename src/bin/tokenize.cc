@@ -3,7 +3,7 @@
 using namespace psil::core::token;
 
 int main(int argc, char** argv) {
-  Token* tknInt = new TokenInt;
+  TokenInt* tknInt = new TokenInt(10);
 
-  return reinterpret_cast<long>(tknInt);
+  return tknInt->value();
 }
