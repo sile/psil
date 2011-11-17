@@ -14,7 +14,7 @@ namespace token {
     ~Tokenizer() {
     }
     
-    bool tokenize(const char* source, Token* token) {
+    bool tokenize(util::CharStream& in, Token* token) {
        return false;
     }
   };
