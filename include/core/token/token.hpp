@@ -15,6 +15,39 @@ namespace token {
    * 変数:
    */
   class Token {
+  public:
+    enum TYPE {INT, REAL, VAR, STR, LIST, EXP};
+    virtual TYPE type() = 0;
+  };
+
+  class TokenInt : public Token {
+  public:
+    virtual TYPE type() { return INT; }
+  };
+
+  class TokenReal : public Token {
+  public:
+    virtual TYPE type() { return REAL; }
+  };
+
+  class TokenVar : public Token {
+  public:
+    virtual TYPE type() { return VAR; }
+  };
+
+  class TokenStr : public Token {
+  public:
+    virtual TYPE type() { return STR; }
+  };
+
+  class TokenList : public Token {
+  public:
+    virtual TYPE type() { return LIST; }
+  };
+
+  class TokenExp : public Token {
+  public:
+    virtual TYPE type() { return EXP; }
   };
 }
 }

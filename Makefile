@@ -1,4 +1,4 @@
-CC=gcc
+CC=g++
 CC_FLAGS=-Wall -ansi -pedantic-errors -I include/
 
 all: bin object bin/tokenize
