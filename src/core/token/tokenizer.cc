@@ -1,14 +1,23 @@
 #include "core/token/tokenizer.hh"
 #include <cstring>
+#include <cstdlib>
+#include <string>
+
+// XXX: for debug
+#include <iostream>
 
 namespace psil {
 namespace core {
 namespace token {
   namespace {
+    bool is_delimiter(char c) {
+      return isspace(c) || c=='(' || c=='\'' || c==')';
+    }
+    
     bool is_integer_token(CharStream& in) {
       CharStream::Mark m = in.position();
       bool is_integer=true;
-      while(isspace(in.peek())==false) {
+      while(is_delimiter(in.peek())==false) {
         if(isdigit(in.read())==false) {
           is_integer=false;
           break;
@@ -19,7 +28,15 @@ namespace token {
     }
     
     bool is_real_token(CharStream& in) { return true; }
-    Token* tokenize_integer(CharStream& in) { return NULL; }
+
+    Token* tokenize_integer(CharStream& in) {
+      CharStream::Mark start = in.position();
+      while(is_delimiter(in.peek())==false) 
+        in.read();
+      CharStream::Mark end = in.position();
+      return new TokenInt(atoi(std::string(start,end).c_str()));
+    }
+
     Token* tokenize_real(CharStream& in) { return NULL; }
     Token* tokenize_symbol(CharStream& in) { return NULL; }
 
