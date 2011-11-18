@@ -9,8 +9,11 @@ bin:
 object:
 	mkdir object
 
-bin/tokenize: src/bin/tokenize.cc include/core/psil_core.hh include/core/token/token.hh include/core/token/tokenizer.hh include/core/util/char_stream.hh
-	${CC} ${CC_FLAGS} -o ${@} ${<}
+bin/tokenize: src/bin/tokenize.cc include/core/psil_core.hh object/tokenizer.o
+	${CC} ${CC_FLAGS} -o ${@} ${<} object/tokenizer.o
 
+object/tokenizer.o: src/core/token/tokenizer.cc include/core/token/token.hh include/core/token/tokenizer.hh include/core/util/char_stream.hh
+	${CC} ${CC_FLAGS} -c -o ${@} ${<} 
 clean:
-	rm bin/* 
+	rm bin/*
+	rm object/* 

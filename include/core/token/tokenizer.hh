@@ -7,16 +7,22 @@
 namespace psil {
 namespace core {
 namespace token {
+  using namespace util;
+
   class Tokenizer {
   public:
-    Tokenizer() {
+    Tokenizer(const char* start, const char* end) : in(start,end), root(NULL) {
     }
+
     ~Tokenizer() {
+        delete root;
     }
     
-    bool tokenize(util::CharStream& in, Token* token) {
-       return false;
-    }
+    const Token* tokenize();
+
+  private:
+    CharStream in;
+    Token* root;  
   };
 }
 }

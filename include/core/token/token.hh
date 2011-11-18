@@ -20,6 +20,7 @@ namespace token {
   class Token {
   public:
     enum TYPE {INT, REAL, SYM, STR, LIST, EXP};
+    virtual ~Token() {}
     virtual TYPE type() = 0;
   };
 
@@ -67,6 +68,10 @@ namespace token {
   class TokenList : public Token {
   public:
     TokenList(const List& val) : val(val) {}
+    ~TokenList() {
+      for(std::size_t i=0; i < val.size(); i++)
+        delete val[i];
+    }
     virtual TYPE type() { return LIST; }
     const List& value() { return val; }
 
@@ -77,6 +82,10 @@ namespace token {
   class TokenExp : public Token {
   public:
     TokenExp(const List& val) : val(val) {}
+    ~TokenExp() {
+      for(std::size_t i=0; i < val.size(); i++)
+        delete val[i];
+    }
     virtual TYPE type() { return EXP; }
     const List& value() { return val; }
 

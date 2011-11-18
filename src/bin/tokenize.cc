@@ -18,9 +18,8 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  CharStream in(mm.start(), mm.end());
-  Tokenizer tkn;
-  tkn.tokenize(in, 0);
+  Tokenizer tkn(mm.start(), mm.end());
+  tkn.tokenize();
 
   return 0;
 }
