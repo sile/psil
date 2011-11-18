@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   }
 
   Tokenizer tkn(mm.start(), mm.end());
-  tkn.tokenize();
+  std::cout << tkn.tokenize()->toString() << std::endl;
 
   return 0;
 }

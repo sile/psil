@@ -1,6 +1,8 @@
 #ifndef PSIL_CORE_TOKEN_TOKEN_HH
 #define PSIL_CORE_TOKEN_TOKEN_HH
 
+#include "../util/str.hh"
+
 #include <string>
 #include <vector>
 
@@ -22,6 +24,9 @@ namespace token {
     enum TYPE {INT, REAL, SYM, STR, LIST, EXP};
     virtual ~Token() {}
     virtual TYPE type() = 0;
+
+    // for debug
+    virtual std::string toString() const { return ""; }
   };
 
   class TokenInt : public Token {
@@ -30,6 +35,10 @@ namespace token {
     virtual TYPE type() { return INT; }
     int value() { return val; }
 
+    virtual std::string toString() const {
+      return util::Str<int>::toString(val);
+    }
+    
   private:
     int val; 
   };
