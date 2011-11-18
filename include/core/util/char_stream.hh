@@ -19,6 +19,9 @@ namespace util {
     }
 
     char read() {
+      if(is_eos()) 
+        return '\n';
+
       char c = peek();
       cur++;
       return c;

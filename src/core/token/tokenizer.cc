@@ -5,7 +5,19 @@ namespace psil {
 namespace core {
 namespace token {
   namespace {
-    bool is_integer_token(CharStream& in) { return true; }
+    bool is_integer_token(CharStream& in) {
+      CharStream::Mark m = in.position();
+      bool is_integer=true;
+      while(isspace(in.peek())==false) {
+        if(isdigit(in.read())==false) {
+          is_integer=false;
+          break;
+        }
+      }
+      in.position(m);
+      return is_integer;
+    }
+    
     bool is_real_token(CharStream& in) { return true; }
     Token* tokenize_integer(CharStream& in) { return NULL; }
     Token* tokenize_real(CharStream& in) { return NULL; }
