@@ -36,7 +36,7 @@ namespace token {
     int value() { return val; }
 
     virtual std::string toString() const {
-      return util::Str<int>::toString(val);
+      return "int#"+util::Str<int>::toString(val);
     }
     
   private:
@@ -48,6 +48,10 @@ namespace token {
     TokenReal(double val) : val(val) {}
     virtual TYPE type() { return REAL; }
     double value() { return val; }
+
+    virtual std::string toString() const {
+      return "real#"+util::Str<double>::toString(val);
+    }
   
   private:
     double val;
@@ -58,7 +62,10 @@ namespace token {
     TokenSym(const std::string& val) : val(val) {}
     virtual TYPE type() { return SYM; }
     const std::string& value() { return val; }
- 
+    virtual std::string toString() const {
+      return "sym#"+util::Str<std::string>::toString(val);
+    } 
+    
   private:
     std::string val;
   };
@@ -68,6 +75,10 @@ namespace token {
     TokenStr(const std::string& val) : val(val) {}
     virtual TYPE type() { return STR; }
     const std::string& value() { return val; }
+
+    virtual std::string toString() const {
+      return "str#\""+val+"\"";
+    } 
 
   private:
     std::string val;

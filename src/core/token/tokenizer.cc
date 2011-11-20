@@ -16,47 +16,94 @@ namespace token {
     
     bool is_integer_token(CharStream& in) {
       CharStream::Mark m = in.position();
-      bool is_integer=true;
-      while(is_delimiter(in.peek())==false) {
+      while(is_delimiter(in.peek())==false)
         if(isdigit(in.read())==false) {
-          is_integer=false;
-          break;
+          in.position(m);
+          return false;
         }
-      }
       in.position(m);
-      return is_integer;
+      return true;
     }
     
-    bool is_real_token(CharStream& in) { return true; }
-
-    Token* tokenize_integer(CharStream& in) {
-      CharStream::Mark start = in.position();
-      while(is_delimiter(in.peek())==false) 
+    void skip_space(CharStream& in) {
+      while(in.is_eos()==false && isspace(in.peek()))
         in.read();
-      CharStream::Mark end = in.position();
-      return new TokenInt(atoi(std::string(start,end).c_str()));
     }
 
-    Token* tokenize_real(CharStream& in) { return NULL; }
-    Token* tokenize_symbol(CharStream& in) { return NULL; }
+    // XXX: accepts only 'ddd.ddd' format
+    bool is_real_token(CharStream& in) { 
+      CharStream::Mark m = in.position();
+      int dot_count = 0;
 
-    void tokenize_impl(CharStream& in, Token*& token) {
-      if(isdigit(in.peek())) {
-        // integer or real or symbol  
-        if(is_integer_token(in)) {
-          token = tokenize_integer(in);
-        } else if(is_real_token(in)) {
-          token = tokenize_real(in);
-        } else {
-          // assume as symbol
-          token = tokenize_symbol(in);
+      while(is_delimiter(in.peek())==false) {
+        const char c = in.read();
+        if(isdigit(c)==false) {
+          if(c != '.')
+            goto failed;
+          dot_count++;
         }
       }
+      if(dot_count != 1)
+        goto failed;
+      in.position(m);      
+      return true; 
+    failed:
+      in.position(m);
+      return false;
+    }
+
+    std::string read_until_next_delimiter(CharStream& in) {
+      CharStream::Mark start = in.position();
+      while(is_delimiter(in.peek())==false)
+        in.read();
+      return std::string(start, in.position());
+    }
+    
+    Token* tokenize_integer(CharStream& in) {
+      return new TokenInt(atoi(read_until_next_delimiter(in).c_str()));
+    }
+
+    Token* tokenize_symbol(CharStream& in) {
+      return new TokenSym(read_until_next_delimiter(in));
+    }
+
+    Token* tokenize_real(CharStream& in) {
+      return new TokenReal(atof(read_until_next_delimiter(in).c_str()));
+    }
+
+    Token* tokenize_string(CharStream& in) {
+      in.read(); // eat start '"'
+      CharStream::Mark start = in.position();
+      while(in.peek() != '"') {
+        if(in.is_eos())
+          throw "EOS reached!";
+        in.read();
+      }
+      CharStream::Mark end = in.position();
+      in.read(); // eat end '"'
+      return new TokenStr(std::string(start,end));
+    }
+
+    Token* tokenize_impl(CharStream& in) {
+      skip_space(in);
+      
+      if(isdigit(in.peek())) {
+        // integer or real or symbol  
+        if(is_integer_token(in))
+          return tokenize_integer(in);
+        if(is_real_token(in))
+          return tokenize_real(in);
+      } else if (in.peek()=='"') {
+        return tokenize_string(in);
+      }
+      
+      // assume as symbol
+      return tokenize_symbol(in);
     } 
   }
 
   const Token* Tokenizer::tokenize() {
-    tokenize_impl(in, root);
+    root = tokenize_impl(in);
     return root;
   }
 }
