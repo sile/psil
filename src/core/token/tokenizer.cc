@@ -84,7 +84,21 @@ namespace token {
       return new TokenStr(std::string(start,end));
     }
 
-    Token* tokenize_impl(CharStream& in) {
+    Token* tokenize_impl(CharStream&, bool);
+    List tokenize_list(CharStream& in, bool quote) {
+      in.read(); // eat '('
+      List list;
+      while(skip_space(in),in.peek()!=')') {
+        if(in.is_eos()) 
+          throw "EOS reached!";
+        Token* token = tokenize_impl(in, quote);
+        list.push_back(token);
+      }
+      in.read(); // eat ')'
+      return list;
+    }
+
+    Token* tokenize_impl(CharStream& in, bool quote) {
       skip_space(in);
       
       if(isdigit(in.peek())) {
@@ -95,6 +109,15 @@ namespace token {
           return tokenize_real(in);
       } else if (in.peek()=='"') {
         return tokenize_string(in);
+      } else if (in.peek()=='(') {
+        List list = tokenize_list(in, quote);
+        if(quote)
+          return new TokenList(list);
+        else
+          return new TokenExp(list);
+      } else if (in.peek()=='\'') {
+        in.read();
+        return tokenize_impl(in, true);
       }
       
       // assume as symbol
@@ -103,7 +126,7 @@ namespace token {
   }
 
   const Token* Tokenizer::tokenize() {
-    root = tokenize_impl(in);
+    root = tokenize_impl(in, false);
     return root;
   }
 }

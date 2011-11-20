@@ -95,6 +95,15 @@ namespace token {
     virtual TYPE type() { return LIST; }
     const List& value() { return val; }
 
+    virtual std::string toString() const {
+      std::string buf = "list#(";
+      for(std::size_t i=0; i < val.size(); i++)
+        if(i==0)
+          buf += val[i]->toString();
+        else
+          buf += ","+val[i]->toString();
+      return buf+")";
+    } 
   private:
     List val;
   };
@@ -109,6 +118,15 @@ namespace token {
     virtual TYPE type() { return EXP; }
     const List& value() { return val; }
 
+    virtual std::string toString() const {
+      std::string buf = "exp#(";
+      for(std::size_t i=0; i < val.size(); i++)
+        if(i==0)
+          buf += val[i]->toString();
+        else
+          buf += ","+val[i]->toString();
+      return buf+")";
+    } 
   private:
     List val;
   };
