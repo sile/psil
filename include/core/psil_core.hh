@@ -3,5 +3,6 @@
 
 #include "token/token.hh"
 #include "token/tokenizer.hh"
+#include "eval/evaluator.hh"
 
 #endif

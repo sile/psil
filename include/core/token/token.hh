@@ -101,7 +101,7 @@ namespace token {
         if(i==0)
           buf += val[i]->toString();
         else
-          buf += ","+val[i]->toString();
+          buf += " "+val[i]->toString();
       return buf+")";
     } 
   private:
@@ -124,7 +124,7 @@ namespace token {
         if(i==0)
           buf += val[i]->toString();
         else
-          buf += ","+val[i]->toString();
+          buf += " "+val[i]->toString();
       return buf+")";
     } 
   private:
