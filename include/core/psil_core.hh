@@ -4,5 +4,7 @@
 #include "token/token.hh"
 #include "token/tokenizer.hh"
 #include "eval/evaluator.hh"
+#include "object/object.hh"
+#include "read/reader.hh"
 
 #endif

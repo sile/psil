@@ -1,7 +1,7 @@
 CC=g++
 CC_FLAGS=-Wall -ansi -pedantic-errors -I include/
 
-all: bin object bin/tokenize bin/eval
+all: bin object bin/tokenize bin/eval bin/read
 
 bin:
 	mkdir bin
@@ -14,6 +14,12 @@ bin/tokenize: src/bin/tokenize.cc include/core/psil_core.hh object/tokenizer.o
 
 bin/eval: src/bin/eval.cc include/core/psil_core.hh object/eval.o object/tokenizer.o
 	${CC} ${CC_FLAGS} -o ${@} ${<} object/eval.o object/tokenizer.o
+
+bin/read: src/bin/read.cc include/core/psil_core.hh object/reader.o
+	${CC} ${CC_FLAGS} -o ${@} ${<} object/reader.o
+
+object/reader.o: src/core/read/reader.cc include/core/object/object.hh include/core/read/reader.hh include/core/util/char_stream.hh
+	${CC} ${CC_FLAGS} -c -o ${@} ${<} 
 
 object/tokenizer.o: src/core/token/tokenizer.cc include/core/token/token.hh include/core/token/tokenizer.hh include/core/util/char_stream.hh
 	${CC} ${CC_FLAGS} -c -o ${@} ${<} 

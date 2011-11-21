@@ -7,9 +7,9 @@
 namespace psil {
 namespace core {
 namespace util {
-  template<typename T>
   class Str {
   public:
+    template <typename T>
     static std::string toString(const T& x) {
       std::stringstream ss;
       ss << x;
