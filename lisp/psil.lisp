@@ -6,3 +6,6 @@
 (defun read-from-string (str)
   (with-input-from-string (in str)
     (read in)))
+
+(defun eval (exp)
+  (psil.evaluator:eval exp))

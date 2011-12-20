@@ -9,4 +9,5 @@
   :serial t
   :components ((:file "package")
                (:file "reader")
-               (:file "psil"))) 
+               (:file "evaluator")
+               (:file "psil")))

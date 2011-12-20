@@ -98,5 +98,3 @@
     (symbol (list :symbol (read-symbol in)))
     (symbol-or-number (read-symbol-or-number in))
     (quote (list :quote (read-quote in)))))
-
-
