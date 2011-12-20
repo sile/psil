@@ -9,3 +9,6 @@
 
 (defun eval (exp)
   (psil.evaluator:eval exp))
+
+(defun init-env ()
+  (psil.evaluator:init-env))

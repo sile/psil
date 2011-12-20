@@ -78,9 +78,9 @@
   (labels ((recur ()
              (destructuring-bind (type value) (read in)
                (if (equal value ")")
-                   :nil
-                 (cons (list type value)
-                       (recur))))))
+                   (list :nil nil)
+                 (list :cons (list (list type value)
+                                   (recur)))))))
     (recur)))
 
 (defun read-symbol-or-number (in)
@@ -93,7 +93,7 @@
   (skip-whitespace in)
   (case (maybe-object-type in)
     (string (list :string (read-string in)))
-    (cons (list :cons (read-cons in)))
+    (cons (read-cons in))
     (array (list :array (read-array in)))
     (symbol (list :symbol (read-symbol in)))
     (symbol-or-number (read-symbol-or-number in))
