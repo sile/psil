@@ -17,6 +17,26 @@
 (defun @nil ()
   (list :nil nil))
 
+(defun @num (n)
+  (list :number n))
+
+(defun @mapc2 (fn list1 list2)
+  (labels ((recur (xs ys)
+             (unless (or (@nil-p xs) (@nil-p ys))
+               (with-car-cdr (x xs) xs
+                 (with-car-cdr (y ys) ys
+                   (funcall fn x y)
+                   (recur xs ys))))))
+    (recur list1 list2)))
+
+(defun @mapcar (fn list)
+  (labels ((recur (xs)
+             (unless (@nil-p xs)
+               (with-car-cdr (x xs) xs
+                 (cons (funcall fn x)
+                       (recur xs))))))
+    (recur list)))
+
 #|
 (eval-when (:load-toplevel :compile-toplevel)
  (defun native+ (x y)
@@ -181,10 +201,29 @@
       (error "[PSIL] The variable ~@(~a~) is unbounded." symbol))))
 
 (defparameter *system-symbols* '("nil" "t"
+                                 "macro-lambda"  ;; TODO
                                  "lambda" "progn" "if"))
 
 (defun self-sym (name)
   `(,name . (:symbol ,name)))
+
+(defun native-fun-sym (name fun)
+  `(,name . (:native-function ,fun)))
+
+(defun native.apply (fn args)
+  (let ((real-args (@mapcar #'second args)))
+    (apply fn real-args)))
+
+(defun n.+ (args) (@num (native.apply #'+ args)))
+(defun n.- (args) (@num (native.apply #'- args)))
+(defun n.* (args) (@num (native.apply #'* args)))
+(defun n./ (args) (@num (native.apply #'/ args)))
+(defun n.= (args) (if (native.apply #'= args) (@sym "t") (@nil)))
+(defun n./= (args) (if (native.apply #'/= args) (@sym "t") (@nil)))
+(defun n.< (args) (if (native.apply #'< args) (@sym "t") (@nil)))
+(defun n.> (args) (if (native.apply #'> args) (@sym "t") (@nil)))
+(defun n.<= (args) (if (native.apply #'<= args) (@sym "t") (@nil)))
+(defun n.>= (args) (if (native.apply #'>= args) (@sym "t") (@nil)))
 
 (defun predefined-symbols ()
   `(
@@ -193,6 +232,19 @@
     ,(self-sym "lambda")
     ,(self-sym "progn")
     ,(self-sym "if")
+    ,(self-sym "macro-lambda")
+
+    ,(native-fun-sym "identity" #'identity)
+    ,(native-fun-sym "+" #'n.+)
+    ,(native-fun-sym "-" #'n.-)
+    ,(native-fun-sym "/" #'n./)
+    ,(native-fun-sym "*" #'n.*)
+    ,(native-fun-sym "=" #'n.=)
+    ,(native-fun-sym "/=" #'n./=)
+    ,(native-fun-sym "<" #'n.<)
+    ,(native-fun-sym ">" #'n.>)
+    ,(native-fun-sym "<=" #'n.<=)
+    ,(native-fun-sym ">=" #'n.>=)
     ))
 
 (defun null-env ()
@@ -207,6 +259,7 @@
                    :special-form
                  :symbol))
       (:function :function)
+      (:native-function :native-function)
       (otherwise :other))))
 
 (defun make-function (args body env)
@@ -257,15 +310,6 @@
                     (,recur ,rest)))))
        (,recur ,xs))))
 
-(defun @mapc2 (fn list1 list2)
-  (labels ((recur (xs ys)
-             (unless (or (@nil-p xs) (@nil-p ys))
-               (with-car-cdr (x xs) xs
-                 (with-car-cdr (y ys) ys
-                   (funcall fn x y)
-                   (recur xs ys))))))
-    (recur list1 list2)))
-
 (defun bind-args (vars args env)
   (@mapc2 (lambda (v a)
             (bind-symbol (second v) a env))
@@ -274,14 +318,11 @@
 (defun eval-function (fun args _env)
   (declare (ignore _env))
   (destructuring-bind (type (vars body env)) fun
+    (declare (ignore type))
     (with-scope (env) 
       (bind-args vars args env)
       (eval body env))))
-#|    
-  (list :fun fun
-        :args args
-        :env env))
-|#
+
 (defun eval-args (args env)
   (if (@nil-p args)
       (@nil)
@@ -296,14 +337,16 @@
       (ecase (exp-car-type car-val)
         (:special-form (eval-special-form car-val cdr env))
         (:function (eval-function car-val (eval-args cdr env) env))
-        (:symbol 'todo) ; re-evaluate
+        (:native-function (funcall (second car-val) (eval-args cdr env)))
+        (:symbol (print :in) (eval-expression (@exp car-val cdr) env))
         (:other (error "[PSIL] ~a is can't placed in car of exp" car))))))
 
 (defun eval (exp &optional (env (null-env)))
   (destructuring-bind (type value) exp
     (ecase type
       (:function exp)
-      
+      (:native-function exp)
+
       (:cons (eval-expression exp env))
       (:symbol (eval-symbol exp env))
             
