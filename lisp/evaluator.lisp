@@ -5,6 +5,9 @@
            init-env))
 (in-package :psil.evaluator)
 
+(defun init-env ()
+  )
+
 (defun @sym (name)
   (list :symbol name))
 
@@ -37,136 +40,6 @@
                        (recur xs))))))
     (recur list)))
 
-#|
-(eval-when (:load-toplevel :compile-toplevel)
- (defun native+ (x y)
-  (make-number (+ (number-value x) (number-value y))))
-
- (defun native- (x y)
-  (make-number (- (number-value x) (number-value y))))
-
- (defun native* (x y)
-  (make-number (* (number-value x) (number-value y))))
-
- (defun native/ (x y)
-  (make-number (/ (number-value x) (number-value y)))))
-
-(defstruct env
-  (symbols (make-hash-table :test 'equal)))
-
-(defstruct fun
-  type
-  fn
-  arity)
-
-(defstruct lmd
-  args
-  body)
-
-(defun special-lambda (a &aux (args (cons-to-args (car a))) (body (cdr a)))
-  (assert (every (lambda (a)
-                   (eq (car a) :symbol)) args))
-  (make-fun :type :lambda
-            :fn (make-lmd :args args :body body)))
-
-(defun register-native-fun (symbol fun arity)
-  (setf (gethash symbol (env-symbols *env*))
-        (make-fun :type :native :fn fun :arity arity)))
-
-(defun register-special-fun (symbol fun arity)
-  (setf (gethash symbol (env-symbols *env*))
-        (make-fun :type :special :fn fun :arity arity)))
-
-(defun init-env ()
-  (setf *env* (make-env))
-
-  (loop FOR (sym fun arity) IN `(("+" ,#'native+ 2)
-                                 ("-" ,#'native- 2)
-                                 ("*" ,#'native* 2)
-                                 ("/" ,#'native/ 2))
-        DO
-        (register-native-fun sym fun arity))
-
-  (loop FOR (sym fun arity) IN `(("lambda" ,#'special-lambda nil))
-        DO
-        (register-special-fun sym fun arity))
-
-  *env*)
-
-(defparameter *env* (init-env))
-(defparameter *local-env* (make-env))
-
-(defun exp-nil? (exp)
-  (eq (car exp) :nil))
-
-(defun number-value (x)
-  (assert (eq :number (first x)) () "x=~a" x)
-  (second x))
-
-(defun make-number (x)
-  (list :number x))
-
-(defun eval-symbol (exp &aux (symbol (second exp)))
-  (multiple-value-bind (value) (or (gethash symbol (env-symbols *local-env*))
-                                           (gethash symbol (env-symbols *env*)))
-                                           
-    (if value
-        value
-      (error "[PSIL] The variable ~@(~a~) is unbound." symbol))))
-
-(defun cons-to-args (cons)
-  (if (eq :nil (first cons))
-      nil
-    (destructuring-bind (type (car cdr)) cons
-      (declare (ignore type))
-      (cons car (cons-to-args cdr)))))
-
-(defun eval-native-apply (fn arity args)
-  (assert (= (length args) arity))
-  (apply fn args))
-
-(defun eval-special (fn args)
-  (funcall fn args))
-
-(defun eval-lambda (lmd args)
-  (let ((*local-env* (make-env)))
-    (loop FOR var IN (lmd-args lmd)
-          FOR val IN args
-      DO
-      (setf (gethash (second var)#|xxx|# (env-symbols *local-env*)) val))
-    (eval (car (lmd-body lmd)))))
-
-(defun eval-apply (fn args)
-  (with-slots (type fn arity) fn
-    (let ((args (cons-to-args args)))
-      (ecase type
-        (:lambda (eval-lambda fn args))
-        (:special (eval-special fn args))
-        (:native (eval-native-apply fn arity (mapcar #'eval args)))))))
-
-(defun eval-expression (exp)
-  (destructuring-bind (type (car cdr)) exp
-    (declare (ignore type))
-    (let ((fn (ecase (first car)
-                (:symbol (eval-symbol car))
-                (:cons (eval car)))))
-      (eval-apply fn cdr))))
-
-#+C
-(defun eval (exp)
-  (destructuring-bind (type value) exp
-    (ecase type
-      (:function exp)
-      (:string exp)
-      (:cons (eval-expression exp))
-      (:array exp)
-      (:symbol (eval-symbol exp))
-      (:quote value)
-      (:number exp)
-      (:nil exp))))
-
-|#
-
 (defstruct env
   (symbol-bindings (list '())))
 
@@ -180,10 +53,14 @@
            (locally ,@body)
          (out-scope ,e)))))
 
+(defparameter *global-env* (make-env))
+
 (defun symbol-lookup (sym env)
   (labels ((recur (bindings-list)
              (if (null bindings-list)
-                 (values nil nil)
+                 (if (eq env *global-env*)
+                     (values nil nil)
+                   (symbol-lookup sym *global-env*))
                (destructuring-bind (bindings . rest) bindings-list
                  (if (null #1=(assoc sym bindings :test #'equal))
                      (recur rest)
@@ -199,10 +76,6 @@
     (if exists?
         value
       (error "[PSIL] The variable ~@(~a~) is unbounded." symbol))))
-
-(defparameter *system-symbols* '("nil" "t"
-                                 "macro-lambda"  ;; TODO
-                                 "lambda" "progn" "if"))
 
 (defun self-sym (name)
   `(,name . (:symbol ,name)))
@@ -224,6 +97,21 @@
 (defun n.> (args) (if (native.apply #'> args) (@sym "t") (@nil)))
 (defun n.<= (args) (if (native.apply #'<= args) (@sym "t") (@nil)))
 (defun n.>= (args) (if (native.apply #'>= args) (@sym "t") (@nil)))
+(defun n.define (args) 
+  (destructuring-bind (sym value . rest) (@mapcar #'identity args)
+    (declare (ignore rest))
+    (bind-symbol (second sym) value *global-env*)
+    sym))
+(defun n.print (args)
+  (with-car-cdr (car cdr) args
+    (declare (ignore cdr))
+    (print car)))
+(defun n.list (args)
+  args)
+
+(defparameter *system-symbols* '("nil" "t"
+                                 "macro-lambda" 
+                                 "lambda" "progn" "if"))
 
 (defun predefined-symbols ()
   `(
@@ -233,7 +121,6 @@
     ,(self-sym "progn")
     ,(self-sym "if")
     ,(self-sym "macro-lambda")
-
     ,(native-fun-sym "identity" #'identity)
     ,(native-fun-sym "+" #'n.+)
     ,(native-fun-sym "-" #'n.-)
@@ -245,6 +132,9 @@
     ,(native-fun-sym ">" #'n.>)
     ,(native-fun-sym "<=" #'n.<=)
     ,(native-fun-sym ">=" #'n.>=)
+    ,(native-fun-sym "define" #'n.define)
+    ,(native-fun-sym "print" #'n.print)
+    ,(native-fun-sym "list" #'n.list)  ; XXX: consで十分
     ))
 
 (defun null-env ()
@@ -259,12 +149,15 @@
                    :special-form
                  :symbol))
       (:function :function)
+      (:macro :macro)
       (:native-function :native-function)
       (otherwise :other))))
 
 (defun make-function (args body env)
   `(:function ,(list args (@exp (@sym "progn") body) (copy-env env))))
-    
+
+(defun make-macro-function (args body env)
+  `(:macro ,(list args (@exp (@sym "progn") body) (copy-env env))))
 
 (defmacro with-car-cdr ((car cdr) cons &body body)
   `(destructuring-bind (_ (,car ,cdr)) ,cons
@@ -294,6 +187,9 @@
   (cond ((string= symname "lambda")
          (with-car-cdr (args body) cdr
            (make-function args body env)))
+        ((string= symname "macro-lambda")
+         (with-car-cdr (args body) cdr
+           (make-macro-function args body env)))
         ((string= symname "progn")
          (eval-progn cdr env))
         ((string= symname "if")
@@ -337,6 +233,7 @@
       (ecase (exp-car-type car-val)
         (:special-form (eval-special-form car-val cdr env))
         (:function (eval-function car-val (eval-args cdr env) env))
+        (:macro (eval (eval-function car-val cdr env) env))
         (:native-function (funcall (second car-val) (eval-args cdr env)))
         (:symbol (print :in) (eval-expression (@exp car-val cdr) env))
         (:other (error "[PSIL] ~a is can't placed in car of exp" car))))))
@@ -345,6 +242,7 @@
   (destructuring-bind (type value) exp
     (ecase type
       (:function exp)
+      (:macro exp)
       (:native-function exp)
 
       (:cons (eval-expression exp env))
