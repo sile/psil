@@ -10,6 +10,13 @@
 
 (defun @exp (car cdr)
   (list :cons (list car cdr)))
+
+(defun @cons (car cdr)
+  (@exp car cdr))
+
+(defun @nil ()
+  (list :nil nil))
+
 #|
 (eval-when (:load-toplevel :compile-toplevel)
  (defun native+ (x y)
@@ -203,8 +210,8 @@
       (otherwise :other))))
 
 (defun make-function (args body env)
-  (list :function
-        args (@exp (@sym "progn") body) (copy-env env)))
+  `(:function ,(list args (@exp (@sym "progn") body) (copy-env env))))
+    
 
 (defmacro with-car-cdr ((car cdr) cons &body body)
   `(destructuring-bind (_ (,car ,cdr)) ,cons
@@ -240,20 +247,62 @@
          (eval-if cdr env))
         (t (error "eval-special-form: ~a" car))))
 
+(defmacro @dolist ((x xs) &body body)
+  (let ((recur (gensym))
+        (rest (gensym)))
+    `(labels ((,recur (,rest)
+                (unless (@nil-p ,rest)
+                  (with-car-cdr (,x ,rest) ,rest
+                    ,@body
+                    (,recur ,rest)))))
+       (,recur ,xs))))
+
+(defun @mapc2 (fn list1 list2)
+  (labels ((recur (xs ys)
+             (unless (or (@nil-p xs) (@nil-p ys))
+               (with-car-cdr (x xs) xs
+                 (with-car-cdr (y ys) ys
+                   (funcall fn x y)
+                   (recur xs ys))))))
+    (recur list1 list2)))
+
+(defun bind-args (vars args env)
+  (@mapc2 (lambda (v a)
+            (bind-symbol (second v) a env))
+          vars args))
+    
+(defun eval-function (fun args _env)
+  (declare (ignore _env))
+  (destructuring-bind (type (vars body env)) fun
+    (with-scope (env) 
+      (bind-args vars args env)
+      (eval body env))))
+#|    
+  (list :fun fun
+        :args args
+        :env env))
+|#
+(defun eval-args (args env)
+  (if (@nil-p args)
+      (@nil)
+    (with-car-cdr (arg rest) args
+      (@cons (eval arg env)
+             (eval-args rest env)))))
+
 (defun eval-expression (exp env)
   (destructuring-bind (type (car cdr)) exp
     (declare (ignore type))
     (let ((car-val (eval car env)))
       (ecase (exp-car-type car-val)
         (:special-form (eval-special-form car-val cdr env))
-        (:function)
+        (:function (eval-function car-val (eval-args cdr env) env))
         (:symbol 'todo) ; re-evaluate
         (:other (error "[PSIL] ~a is can't placed in car of exp" car))))))
 
 (defun eval (exp &optional (env (null-env)))
   (destructuring-bind (type value) exp
     (ecase type
-      (:function 'todo)
+      (:function exp)
       
       (:cons (eval-expression exp env))
       (:symbol (eval-symbol exp env))
