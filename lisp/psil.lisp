@@ -7,8 +7,8 @@
   (with-input-from-string (in str)
     (read in)))
 
-(defun eval (exp)
-  (psil.evaluator:eval exp))
+(defun eval (exp &key (env (psil.evaluator::null-env)))
+  (psil.evaluator:eval exp env))
 
 (defun init-env ()
   (psil.evaluator:init-env))

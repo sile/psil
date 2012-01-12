@@ -5,6 +5,25 @@
            init-env))
 (in-package :psil.evaluator)
 
+(defun @sym (name)
+  (list :symbol name))
+
+(defun @exp (car cdr)
+  (list :cons (list car cdr)))
+#|
+(eval-when (:load-toplevel :compile-toplevel)
+ (defun native+ (x y)
+  (make-number (+ (number-value x) (number-value y))))
+
+ (defun native- (x y)
+  (make-number (- (number-value x) (number-value y))))
+
+ (defun native* (x y)
+  (make-number (* (number-value x) (number-value y))))
+
+ (defun native/ (x y)
+  (make-number (/ (number-value x) (number-value y)))))
+
 (defstruct env
   (symbols (make-hash-table :test 'equal)))
 
@@ -60,18 +79,6 @@
 (defun make-number (x)
   (list :number x))
 
-(defun native+ (x y)
-  (make-number (+ (number-value x) (number-value y))))
-
-(defun native- (x y)
-  (make-number (- (number-value x) (number-value y))))
-
-(defun native* (x y)
-  (make-number (* (number-value x) (number-value y))))
-
-(defun native/ (x y)
-  (make-number (/ (number-value x) (number-value y))))
-
 (defun eval-symbol (exp &aux (symbol (second exp)))
   (multiple-value-bind (value) (or (gethash symbol (env-symbols *local-env*))
                                            (gethash symbol (env-symbols *env*)))
@@ -118,6 +125,7 @@
                 (:cons (eval car)))))
       (eval-apply fn cdr))))
 
+#+C
 (defun eval (exp)
   (destructuring-bind (type value) exp
     (ecase type
@@ -129,3 +137,118 @@
       (:quote value)
       (:number exp)
       (:nil exp))))
+
+|#
+
+(defstruct env
+  (symbol-bindings (list '())))
+
+(defun in-scope (env) (push '() (env-symbol-bindings env)))
+(defun out-scope (env) (pop (env-symbol-bindings env)))
+(defmacro with-scope ((env) &body body)
+  (let ((e (gensym)))
+    `(let ((,e ,env))
+       (in-scope ,e)
+       (unwind-protect
+           (locally ,@body)
+         (out-scope ,e)))))
+
+(defun symbol-lookup (sym env)
+  (labels ((recur (bindings-list)
+             (if (null bindings-list)
+                 (values nil nil)
+               (destructuring-bind (bindings . rest) bindings-list
+                 (if (null #1=(assoc sym bindings :test #'equal))
+                     (recur rest)
+                   (values (cdr #1#) t))))))
+    (recur (env-symbol-bindings env))))
+
+(defun bind-symbol (sym var env)
+  (push `(,sym . ,var) (first (env-symbol-bindings env)))
+  env)
+
+(defun eval-symbol (symbol env)
+  (multiple-value-bind (value exists?) (symbol-lookup (second symbol) env)
+    (if exists?
+        value
+      (error "[PSIL] The variable ~@(~a~) is unbounded." symbol))))
+
+(defparameter *system-symbols* '("lambda" "progn"))
+(defun predefined-symbols ()
+  `(
+    ("lambda" . (:symbol "lambda"))
+    ("progn" . (:symbol "progn"))
+    ))
+
+(defun null-env ()
+  (make-env :symbol-bindings (list (predefined-symbols))))
+(defun copy-env (env)
+  (make-env :symbol-bindings (copy-tree (env-symbol-bindings env))))
+
+(defun exp-car-type (exp)
+  (destructuring-bind (type value) exp
+    (case type
+      (:symbol (if (find value *system-symbols* :test #'string=)
+                   :special-form
+                 :symbol))
+      (:function :function)
+      (otherwise :other))))
+
+(defun make-function (args body env)
+  (list :function
+        args (@exp (@sym "progn") body) (copy-env env)))
+
+(defmacro with-car-cdr ((car cdr) cons &body body)
+  `(destructuring-bind (_ (,car ,cdr)) ,cons
+     (declare (ignore _))
+     ,@body))
+
+(defun @nil-p (x) (eq :nil (first x)))
+
+(defun eval-progn (exps env)
+  (with-car-cdr (car cdr) exps
+    (let ((val (eval car env)))
+      (if (@nil-p cdr)
+          val
+        (eval-progn cdr env)))))
+
+(defun eval-special-form (car cdr env &aux (symname (second car)))
+  (cond ((string= symname "lambda")
+         (with-car-cdr (args body) cdr
+           (make-function args body env)))
+        ((string= symname "progn")
+         (eval-progn cdr env))
+        (t (error "eval-special-form: ~a" car))))
+
+(defun eval-expression (exp env)
+  (destructuring-bind (type (car cdr)) exp
+    (declare (ignore type))
+    (let ((car-val (eval car env)))
+      (ecase (exp-car-type car-val)
+        (:special-form (eval-special-form car-val cdr env))
+        (:function)
+        (:symbol 'todo) ; re-evaluate
+        (:other (error "[PSIL] ~a is can't placed in car of exp" car))))))
+
+(defun eval (exp &optional (env (null-env)))
+  (destructuring-bind (type value) exp
+    (ecase type
+      (:function 'todo)
+      
+      (:cons (eval-expression exp env))
+      (:symbol (eval-symbol exp env))
+            
+      (:quote value)
+
+      (:string exp)
+      (:array exp)
+      (:number exp)
+      (:nil exp)))) ; TODO: nilの特別扱いを廃止?
+#|
+- special-form
+ - lambda
+ - if
+ - define
+- 基本関数
+- env
+|#
