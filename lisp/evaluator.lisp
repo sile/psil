@@ -173,11 +173,19 @@
         value
       (error "[PSIL] The variable ~@(~a~) is unbounded." symbol))))
 
-(defparameter *system-symbols* '("lambda" "progn"))
+(defparameter *system-symbols* '("nil" "t"
+                                 "lambda" "progn" "if"))
+
+(defun self-sym (name)
+  `(,name . (:symbol ,name)))
+
 (defun predefined-symbols ()
   `(
-    ("lambda" . (:symbol "lambda"))
-    ("progn" . (:symbol "progn"))
+    ("nil" . (:nil nil))
+    ,(self-sym "t")
+    ,(self-sym "lambda")
+    ,(self-sym "progn")
+    ,(self-sym "if")
     ))
 
 (defun null-env ()
@@ -212,12 +220,24 @@
           val
         (eval-progn cdr env)))))
 
+(defun eval-if (exps env)
+  ;; TODO: assert
+  (with-car-cdr (condition rest) exps
+    (with-car-cdr (then-exp rest) rest
+      (with-car-cdr (else-exp rest) rest
+        (assert (@nil-p rest))
+        (if (not (@nil-p (eval condition env)))
+            (eval then-exp env)
+          (eval else-exp env))))))
+        
 (defun eval-special-form (car cdr env &aux (symname (second car)))
   (cond ((string= symname "lambda")
          (with-car-cdr (args body) cdr
            (make-function args body env)))
         ((string= symname "progn")
          (eval-progn cdr env))
+        ((string= symname "if")
+         (eval-if cdr env))
         (t (error "eval-special-form: ~a" car))))
 
 (defun eval-expression (exp env)
