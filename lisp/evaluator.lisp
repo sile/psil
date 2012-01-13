@@ -108,6 +108,28 @@
     (print car)))
 (defun n.list (args)
   args)
+(defun n.first (args) ; XXX:
+  (first (@mapcar #'identity args)))
+(defun n.second (args) ; XXX:
+  (second (@mapcar #'identity args)))
+
+(defun n.car (list)
+  (with-car-cdr (car cdr) (n.first list)
+    (declare (ignore cdr))
+    car))
+
+(defun n.cdr (list)
+  (with-car-cdr (car cdr) (n.first list)
+    (declare (ignore car))
+    cdr))
+
+(defun n.cons (args)
+  (@cons (n.first args) (n.second args)))
+
+(defun n.null (list)
+  (if (@nil-p (n.first list))
+      '(:symbol "t")
+    (@nil)))
 
 (defparameter *system-symbols* '("nil" "t"
                                  "macro-lambda" 
@@ -135,6 +157,12 @@
     ,(native-fun-sym "define" #'n.define)
     ,(native-fun-sym "print" #'n.print)
     ,(native-fun-sym "list" #'n.list)  ; XXX: consで十分
+    ,(native-fun-sym "car" #'n.car)
+    ,(native-fun-sym "cdr" #'n.cdr)
+    ,(native-fun-sym "cons" #'n.cons)
+    ,(native-fun-sym "null" #'n.null)
+    ,(native-fun-sym "first" #'n.first)
+    ,(native-fun-sym "second" #'n.second)
     ))
 
 (defun null-env ()
@@ -261,4 +289,39 @@
  - define
 - 基本関数
 - env
+|#
+
+#|
+(psil:eval
+ (psil:read-from-string
+ "
+ (define 'mapcar (lambda (fn list)
+                  (if (null list)
+                      nil
+                    (cons (fn (car list))
+                          (mapcar fn (cdr list))))))
+ "))
+
+(psil:eval
+ (psil:read-from-string
+ "                           
+ (define 'let (macro-lambda (binds body)
+               (list
+                (list 'lambda (mapcar (lambda (bind)
+                                        (first bind))
+                                      binds)
+                      body)
+                (mapcar (lambda (bind)
+                          (second bind))
+                        binds))))
+ "))
+
+(psil:eval
+ (psil:read-from-string
+  "
+  (let ((a 10)
+        (b 20))
+    (list a b))
+  "
+  ))
 |#
