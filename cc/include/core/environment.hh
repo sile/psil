@@ -1,6 +1,7 @@
 #ifndef PSIL_CORE_ENVIRONMENT_HH
 #define PSIL_CORE_ENVIRONMENT_HH
 
+#include "symbol_table.hh"
 #include "bindings.hh"
 #include "object.hh"
 #include "util.hh"
@@ -11,8 +12,8 @@ namespace psil {
   namespace core {
     class environment {
     public:
-      environment() : parent(NULL) {}
-      environment(environment* parent) : parent(parent) {}
+      environment(symbol_table* symbols) : symbols(symbols), parent(NULL) {}
+      environment(symbol_table* symbols, environment* parent) : symbols(symbols), parent(parent) {}
 
       bindings& get_binds() { return binds; }
       
@@ -26,7 +27,7 @@ namespace psil {
       }
 
       environment* in_scope() {
-        return new environment(this);
+        return new environment(symbols, this);
       }
 
       environment* out_scope() {
@@ -45,12 +46,23 @@ namespace psil {
         native_fun_table[index] = fn;
       }
       
+      void bind_symbol(obj::symbol* symbol, obj::object* value) {
+        binds[symbol->value()] = value;
+      }
+
+      environment* get_global_env() { 
+        if(parent == NULL)
+          return this;
+        return parent->get_global_env();
+      }
+
     public:
       static NATIVE_FN native_fun_table[256]; // XXX:
 
     private:
       std::string buf;
       bindings binds;
+      symbol_table *symbols;
       environment* parent;
     };
 

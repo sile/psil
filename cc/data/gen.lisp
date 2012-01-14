@@ -6,13 +6,13 @@
 (defparameter *symbols*
   '(
     (0 "NIL") ; reserved
-    (1 "T")
+    (1 "T") ; reserved
     (2 "HELLO")
     (3 "LAMBDA")
     (4 "PROGN")
     (5 "A")
-    (6 "B")
-    (7 "C")
+;    (6 "B")
+;    (7 "C")
     (8 "IF")
     (9 "LAMDBA-MACRO")
     
@@ -242,10 +242,21 @@
            (:symbol 0)
            (:integer 2))))
 
+#+C
 (defparameter *body* 
-  '(:list ((:symbol 26)  ; write-byte
+  '(:list ((:symbol 27)  ; write-byte
+           (:integer 90)
            (:symbol 31))))
 
+(defparameter *body* 
+  '(:list ((:symbol 4) ; progn
+           (:list ((:symbol 21)  ; (set-symbol-value a 40)
+                   (:quote (:symbol 5))
+                   (:integer 40)))
+           (:list ((:symbol 10) ; (+ a 2 a)
+                   (:symbol 5)
+                   (:integer 2)
+                   (:symbol 5))))))
 
 (defun write-body (out)
   (write-data *body* out))

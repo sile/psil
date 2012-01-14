@@ -385,8 +385,8 @@ namespace psil {
 
       class function : public object {
       public:
-        function(list* params, list* body) 
-          : object(obj::O_FUNCTION), params(params), body(body) {
+        function(list* params, list* body, environment* e) 
+          : object(obj::O_FUNCTION), params(params), body(body), env(e) {
 
           X_LIST_EACH(p, params, {
               if(p->type() != obj::O_SYMBOL)
@@ -409,16 +409,18 @@ namespace psil {
 
         obj::list* get_params() const { return params; }
         obj::list* get_body() const { return body; }
-        
+        environment* get_env() const { return env; }
+
       protected:
         obj::list* params;
         obj::list* body;
+        environment* env;
       };
 
       class macro_function : public function {
       public:
-        macro_function(list* params, list* body) 
-          : function(params, body) {
+        macro_function(list* params, list* body, environment* e) 
+          : function(params, body, e) {
           m_type = obj::O_MACRO_FUNCTION;
         }
 
@@ -482,10 +484,19 @@ namespace psil {
       bool is_integer(object* o) {
         return o->type() == obj::O_INTEGER;
       }
+
+      bool is_symbol(object* o) {
+        return o->type() == obj::O_SYMBOL;
+      }
       
       integer* to_integer(object* o) {
         assert(is_integer(o));
         return (obj::integer*)o;
+      }
+
+      symbol* to_symbol(object* o) {
+        assert(is_symbol(o));
+        return (obj::symbol*)o;
       }
     }
   }

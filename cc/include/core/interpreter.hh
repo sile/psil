@@ -21,7 +21,7 @@ namespace psil {
       typedef bytecode_reader reader;
       
     public:
-      interpreter() {
+      interpreter() : env(&symbols) {
         std::cout << "[INITIALIZE]" << std::endl;
         std::cout << "# native function:" << std::endl;
         
@@ -30,7 +30,7 @@ namespace psil {
             native::i_plus, native::i_minus, native::i_mul, native::i_div,
             native::i_eql, native::i_less,
             native::car, native::cdr, native::cons,
-            0, 0, 0, 0, 0,
+            0, 0, native::set_symbol_value, 0, 0,
             0, 0, native::read_byte, native::write_byte
           };
         
@@ -201,13 +201,15 @@ namespace psil {
       obj::object* eval_sf_lambda(obj::list* args, environment& e) {
         assert(args->is_null()==false);
         return new obj::function(obj::lists::to_list(obj::lists::car(args)),
-                                 obj::lists::cdr_list(args));
+                                 obj::lists::cdr_list(args),
+                                 &e);
       }
 
       obj::object* eval_sf_lambda_macro(obj::list* args, environment& e) {
         assert(args->is_null()==false);
         return new obj::macro_function(obj::lists::to_list(obj::lists::car(args)),
-                                       obj::lists::cdr_list(args));
+                                       obj::lists::cdr_list(args),
+                                       &e);
       }
       
       obj::object* eval_sf_progn(obj::list* args, environment& e) {
@@ -221,7 +223,7 @@ namespace psil {
       }
       
       obj::object* eval_function(obj::function* fn, obj::list* args, environment& e) {
-        environment& fn_e = *e.in_scope();
+        environment& fn_e = *fn->get_env()->in_scope();
         fn_e.bind_symbols(fn->get_params(), eval_args(args, e));;
         return eval_expression(fn->get_body()->value(), fn_e);
       }

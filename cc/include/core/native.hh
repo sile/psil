@@ -101,6 +101,20 @@ namespace psil {
                              obj::lists::car(obj::lists::cdr_list(args)));
       }
 
+      // set-symbol-value
+      obj::object* set_symbol_value(obj::list* args, environment* env) {
+        assert(args->length() == 2);
+        
+        obj::object* fst = obj::lists::car(args);
+        obj::object* snd = obj::lists::car(obj::lists::cdr_list(args));        
+        
+        obj::symbol* sym = obj::to_symbol(fst);
+        
+        environment* g_env = env->get_global_env();
+        g_env->bind_symbol(sym, snd);
+        return sym;
+      }
+
       // open, close, read_byte, write_byte
       obj::object* read_byte(obj::list* args, environment* env) {
         assert(args->length() == 0 || args->length() == 1);
