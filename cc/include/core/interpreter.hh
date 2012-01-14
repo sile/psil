@@ -160,8 +160,10 @@ namespace psil {
         return result;
       }
       
-      obj::object* eval_function(obj::function* fun, obj::cons* args, environment& e) {
-        return NULL;
+      obj::object* eval_function(obj::function* fn, obj::cons* args, environment& e) {
+        environment& fn_e = *e.in_scope();
+        fn_e.bind_symbols(fn->get_params(), new obj::list(args));
+        return eval_expression(fn->get_body(), fn_e);
       }
       
       bool is_proper_list(obj::cons* cons) {

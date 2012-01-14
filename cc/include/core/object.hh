@@ -46,6 +46,11 @@ namespace psil {
           buf = "<<undef>>";
           return buf;
         }
+        
+        std::string show() {
+          std::string b;
+          return show(b);
+        }
 
         static object* read(std::istream& in) {
           ERR("Unexpected type: object");
@@ -334,8 +339,13 @@ namespace psil {
 
       class function : public object {
       public:
-        function(list* args, list* body) 
-          : object(obj::O_FUNCTION), args(args), body(body) {
+        function(list* params, list* body) 
+          : object(obj::O_FUNCTION), params(params), body(body) {
+
+          LIST_EACH(p, params, {
+              if(p->type() != obj::O_SYMBOL)
+                ERR(p->show() + " is not a symbol");
+          });
 
           // add implicit progn
           body->push(new special(special::PROGN));
@@ -344,15 +354,18 @@ namespace psil {
         std::string& show(std::string& buf) {
           std::string b;
           buf = "#<FUNCTION ";
-          buf += args->show(b);
+          buf += params->show(b);
           buf += " ";
           buf += body->show(b);
           buf += ">";
           return buf;
         }
 
+        obj::list* get_params() const { return params; }
+        obj::list* get_body() const { return body; }
+        
       private:
-        obj::list* args;
+        obj::list* params;
         obj::list* body;
       };
 

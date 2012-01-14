@@ -111,12 +111,21 @@
 (defparameter *body* 
   '(:symbol 3))
 
+#+C
 (defparameter *body* 
   '(:list ((:symbol 3)  ; lambda
            (:list ())   ; ()
            (:integer 1)
            (:integer 2)
            )))
+
+(defparameter *body* 
+  '(:list 
+    ((:list ((:symbol 3)  ; lambda
+             (:list ())   ; ()
+             (:integer 1)
+             (:symbol 2)
+             )))))
 
 #+C
 (defparameter *body* 

@@ -3,7 +3,9 @@
 
 #include "bindings.hh"
 #include "object.hh"
+#include "util.hh"
 #include <string>
+#include <cassert>
 
 namespace psil {
   namespace core {
@@ -29,6 +31,14 @@ namespace psil {
 
       environment* out_scope() {
         return parent;
+      }
+
+      void bind_symbols(obj::list* symbols, obj::list* values) {
+        assert(symbols->length() == values->length());
+
+        LIST_EACH2(sym, val, symbols, values, {
+            binds[((obj::symbol*)sym)->value()] = val;
+        });
       }
 
     private:
