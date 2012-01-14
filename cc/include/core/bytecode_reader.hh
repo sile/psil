@@ -46,11 +46,11 @@ namespace psil {
         }
       }
 
-    private:
       obj::object* read_object() {
         return obj::read_object(in);
       }
 
+    private:
       void read_int(int* ptr) {
         in.read(reinterpret_cast<char*>(ptr), sizeof(int));
       }

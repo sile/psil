@@ -1,6 +1,8 @@
 #ifndef PSIL_CORE_INTERPRETER_HH
 #define PSIL_CORE_INTERPRETER_HH
 
+#include "util.hh"
+
 #include "bytecode.hh"
 #include "bytecode_reader.hh"
 #include "symbol_table.hh"
@@ -31,7 +33,6 @@ namespace psil {
         // symbol-table
         in.read_symbol_table(hdr, symbols);
         
-        std::string buf;
         std::cout << "# symbol: " << std::endl;
         for(int i=0; i < symbols.size(); i++) {
           std::cout << " # [" << symbols.get_entry(i).code << "]" 
@@ -49,22 +50,43 @@ namespace psil {
           }
         }
         
-        /*
-        in.read_initial_data();
-        
-        
-        switch(in.read_type()) {
-        case bytecode::TYPE_SYMBOL:
-        case bytecode::TYPE_QUOTE:
-
-        case bytecode::TYPE_INT:
-        case bytecode::TYPE_NIL:
-          break;
-        }
-        */
+        // interpret
+        std::cout << "# interpret:" << std::endl;
+        do_interpret(in);
       }
 
     private:
+      void do_interpret(reader& in) {
+        obj::object* o = in.read_object();
+        std::cout << " # read: " << o->show(buf) << std::endl;
+        
+        obj::object* result;
+        switch(o->type()) {
+        case obj::O_CONS: break;
+        case obj::O_LIST: break;
+        case obj::O_REFER: break;
+
+        case obj::O_SYMBOL: 
+          result = symbol_value(reinterpret_cast<obj::symbol*>(o));
+          
+        case obj::O_OBJECT:          
+        case obj::O_INTEGER:
+        case obj::O_STRING: 
+          result = o;
+        }
+
+        std::cout << " # result: " << result->show(buf) << std::endl;
+      }
+      
+      obj::object* symbol_value(obj::symbol* sym) {
+        if(g_binds.find(sym->value()) == g_binds.end())
+          ERR(std::string("unbinded symbol: ")+sym->show(buf));
+        return g_binds[sym->value()];
+      }
+
+    private:
+      std::string buf;
+      
       symbol_table symbols;
       bindings g_binds;
     };

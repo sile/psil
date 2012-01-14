@@ -1,22 +1,9 @@
 #ifndef PSIL_CORE_OBJECT_HH
 #define PSIL_CORE_OBJECT_HH
 
+#include "util.hh"
 #include <string>
 #include <istream>
-#include <sstream>
-#include <iostream> // for debug
-
-namespace util {
-  class Str {
-  public:
-    template <typename T>
-    static std::string toString(const T& x) {
-      std::stringstream ss;
-      ss << x;
-      return ss.str();
-    }
-  };
-}
 
 namespace psil {
   namespace core {
@@ -25,6 +12,12 @@ namespace psil {
         int n;
         in.read(reinterpret_cast<char*>(&n), sizeof(int));
         return n;
+      }
+      
+      std::string& read_str(std::istream& in, int count, std::string& buf) {
+        buf.resize(count);
+        in.read(const_cast<char*>(buf.c_str()), count);
+        return buf;
       }
 
       enum OBJ_TYPE {
@@ -49,8 +42,7 @@ namespace psil {
         }
 
         static object* read(std::istream& in) {
-          std::cout << "[ERROR] Unexpected type " << std::endl;
-          throw "Unexcepted type: object";
+          ERR("Unexpected type: object");
         }
 
       protected:
@@ -69,6 +61,8 @@ namespace psil {
           buf += ">";
           return buf;
         }
+
+        int value() const { return code; }
 
         static object* read(std::istream& in) {
           return new symbol(read_int(in));
@@ -210,6 +204,12 @@ namespace psil {
           buf += "\"";
           return buf;
         }
+
+        static object* read(std::istream& in) {
+          int len = read_int(in);
+          std::string buf;
+          return new string(read_str(in, len, buf).c_str());
+        }
       };
 
       object* read_object(std::istream& in) {
@@ -223,7 +223,7 @@ namespace psil {
         case O_OBJECT: return object::read(in);
         case O_SYMBOL: return symbol::read(in);
         default:
-          throw "Unexpected type:";
+          ERR(std::string("Unexpected type: ") + util::to_string(type));
         }
       }
     }
