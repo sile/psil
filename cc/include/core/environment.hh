@@ -36,7 +36,7 @@ namespace psil {
       void bind_symbols(obj::list* symbols, obj::list* values) {
         assert(symbols->length() == values->length());
 
-        LIST_EACH2(sym, val, symbols, values, {
+        X_LIST_EACH2(sym, val, symbols, values, {
             binds[((obj::symbol*)sym)->value()] = val;
         });
       }

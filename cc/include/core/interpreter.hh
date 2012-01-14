@@ -132,7 +132,7 @@ namespace psil {
 
       obj::object* eval_cons(obj::cons* o, environment& e) {
         obj::object* car = eval_expression(o->get_car(), e);
-        obj::cons* args = (obj::cons*)o->get_cdr();
+        obj::list* args = obj::lists::to_list(o->get_cdr());
 
         switch(car->type()) {
         case obj::O_SPECIAL:
@@ -160,7 +160,7 @@ namespace psil {
         return o;
       }
 
-      obj::object* eval_special_form(obj::special* sf, obj::cons* args, environment& e) {
+      obj::object* eval_special_form(obj::special* sf, obj::list* args, environment& e) {
         switch(sf->value()) {
         case obj::special::LAMBDA:
           return eval_sf_lambda(args ,e);
@@ -179,55 +179,56 @@ namespace psil {
         }
       }
 
-      obj::object* eval_sf_if(obj::cons* args, environment& e) {
-        assert(obj::is_nil(args)==false);
-        obj::object* cond = obj::list::car(args);
+      obj::object* eval_sf_if(obj::list* args, environment& e) {
+        assert(args->is_null()==false);
+        obj::object* cond = obj::lists::car(args);
         
-        args = (obj::cons*)obj::list::cdr(args);
-        assert(obj::is_nil(args)==false);
-        obj::object* then = obj::list::car(args);
+        args = obj::lists::cdr_list(args);
+        assert(args->is_null()==false);
+        obj::object* then = obj::lists::car(args);
         
-        args = (obj::cons*)obj::list::cdr(args);
-        obj::object* alt = obj::list::car(args); // optional
+        args = obj::lists::cdr_list(args);
+        obj::object* alt = obj::lists::car(args); // optional
         
         if(obj::is_nil(eval_expression(cond, e)))
           return eval_expression(alt, e);
         return eval_expression(then, e);
       }
       
-      obj::object* eval_sf_lambda(obj::cons* args, environment& e) {
-        assert(obj::is_nil(args) == false);
-        return new obj::function(new obj::list(obj::list::car(args)),
-                                 new obj::list(obj::list::cdr(args)));
+      obj::object* eval_sf_lambda(obj::list* args, environment& e) {
+        assert(args->is_null()==false);
+        return new obj::function(obj::lists::to_list(obj::lists::car(args)),
+                                 obj::lists::cdr_list(args));
       }
 
-      obj::object* eval_sf_lambda_macro(obj::cons* args, environment& e) {
-        assert(obj::is_nil(args) == false);
-        return new obj::macro_function(new obj::list(obj::list::car(args)),
-                                       new obj::list(obj::list::cdr(args)));
+      obj::object* eval_sf_lambda_macro(obj::list* args, environment& e) {
+        assert(args->is_null()==false);
+        return new obj::macro_function(obj::lists::to_list(obj::lists::car(args)),
+                                       obj::lists::cdr_list(args));
       }
       
-      obj::object* eval_sf_progn(obj::cons* args, environment& e) {
-        obj::object* result;
-        obj::object* cur = result = args;
-        for(; obj::is_nil(cur) == false; cur = obj::list::cdr(cur)) {
-          result = eval_expression(obj::list::car(cur), e);
-        }
+      obj::object* eval_sf_progn(obj::list* args, environment& e) {
+        obj::object* result = obj::o_nil();
+
+        X_LIST_EACH(a, args, {
+            result = eval_expression(a, e);
+          });
+
         return result;
       }
       
-      obj::object* eval_function(obj::function* fn, obj::cons* args, environment& e) {
+      obj::object* eval_function(obj::function* fn, obj::list* args, environment& e) {
         environment& fn_e = *e.in_scope();
-        fn_e.bind_symbols(fn->get_params(), new obj::list(args));
-        return eval_expression(fn->get_body(), fn_e);
+        fn_e.bind_symbols(fn->get_params(), args);
+        return eval_expression(fn->get_body()->value(), fn_e);
       }
 
-      obj::object* eval_macro_function(obj::macro_function* fn, obj::cons* args, environment& e) {
+      obj::object* eval_macro_function(obj::macro_function* fn, obj::list* args, environment& e) {
         return eval_expression(eval_function(fn, args, e), e);
       }
 
-      obj::object* eval_native_function(obj::native_function* fn, obj::cons* args, environment& e) {
-        return fn->apply(environment::native_fun_table, new obj::list(args), &e);
+      obj::object* eval_native_function(obj::native_function* fn, obj::list* args, environment& e) {
+        return fn->apply(environment::native_fun_table, args, &e);
       }
       
       bool is_proper_list(obj::cons* cons) {

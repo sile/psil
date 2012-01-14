@@ -12,7 +12,7 @@ namespace psil {
       // +, -, *, /
       obj::object* i_plus(obj::list* args, environment* env) {
         int sum = 0;
-        LIST_EACH(n, args, {
+        X_LIST_EACH(n, args, {
             sum += obj::to_integer(n)->value();
         });
         return new obj::integer(sum);
@@ -21,8 +21,8 @@ namespace psil {
       obj::object* i_minus(obj::list* args, environment* env) {
         assert(args->length() > 0);
 
-        int sum = obj::to_integer(obj::list::car(args))->value();
-        LIST_EACH(n, obj::list::cdr_list(args), {
+        int sum = obj::to_integer(obj::lists::car(args))->value();
+        X_LIST_EACH(n, obj::lists::cdr_list(args), {
             sum -= obj::to_integer(n)->value();
         });
         return new obj::integer(sum);
@@ -30,7 +30,7 @@ namespace psil {
 
       obj::object* i_mul(obj::list* args, environment* env) {
         int sum = 1;
-        LIST_EACH(n, args, {
+        X_LIST_EACH(n, args, {
             sum *= obj::to_integer(n)->value();
         });
         return new obj::integer(sum);
@@ -39,8 +39,8 @@ namespace psil {
       obj::object* i_div(obj::list* args, environment* env) {
         assert(args->length() > 0);
 
-        int sum = obj::to_integer(obj::list::car(args))->value();
-        LIST_EACH(n, obj::list::cdr_list(args), {
+        int sum = obj::to_integer(obj::lists::car(args))->value();
+        X_LIST_EACH(n, obj::lists::cdr_list(args), {
             sum /= obj::to_integer(n)->value();
         });
         return new obj::integer(sum);
@@ -50,8 +50,8 @@ namespace psil {
       obj::object* i_eql(obj::list* args, environment* env) {
         assert(args->length() > 0);
         
-        int a = obj::to_integer(obj::list::car(args))->value();
-        LIST_EACH(n, obj::list::cdr_list(args), {
+        int a = obj::to_integer(obj::lists::car(args))->value();
+        X_LIST_EACH(n, obj::lists::cdr_list(args), {
             if(a != obj::to_integer(n)->value())
               return obj::o_nil();
         });
@@ -62,8 +62,8 @@ namespace psil {
       obj::object* i_less(obj::list* args, environment* env) {
         assert(args->length() > 0);
         
-        int a = obj::to_integer(obj::list::car(args))->value();
-        LIST_EACH(n, obj::list::cdr_list(args), {
+        int a = obj::to_integer(obj::lists::car(args))->value();
+        X_LIST_EACH(n, obj::lists::cdr_list(args), {
             if(!(a < obj::to_integer(n)->value())) 
               return obj::o_nil();
             a = obj::to_integer(n)->value();

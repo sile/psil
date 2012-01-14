@@ -1,5 +1,5 @@
 CC=g++
-CC_FLAGS=-Wall -ansi -pedantic-errors -I include/
+CC_FLAGS=-Wall -ansi -pedantic-errors -I include/ -std=c++0x
 
 INC=include/core
 

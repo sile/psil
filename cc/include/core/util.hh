@@ -9,7 +9,7 @@ namespace psil {
   namespace core {
     namespace obj {
       class object;
-      class list;
+      union list;
     }
     class environment;
 
@@ -40,6 +40,27 @@ namespace psil {
 }
 
 #define PC_OBJ psil::core::obj
+
+#define X_LIST_EACH(var, list_val, exp)   \
+  {\
+    PC_OBJ::list* cur = (PC_OBJ::list*)(list_val);           \
+    for(; cur->is_null()==false; cur = PC_OBJ::lists::cdr_list(cur)) { \
+      PC_OBJ::object* var = PC_OBJ::lists::car(cur); \
+      exp \
+    } \
+  }
+
+#define X_LIST_EACH2(var1, var2, list_val1, list_val2, exp)  \
+  {\
+    PC_OBJ::list* cur1 = (PC_OBJ::list*)(list_val1);                     \
+    PC_OBJ::list* cur2 = (PC_OBJ::list*)(list_val2);                     \
+    for(; cur1->is_null()==false && cur2->is_null()==false;             \
+        cur1 = PC_OBJ::lists::cdr_list(cur1), cur2 = PC_OBJ::lists::cdr_list(cur2)) { \
+          PC_OBJ::object* var1 = PC_OBJ::lists::car(cur1);               \
+          PC_OBJ::object* var2 = PC_OBJ::lists::car(cur2);              \
+          exp                                                           \
+    } \
+  }
 
 #define LIST_EACH(var, list_val, exp)   \
   {\

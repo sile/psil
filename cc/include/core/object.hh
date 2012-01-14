@@ -167,7 +167,7 @@ namespace psil {
       symbol NIL(0);
       symbol TRUE(1);
       
-      bool is_nil(object* o) { 
+      bool is_nil(const object* o) { 
         if(o==&NIL)
           return true;
         
@@ -186,131 +186,40 @@ namespace psil {
         object* get_cdr() const { return cdr; }
         void set_cdr(object* _cdr) { cdr=_cdr; }
         void set_car(object* _car) { car=_car; }
+
+        std::string& show(std::string& buf);      
+
+        bool is_proper_list() const {
+          const cons* cur = this;
+          for(;; cur = (const cons*)cur->cdr) {
+            if(is_nil(cur->cdr))
+              return true;
+            if(cur->cdr->type() != obj::O_CONS)
+              return false;
+          }
+        }
+
       private:
         object* car;
         object* cdr;
       };
       
-      // TODO: => union{cons, nil} に変更
-      class list : public object {
-      public:
-        list() : object(obj::O_LIST), head(&NIL) {
-        }
-
-        list(object* o) : object(obj::O_LIST) {
-          switch(o->type()) {
-          case obj::O_LIST:
-            head = ((list*)o)->head;
-            break;
-          case obj::O_CONS:
-            head = o;
-            break;
-          case obj::O_SYMBOL:
-            if(is_nil(o)) {
-              head = o;
-              break;
-            }
-          default:
-            ERR(o->type() + " can't be converted to list");
-          }
-        }
+      union list {
+        cons u_cons;
+        symbol u_nil;
+        object u_obj;
         
-        void push(object* x) {
-          head = new cons(x, head);
-        }
+        OBJ_TYPE type() const { return u_obj.type(); }
+        bool is_null() const { return is_nil(&u_obj); }
 
-        int length() const {
-          const object* cur=head;;
-          int len=0;
-          while(cur != &NIL) {
-            cur = cdr(cur);
-            len++;
-          }
-          return len;
-        }
+        std::string& show(std::string& buf);
+        static object* read(std::istream& in);
 
-        void reverse() {
-          object* cur = head;
-          object* next = &NIL;
-          while(cur != &NIL) {
-            object* tmp = cdr(cur);
-            reinterpret_cast<cons*>(cur)->set_cdr(next);
-            next = cur;
-            
-            cur = tmp;
-          }
-          head = next;
-        }
-        
-        object* value() const { return head; }
-        
-        static object* cdr(const object* x) {
-          if(x==&NIL)
-            return &NIL;
-          if(x->type()==obj::O_LIST)
-            x = ((list*)x)->value();
-          return reinterpret_cast<const cons*>(x)->get_cdr();
-        }
-        static list* cdr_list(const object* x) {
-          return new list(cdr(x));
-        }
+        int length() const;
 
-        static object* car(const object* x) {
-          if(x==&NIL)
-            return &NIL;
-          if(x->type()==obj::O_LIST)
-            x = ((list*)x)->value();
-          return reinterpret_cast<const cons*>(x)->get_car();
-        }
-
-        bool operator==(const list& x) const {
-          if(length() != x.length())
-            return false;
-
-          const object* a = head;
-          const object* b = x.head;
-          while(a != &NIL) {
-            if(!(car(a) == car(b)))
-              return false;
-            a = cdr(a);
-            b = cdr(b);
-          }
-          
-          return true;
-        }
-
-        std::string& show(std::string& buf) {
-          std::string b;
-          buf = "#<LIST";
-
-          object* cur=head;
-          while(cur != &NIL) {
-            buf += " ";
-            buf += car(cur)->show(b);
-            cur = cdr(cur);
-          }
-          
-          buf += ">";
-          return buf;
-        }
-                  
-        static object* read(std::istream& in) {
-          list* lst = new list();
-          int len = read_int(in);
-          for(int i=0; i < len; i++) {
-            lst->push(read_object(in));
-          }
-          lst->reverse();
-          return lst;
-        }        
-
-      protected:
-        list(OBJ_TYPE type) : object(type), head(&NIL) {
-        }
-      protected:
-        object* head;
+        object* value() { return &u_obj; }
       };
-      
+
       class integer : public object {
       public:
         integer(int n) : object(obj::O_INTEGER), n(n) {
@@ -333,25 +242,120 @@ namespace psil {
         int n;
       };
 
-      class string : public list {
-      public:
-        string() : list(obj::O_STRING) {
-        }
-        string(const char* src) : list(obj::O_STRING) {
-          for(const char* c=src; *c != '\0'; c++) {
-            push(new integer((int)*c&0xFF));
+      struct lists {
+        static list* reverse(list* cur) {
+          object* next = &NIL;
+          while(cur->is_null()==false) {
+            object* tmp = cdr(cur);
+            cur->u_cons.set_cdr(next);
+            next = cur->value();
+            // XXX:
+            cur = (list*)tmp;
           }
-          reverse();
+          return (list*)next;
+        }
+        
+        static object* car(list* x) {
+          if(x->is_null())
+            return &NIL;
+          return x->u_cons.get_car();
+        }
+        
+        static object* cdr(list* x) {
+          if(x->is_null())
+            return &NIL;
+          return x->u_cons.get_cdr();          
+        }
+
+        static list* cdr_list(list* x) {
+          // TODO: validation
+          return to_list(cdr(x));
+        }
+
+        static list* to_list(object* x) {
+          return reinterpret_cast<list*>(x);
+        }
+
+        static bool eql(const list* x, const list* y) {
+          if(x->length() != y->length())
+            return false;
+          
+          X_LIST_EACH2(a, b, x, y, {
+              if(!(a==b))
+                return false;
+            });
+          
+          return true;
+        }
+      };
+
+      int list::length() const {
+        int len = 0;
+        X_LIST_EACH(x, this, {
+            assert(x); // XXX:
+            len++;
+          });
+        return len-1;
+      }
+      object* list::read(std::istream& in) {
+        list* head = lists::to_list(&NIL);
+        int len = read_int(in);
+        for(int i=0; i < len; i++) {
+          head = lists::to_list(new cons(read_object(in), &head->u_obj));
+        }
+        return &lists::reverse(head)->u_obj;
+      }   
+
+      std::string& list::show(std::string& buf) {
+          std::string b;
+          buf = "#<LIST";
+          
+          X_LIST_EACH(x, this, {
+              buf += " ";
+              buf += x->show(b);
+            });
+          
+          buf += ">";
+          return buf;
+      }
+
+      std::string& cons::show(std::string& buf) {
+        if(is_proper_list()) 
+          return lists::to_list(this)->show(buf);
+        
+        std::string b;
+        buf = "#<CONS";
+        
+        object* cur = this;
+        for(; cur->type()==obj::O_CONS; cur = ((cons*)cur)->cdr) {
+          buf += " ";
+          buf += ((cons*)cur)->car->show(b);
+        }
+        buf += " . ";
+        buf += cur->show(b);
+
+        buf += ">";
+        return buf;
+      }
+
+      class string : public object {
+      public:
+        string() : object(obj::O_STRING), head(lists::to_list(&NIL)) {
+        }
+        
+        string(const char* src) : object(obj::O_STRING), head(lists::to_list(&NIL)) {
+          for(const char* c=src; *c != '\0'; c++) {
+            head = lists::to_list(new cons(new integer((int)*c&0xFF), &head->u_obj));
+          }
+          head = lists::reverse(head);
         }
         
         std::string& show(std::string& buf) {
           buf = "\"";
 
-          const object* cur=head;;
-          while(cur != &NIL) {
-            buf += (char)((integer*)car(cur))->value();
-            cur = cdr(cur);
-          }
+          X_LIST_EACH(x, head, {
+              buf += ((integer*)x)->value();
+            });
           
           buf += "\"";
           return buf;
@@ -362,6 +366,13 @@ namespace psil {
           std::string buf;
           return new string(read_str(in, len, buf).c_str());
         }
+
+        bool operator==(const string& str) const {
+          return lists::eql(head, str.head);
+        }
+
+      private:
+        list* head;
       };
 
       class function : public object {
@@ -369,13 +380,13 @@ namespace psil {
         function(list* params, list* body) 
           : object(obj::O_FUNCTION), params(params), body(body) {
 
-          LIST_EACH(p, params, {
+          X_LIST_EACH(p, params, {
               if(p->type() != obj::O_SYMBOL)
                 ERR(p->show() + " is not a symbol");
           });
 
           // add implicit progn
-          body->push(new special(special::PROGN));
+          body = lists::to_list(new cons(new special(special::PROGN), &body->u_obj));
         }
 
         std::string& show(std::string& buf) {
