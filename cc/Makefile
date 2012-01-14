@@ -11,7 +11,7 @@ bin:
 bin/psil: src/bin/psil.cc ${INC}/psil.hh
 	${CC} ${CC_FLAGS} -o ${@} ${<}
 
-include/core/psil.hh: ${INC}/interpreter.hh ${INC}/bytecode_reader.hh ${INC}/bytecode.hh ${INC}/symbol_table.hh ${INC}/object.hh
+include/core/psil.hh: ${INC}/interpreter.hh ${INC}/bytecode_reader.hh ${INC}/bytecode.hh ${INC}/symbol_table.hh ${INC}/object.hh ${INC}/bindings.hh
 	touch ${@}
 
 clean:

@@ -158,13 +158,15 @@ namespace psil {
         }
         
         std::string& show(std::string& buf) {
-          buf.clear();
+          buf = "\"";
 
           const object* cur=head;;
           while(cur != &NIL) {
             buf += (char)((integer*)car(cur))->value();
             cur = cdr(cur);
           }
+          
+          buf += "\"";
           return buf;
         }
       };

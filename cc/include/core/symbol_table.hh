@@ -7,7 +7,7 @@
 namespace psil {
   namespace core {
     class symbol_table {
-    private:
+    public:
       struct entry {
         int code;
         obj::string* name;
@@ -33,6 +33,9 @@ namespace psil {
         table.push_back(e);
       }
       
+      int size() const { return table.size(); }
+      
+      const entry& get_entry(int i) const { return table[i]; }
     private:
       std::vector<entry> table;
     };
