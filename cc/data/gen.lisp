@@ -52,7 +52,8 @@
 
 (defun type-code (type)
   (position type '(:object :cons :list :string :refer :integer
-                           :symbol :quote :function :special)))
+                           :symbol :quote :function :special
+                           :macro-function :native-function)))
 
 (defun write-symbol (fields out)
   (assert (= (length fields) 1))
@@ -83,6 +84,9 @@
 
 (defun @write-special (fields out)
   (@write-integer fields out))
+
+(defun @write-native-function (fields out)
+  (@write-integer fields out))
   
 (defun write-data (data out)
   (destructuring-bind (type . fields) data
@@ -94,6 +98,7 @@
       (:integer (@write-integer fields out))
       (:list (@write-list fields out))
       (:special (@write-special fields out))
+      (:native-function (@write-native-function fields out))
       )))
 
 (defun write-init-data (out)
@@ -148,6 +153,7 @@
            (:integer 2)
            (:integer 3))))
 
+#+C
 (defparameter *body* 
   '(:list
     ((:list ((:symbol 9)  ; lambda-macro
@@ -156,6 +162,9 @@
            (:integer 2)
            )))
     ))
+
+(defparameter *body* 
+  '(:native-function 0))
 
 (defun write-body (out)
   (write-data *body* out))

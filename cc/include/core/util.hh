@@ -7,6 +7,15 @@
 
 namespace psil {
   namespace core {
+    namespace obj {
+      class object;
+      class list;
+    }
+    class environment;
+
+    // XXX: move (type.hh?)
+    typedef obj::object* (*NATIVE_FN) (obj::list*, environment*);
+
     namespace util {
       class Str {
       public:

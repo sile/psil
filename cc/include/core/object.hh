@@ -34,7 +34,8 @@ namespace psil {
         O_QUOTE,
         O_FUNCTION,
         O_SPECIAL,
-        O_MACRO_FUNCTION
+        O_MACRO_FUNCTION,
+        O_NATIVE_FUNCTION
       };
 
       class object {
@@ -391,7 +392,6 @@ namespace psil {
           m_type = obj::O_MACRO_FUNCTION;
         }
 
-
         std::string& show(std::string& buf) {
           std::string b;
           buf = "#<MACRO_FUNCTION ";
@@ -401,6 +401,30 @@ namespace psil {
           buf += ">";
           return buf;
         }
+      };
+
+      class native_function : public object {
+      public:
+        native_function(int fn_index) 
+          : object(obj::O_NATIVE_FUNCTION), fn_index(fn_index) {}
+        
+        obj::object* apply(NATIVE_FN* table, obj::list* args, environment* env) {
+          return table[fn_index](args, env);
+        }
+
+        std::string& show(std::string& buf) {
+          buf = "#<NATIVE_FUNCTION ";
+          buf += util::to_string(fn_index);
+          buf += ">";
+          return buf;
+        }
+        
+        static object* read(std::istream& in) {
+          return new native_function(read_int(in));
+        }               
+
+      private:
+        int fn_index;
       };
 
       object* read_object(std::istream& in) {
@@ -415,6 +439,7 @@ namespace psil {
         case O_SYMBOL: return symbol::read(in);
         case O_QUOTE: return quote::read(in);
         case O_SPECIAL: return special::read(in);
+        case O_NATIVE_FUNCTION: return native_function::read(in);
         default:
           ERR(std::string("Unexpected type: ") + util::to_string(type));
         }

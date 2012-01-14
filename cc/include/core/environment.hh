@@ -40,12 +40,17 @@ namespace psil {
             binds[((obj::symbol*)sym)->value()] = val;
         });
       }
+      
+    public:
+      static NATIVE_FN native_fun_table[256]; // XXX:
 
     private:
       std::string buf;
       bindings binds;
       environment* parent;
     };
+
+    NATIVE_FN environment::native_fun_table[256] = {NULL};
   }
 }
 

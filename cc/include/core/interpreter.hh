@@ -102,6 +102,7 @@ namespace psil {
         case obj::O_STRING: 
         case obj::O_FUNCTION:
         case obj::O_MACRO_FUNCTION:
+        case obj::O_NATIVE_FUNCTION:
         case obj::O_SPECIAL:
           result = o;
           break;
@@ -123,6 +124,9 @@ namespace psil {
         case obj::O_MACRO_FUNCTION:
           return eval_macro_function((obj::macro_function*)car, args, e);
 
+        case obj::O_NATIVE_FUNCTION:
+          return eval_native_function((obj::native_function*)car, args, e);
+          
         case obj::O_QUOTE:
         case obj::O_SYMBOL: 
         case obj::O_REFER: 
@@ -200,6 +204,10 @@ namespace psil {
 
       obj::object* eval_macro_function(obj::macro_function* fn, obj::cons* args, environment& e) {
         return eval_expression(eval_function(fn, args, e), e);
+      }
+
+      obj::object* eval_native_function(obj::native_function* fn, obj::cons* args, environment& e) {
+        return fn->apply(environment::native_fun_table, new obj::list(args), &e);
       }
       
       bool is_proper_list(obj::cons* cons) {
