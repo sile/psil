@@ -2,18 +2,39 @@
 #define PSIL_CORE_OBJECT_HH
 
 #include <string>
+#include <istream>
+#include <sstream>
+#include <iostream> // for debug
+
+namespace util {
+  class Str {
+  public:
+    template <typename T>
+    static std::string toString(const T& x) {
+      std::stringstream ss;
+      ss << x;
+      return ss.str();
+    }
+  };
+}
 
 namespace psil {
   namespace core {
     namespace obj {
+      int read_int(std::istream& in) {
+        int n;
+        in.read(reinterpret_cast<char*>(&n), sizeof(int));
+        return n;
+      }
+
       enum OBJ_TYPE {
         O_OBJECT=0,
-        O_NIL,
         O_CONS,
         O_LIST,
         O_STRING,
         O_REFER,
-        O_INTEGER
+        O_INTEGER,
+        O_SYMBOL
       };
 
       class object {
@@ -27,9 +48,33 @@ namespace psil {
           return buf;
         }
 
+        static object* read(std::istream& in) {
+          std::cout << "[ERROR] Unexpected type " << std::endl;
+          throw "Unexcepted type: object";
+        }
+
       protected:
         object(OBJ_TYPE type) : m_type(type) {}
         OBJ_TYPE m_type;
+      };
+
+      class symbol : public object {
+      public:
+        symbol(int code) : object(obj::O_SYMBOL), code(code) {
+        }
+
+        std::string& show(std::string& buf) {
+          buf = "#<SYMBOL ";
+          buf += util::Str::toString(code);
+          buf += ">";
+          return buf;
+        }
+
+        static object* read(std::istream& in) {
+          return new symbol(read_int(in));
+        }
+      private:
+        int code;
       };
 
       class refer : public object {
@@ -42,12 +87,8 @@ namespace psil {
       private:
         object* x;
       };
-      
-      class nil : public object {
-      public:
-        nil() : object(obj::O_NIL) {}
-      };
-      nil NIL;
+
+      symbol NIL(0);
       
       class cons : public object {
       public:
@@ -170,6 +211,21 @@ namespace psil {
           return buf;
         }
       };
+
+      object* read_object(std::istream& in) {
+        int type = read_int(in);
+        switch(type) {
+        case O_CONS: return cons::read(in);
+        case O_LIST: return list::read(in);
+        case O_STRING: return string::read(in);
+        case O_REFER: return refer::read(in);
+        case O_INTEGER: return integer::read(in);
+        case O_OBJECT: return object::read(in);
+        case O_SYMBOL: return symbol::read(in);
+        default:
+          throw "Unexpected type:";
+        }
+      }
     }
   }
 }

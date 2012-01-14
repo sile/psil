@@ -21,6 +21,7 @@ namespace psil {
       struct header {
         int version;
         int symbol_count;
+        int data_count;
       };
     };
   }

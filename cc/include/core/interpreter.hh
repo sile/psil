@@ -27,7 +27,6 @@ namespace psil {
         in.read_header(hdr);
         
         std::cout << "# version: " << hdr.version << std::endl;
-        std::cout << "# symbol count: " << hdr.symbol_count << std::endl;
         
         // symbol-table
         in.read_symbol_table(hdr, symbols);
@@ -35,13 +34,21 @@ namespace psil {
         std::string buf;
         std::cout << "# symbol: " << std::endl;
         for(int i=0; i < symbols.size(); i++) {
-          std::cout << " # " << symbols.get_entry(i).name->show(buf)
-                    << "[" << symbols.get_entry(i).code << "]" << std::endl;
+          std::cout << " # [" << symbols.get_entry(i).code << "]" 
+                    << " " << symbols.get_entry(i).name->show(buf) << std::endl;
         }
 
         // initial-data
-        in.read_init_data(hdr, global_bindings);
+        in.read_init_data(hdr, g_binds);
 
+        std::cout << "# data: " << std::endl;
+        {
+          bindings::const_iterator itr = g_binds.begin();
+          for(; itr != g_binds.end(); ++itr) {
+            std::cout << " # [" << itr->first << "] " << itr->second->show(buf) <<  std::endl;
+          }
+        }
+        
         /*
         in.read_initial_data();
         
@@ -59,7 +66,7 @@ namespace psil {
 
     private:
       symbol_table symbols;
-      bindings global_bindings;
+      bindings g_binds;
     };
   }
 }

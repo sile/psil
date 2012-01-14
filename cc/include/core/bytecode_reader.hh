@@ -17,14 +17,21 @@ namespace psil {
       }
 
       void read_header(bytecode::header& hdr) {
+        // version:4
+        // symbol_count:4
+        // data_count:4
         read_int(&hdr.version);
         read_int(&hdr.symbol_count);
+        read_int(&hdr.data_count);
       }
 
       void read_symbol_table(const bytecode::header& hdr, symbol_table& table) {
         int code;
         std::string name;
         for(int i=0; i < hdr.symbol_count; i++) {
+          // code:4
+          // length:4
+          // string:length
           read_int(&code);
           read_string(name);
           table.add(code, new obj::string(name.c_str()));
@@ -32,10 +39,18 @@ namespace psil {
       }
 
       void read_init_data(const bytecode::header& hdr, bindings& bindings) {
-        
+        int code;
+        for(int i=0; i < hdr.data_count; i++) {
+          read_int(&code);
+          bindings[code] = read_object();
+        }
       }
 
     private:
+      obj::object* read_object() {
+        return obj::read_object(in);
+      }
+
       void read_int(int* ptr) {
         in.read(reinterpret_cast<char*>(ptr), sizeof(int));
       }
