@@ -8,6 +8,7 @@
 #include "symbol_table.hh"
 #include "object.hh"
 #include "bindings.hh"
+#include "environment.hh"
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -41,12 +42,12 @@ namespace psil {
         }
 
         // initial-data
-        in.read_init_data(hdr, g_binds);
+        in.read_init_data(hdr, env.get_binds());
 
         std::cout << "# data: " << std::endl;
         {
-          bindings::const_iterator itr = g_binds.begin();
-          for(; itr != g_binds.end(); ++itr) {
+          bindings::const_iterator itr = env.get_binds().begin();
+          for(; itr != env.get_binds().end(); ++itr) {
             std::cout << " # [" << itr->first << "] " << itr->second->show(buf) <<  std::endl;
           }
         }
@@ -57,10 +58,21 @@ namespace psil {
       }
 
     private:
-      void do_interpret(reader& in) {
+      void do_interpret(reader& in) { 
         obj::object* o = in.read_object();
         std::cout << " # read: " << o->show(buf) << std::endl;
         
+        obj::object* result = eval_expression(o);
+        std::cout << " # result: " << result->show(buf) << std::endl;
+      }
+      
+      obj::object* symbol_value(obj::symbol* sym) {
+        if(env.get_binds().find(sym->value()) == env.get_binds().end())
+          ERR(std::string("unbinded symbol: ")+sym->show(buf));
+        return env.get_binds()[sym->value()];
+      }
+
+      obj::object* eval_expression(obj::object* o) {
         obj::object* result;
         switch(o->type()) {
         case obj::O_LIST: 
@@ -72,7 +84,7 @@ namespace psil {
         case obj::O_CONS: 
           if(is_proper_list((obj::cons*)o)==false)
             ERR(o->show(buf)+" is not proper list");
-          result = eval_expression((obj::cons*)o);
+          result = eval_cons((obj::cons*)o);
           break;
         
         case obj::O_REFER: 
@@ -93,18 +105,13 @@ namespace psil {
           result = o;
           break;
         }
-
-        std::cout << " # result: " << result->show(buf) << std::endl;
-      }
-      
-      obj::object* symbol_value(obj::symbol* sym) {
-        if(g_binds.find(sym->value()) == g_binds.end())
-          ERR(std::string("unbinded symbol: ")+sym->show(buf));
-        return g_binds[sym->value()];
+        return result;
       }
 
-      obj::object* eval_expression(obj::cons* exp) {
-        return exp;
+      obj::object* eval_cons(obj::cons* o) {
+        obj::object* fun = eval_expression(o->get_car());
+        obj::cons* args = (obj::cons*)o->get_cdr();
+        return o;
       }
 
       bool is_proper_list(obj::cons* cons) {
@@ -115,7 +122,7 @@ namespace psil {
       std::string buf;
       
       symbol_table symbols;
-      bindings g_binds;
+      environment env; // global
     };
   }
 }
