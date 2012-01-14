@@ -28,7 +28,8 @@ namespace psil {
         NATIVE_FN natives[] =
           {
             native::i_plus, native::i_minus, native::i_mul, native::i_div,
-            native::i_eql, native::i_less
+            native::i_eql, native::i_less,
+            native::car, native::cdr, native::cons
           };
         
         for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {

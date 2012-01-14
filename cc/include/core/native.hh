@@ -71,6 +71,26 @@ namespace psil {
         
         return obj::o_t();
       }
+
+      // car, cdr, cons
+      obj::object* car(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        
+        return obj::lists::car(obj::lists::to_list(obj::lists::car(args)));
+      }
+
+      obj::object* cdr(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        
+        return obj::lists::cdr(obj::lists::to_list(obj::lists::car(args)));
+      }
+
+      obj::object* cons(obj::list* args, environment* env) {
+        assert(args->length() == 2);
+        
+        return new obj::cons(obj::lists::car(args),
+                             obj::lists::car(obj::lists::cdr_list(args)));
+      }
     }
   }
 }

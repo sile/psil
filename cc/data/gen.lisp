@@ -221,12 +221,19 @@
            (:integer 10)
            )))
 
+#+C
 (defparameter *body* 
   '(:list ((:symbol 15) ; <
            (:integer 98)
            (:integer 99)
            (:integer 100)
            )))
+
+(defparameter *body* 
+  '(:list ((:symbol 18)  ; cons
+           (:symbol 0)
+           (:integer 2))))
+
 
 (defun write-body (out)
   (write-data *body* out))

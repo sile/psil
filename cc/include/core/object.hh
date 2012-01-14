@@ -116,9 +116,18 @@ namespace psil {
         }
 
         std::string& show(std::string& buf) {
-          buf = "#<SYMBOL ";
-          buf += util::Str::toString(code);
-          buf += ">";
+          switch(code) {
+          case 0:
+            buf = "NIL";
+            break;
+          case 1:
+            buf = "T";
+            break;
+          default:
+            buf = "#<SYMBOL ";
+            buf += util::Str::toString(code);
+            buf += ">";
+          }
           return buf;
         }
 
@@ -294,7 +303,7 @@ namespace psil {
             assert(x); // XXX:
             len++;
           });
-        return len-1;
+        return len;
       }
       object* list::read(std::istream& in) {
         list* head = lists::to_list(&NIL);
