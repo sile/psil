@@ -40,6 +40,10 @@
     
     (28 "INTERN")
     (29 "SYMBOL-VALUE")
+    
+    (30 "*STDIN*")
+    (31 "*STDOUT*")
+    (32 "*STDERR*")
     ))
 
 (defparameter *data*
@@ -76,6 +80,10 @@
     
     (28 (:native-function 18)) ; intern
     (29 (:native-function 19)) ; symbol-value
+
+    (30 (:integer 0)) ; FD: 0
+    (31 (:integer 1)) ; FD: 1
+    (32 (:integer 2)) ; FD: 2
     ))
 
 (defun write-header (out)
@@ -228,11 +236,15 @@
            (:integer 99)
            (:integer 100)
            )))
-
+#+C
 (defparameter *body* 
   '(:list ((:symbol 18)  ; cons
            (:symbol 0)
            (:integer 2))))
+
+(defparameter *body* 
+  '(:list ((:symbol 26)  ; write-byte
+           (:symbol 31))))
 
 
 (defun write-body (out)

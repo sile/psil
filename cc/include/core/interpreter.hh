@@ -29,7 +29,9 @@ namespace psil {
           {
             native::i_plus, native::i_minus, native::i_mul, native::i_div,
             native::i_eql, native::i_less,
-            native::car, native::cdr, native::cons
+            native::car, native::cdr, native::cons,
+            0, 0, 0, 0, 0,
+            0, 0, native::read_byte, native::write_byte
           };
         
         for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {
@@ -220,7 +222,7 @@ namespace psil {
       
       obj::object* eval_function(obj::function* fn, obj::list* args, environment& e) {
         environment& fn_e = *e.in_scope();
-        fn_e.bind_symbols(fn->get_params(), args);
+        fn_e.bind_symbols(fn->get_params(), eval_args(args, e));;
         return eval_expression(fn->get_body()->value(), fn_e);
       }
 
@@ -229,9 +231,17 @@ namespace psil {
       }
 
       obj::object* eval_native_function(obj::native_function* fn, obj::list* args, environment& e) {
-        return fn->apply(environment::native_fun_table, args, &e);
+        return fn->apply(environment::native_fun_table, eval_args(args, e), &e);
       }
       
+      obj::list* eval_args(obj::list* args, environment& e) {
+        obj::list* head = obj::lists::to_list(obj::o_nil());
+        X_LIST_EACH(a, args, {
+            head = obj::lists::to_list(new obj::cons(eval_expression(a, e), head->value()));
+          });
+        return obj::lists::reverse(head);
+      }
+
       bool is_proper_list(obj::cons* cons) {
         // TODO:
         return true;

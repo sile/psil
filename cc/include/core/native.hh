@@ -6,9 +6,18 @@
 #include "environment.hh"
 #include <cassert>
 
+// XXX: 
+#include <unistd.h>
+
 namespace psil {
   namespace core {
     namespace native {
+      namespace {
+        obj::object* succeeded(int ret) {
+          return ret==-1 ? obj::o_nil() : obj::o_t();
+        }
+      }
+
       // +, -, *, /
       obj::object* i_plus(obj::list* args, environment* env) {
         int sum = 0;
@@ -90,6 +99,29 @@ namespace psil {
         
         return new obj::cons(obj::lists::car(args),
                              obj::lists::car(obj::lists::cdr_list(args)));
+      }
+
+      // open, close, read_byte, write_byte
+      obj::object* read_byte(obj::list* args, environment* env) {
+        assert(args->length() == 0 || args->length() == 1);
+        
+        obj::object* fst = obj::lists::car(args);
+        int fd = obj::is_nil(fst) ? 1 : obj::to_integer(fst)->value();
+        int buf;
+        if(read(fd, &buf, 1)==-1)
+          return obj::o_nil();
+        return new obj::integer(buf&0xFF);
+      }
+
+      obj::object* write_byte(obj::list* args, environment* env) {
+        assert(args->length() == 1 || args->length() == 2);
+        
+        obj::object* fst = obj::lists::car(args);
+        obj::object* snd = obj::lists::car(obj::lists::cdr_list(args));
+      
+        char byte = obj::to_integer(fst)->value() & 0xFF;
+        int fd = obj::is_nil(snd) ? 1 : obj::to_integer(snd)->value();
+        return succeeded(write(fd, &byte, 1));
       }
     }
   }
