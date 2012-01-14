@@ -8,6 +8,8 @@
     (0 "NIL") ; reserved
     (1 "T")
     (2 "HELLO")
+    (3 "LAMBDA")
+    (4 "PROGN")
     ))
 
 (defparameter *data*
@@ -15,6 +17,8 @@
     (0 (:symbol 0))
     (1 (:symbol 1))
     (2 (:string "Hello World!"))
+    (3 (:special 0)) ; 0 = lambda
+    (4 (:special 1)) ; 1 = progn
     ))
 
 (defun write-header (out)
@@ -41,7 +45,7 @@
 
 (defun type-code (type)
   (position type '(:object :cons :list :string :refer :integer
-                           :symbol :quote)))
+                           :symbol :quote :function :special)))
 
 (defun write-symbol (fields out)
   (assert (= (length fields) 1))
@@ -69,6 +73,9 @@
   (loop FOR x IN (first fields)
         DO
         (write-data x out)))
+
+(defun @write-special (fields out)
+  (@write-integer fields out))
   
 (defun write-data (data out)
   (destructuring-bind (type . fields) data
@@ -79,6 +86,7 @@
       (:quote (@write-quote fields out))
       (:integer (@write-integer fields out))
       (:list (@write-list fields out))
+      (:special (@write-special fields out))
       )))
 
 (defun write-init-data (out)
@@ -91,6 +99,7 @@
 (defparameter *body* 
   '(:string "abc"))
 
+#+C
 (defparameter *body* 
   '(:list ((:integer 1) (:integer 2) (:integer 3))))
 
@@ -100,7 +109,20 @@
 
 #+C
 (defparameter *body* 
-  '(:symbol 2))
+  '(:symbol 3))
+
+(defparameter *body* 
+  '(:list ((:symbol 3)  ; lambda
+           (:list ())   ; ()
+           (:integer 1)
+           (:integer 2)
+           )))
+
+#+C
+(defparameter *body* 
+  '(:list ((:symbol 4)  ; (progn 1 2)
+           (:integer 1)
+           (:integer 2))))
 
 (defun write-body (out)
   (write-data *body* out))

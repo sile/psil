@@ -62,17 +62,15 @@ namespace psil {
         obj::object* o = in.read_object();
         std::cout << " # read: " << o->show(buf) << std::endl;
         
-        obj::object* result = eval_expression(o);
+        obj::object* result = eval_expression(o, env);
         std::cout << " # result: " << result->show(buf) << std::endl;
       }
-      
-      obj::object* symbol_value(obj::symbol* sym) {
-        if(env.get_binds().find(sym->value()) == env.get_binds().end())
-          ERR(std::string("unbinded symbol: ")+sym->show(buf));
-        return env.get_binds()[sym->value()];
+
+      obj::object* symbol_value(obj::symbol* sym, environment& e) {
+        return e.symbol_value(sym);
       }
 
-      obj::object* eval_expression(obj::object* o) {
+      obj::object* eval_expression(obj::object* o, environment& e) {
         obj::object* result;
         switch(o->type()) {
         case obj::O_LIST: 
@@ -84,7 +82,7 @@ namespace psil {
         case obj::O_CONS: 
           if(is_proper_list((obj::cons*)o)==false)
             ERR(o->show(buf)+" is not proper list");
-          result = eval_cons((obj::cons*)o);
+          result = eval_cons((obj::cons*)o, e);
           break;
         
         case obj::O_REFER: 
@@ -92,7 +90,7 @@ namespace psil {
           break;
 
         case obj::O_SYMBOL: 
-          result = symbol_value(reinterpret_cast<obj::symbol*>(o));
+          result = symbol_value(reinterpret_cast<obj::symbol*>(o), e);
           break;
           
         case obj::O_QUOTE:
@@ -102,18 +100,70 @@ namespace psil {
         case obj::O_OBJECT:          
         case obj::O_INTEGER:
         case obj::O_STRING: 
+        case obj::O_FUNCTION:
+        case obj::O_SPECIAL:
           result = o;
           break;
         }
         return result;
       }
 
-      obj::object* eval_cons(obj::cons* o) {
-        obj::object* fun = eval_expression(o->get_car());
+      obj::object* eval_cons(obj::cons* o, environment& e) {
+        obj::object* car = eval_expression(o->get_car(), e);
         obj::cons* args = (obj::cons*)o->get_cdr();
+
+        switch(car->type()) {
+        case obj::O_SPECIAL:
+          return eval_special_form((obj::special*)car, args, e);
+          
+        case obj::O_FUNCTION:
+          return eval_function((obj::function*)car, args, e);
+
+        case obj::O_QUOTE:
+        case obj::O_SYMBOL: 
+        case obj::O_REFER: 
+        case obj::O_CONS:           
+        case obj::O_LIST:
+        case obj::O_OBJECT:          
+        case obj::O_INTEGER:
+        case obj::O_STRING: 
+          ERR(o->show(buf)+" is not a function");
+        }
         return o;
       }
 
+      obj::object* eval_special_form(obj::special* sf, obj::cons* args, environment& e) {
+        switch(sf->value()) {
+        case obj::special::LAMBDA:
+          return eval_sf_lambda(args ,e);
+
+        case obj::special::PROGN:
+          return eval_sf_progn(args, e);
+
+        default:
+          ERR(sf->value()+" is not a special form");
+        }
+      }
+
+      obj::object* eval_sf_lambda(obj::cons* args, environment& e) {
+        assert(obj::is_nil(args) == false);
+        return new obj::function(new obj::list(obj::list::car(args)),
+                                 new obj::list(obj::list::cdr(args)));
+      }
+      
+      obj::object* eval_sf_progn(obj::cons* args, environment& e) {
+        obj::object* result;
+        obj::object* cur = result = args;
+        for(; obj::is_nil(cur) == false; cur = obj::list::cdr(cur)) {
+          result = eval_expression(obj::list::car(cur), e);
+        }
+        return result;
+      }
+      
+      obj::object* eval_function(obj::function* fun, obj::cons* args, environment& e) {
+        return NULL;
+      }
+      
       bool is_proper_list(obj::cons* cons) {
         // TODO:
         return true;

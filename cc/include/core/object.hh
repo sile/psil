@@ -31,7 +31,9 @@ namespace psil {
         O_REFER,
         O_INTEGER,
         O_SYMBOL,
-        O_QUOTE
+        O_QUOTE,
+        O_FUNCTION,
+        O_SPECIAL
       };
 
       class object {
@@ -52,6 +54,43 @@ namespace psil {
       protected:
         object(OBJ_TYPE type) : m_type(type) {}
         OBJ_TYPE m_type;
+      };
+
+      class special : public object {
+      public:
+        enum TYPE {
+          LAMBDA = 0,
+          PROGN = 1
+        };
+
+        special(int code) : object(obj::O_SPECIAL), code(code) {}
+        
+        int value() const { 
+          return code;
+        }
+        
+        std::string& show(std::string& buf) {
+          buf = "#<SPECIAL ";
+          switch(code) {
+          case LAMBDA:
+            buf += "LAMBDA";
+            break;
+          case PROGN:
+            buf += "PROGN";
+            break;
+          default:
+            buf += "<<undef>>";
+          }
+          buf += ">";
+          return buf;
+        }
+                  
+        static object* read(std::istream& in) {
+          return new special(read_int(in));
+        }        
+
+      private:
+        int code;
       };
 
       class symbol : public object {
@@ -111,6 +150,8 @@ namespace psil {
 
       symbol NIL(0);
       
+      bool is_nil(object* o) { return o==&NIL; }
+
       class cons : public object {
       public:
         cons(object* car, object* cdr) 
@@ -130,6 +171,24 @@ namespace psil {
       class list : public object {
       public:
         list() : object(obj::O_LIST), head(&NIL) {
+        }
+
+        list(object* o) : object(obj::O_LIST) {
+          switch(o->type()) {
+          case obj::O_LIST:
+            head = ((list*)o)->head;
+            break;
+          case obj::O_CONS:
+            head = o;
+            break;
+          case obj::O_SYMBOL:
+            if(is_nil(o)) {
+              head = o;
+              break;
+            }
+          default:
+            ERR(o->type() + " can't be converted to list");
+          }
         }
         
         void push(object* x) {
@@ -273,6 +332,30 @@ namespace psil {
         }
       };
 
+      class function : public object {
+      public:
+        function(list* args, list* body) 
+          : object(obj::O_FUNCTION), args(args), body(body) {
+
+          // add implicit progn
+          body->push(new special(special::PROGN));
+        }
+
+        std::string& show(std::string& buf) {
+          std::string b;
+          buf = "#<FUNCTION ";
+          buf += args->show(b);
+          buf += " ";
+          buf += body->show(b);
+          buf += ">";
+          return buf;
+        }
+
+      private:
+        obj::list* args;
+        obj::list* body;
+      };
+
       object* read_object(std::istream& in) {
         int type = read_int(in);
         switch(type) {
@@ -284,6 +367,7 @@ namespace psil {
         case O_OBJECT: return object::read(in);
         case O_SYMBOL: return symbol::read(in);
         case O_QUOTE: return quote::read(in);
+        case O_SPECIAL: return special::read(in);
         default:
           ERR(std::string("Unexpected type: ") + util::to_string(type));
         }
