@@ -2,6 +2,7 @@
 #define PSIL_CORE_OBJECT_HH
 
 #include "util.hh"
+#include "symbol_table.hh"
 #include <string>
 #include <istream>
 #include <cassert>
@@ -170,9 +171,7 @@ namespace psil {
       bool is_nil(const object* o) { 
         if(o==&NIL)
           return true;
-        
-        // TODO: eq
-        return o->type()==obj::O_SYMBOL && ((symbol*)o)->value() == NIL.value();
+        return false;
       }
       
       class cons : public object {

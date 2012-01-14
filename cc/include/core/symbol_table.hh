@@ -9,27 +9,35 @@ namespace psil {
     class symbol_table {
     public:
       struct entry {
-        int code;
+        obj::symbol* sym;
         obj::string* name;
       };
 
     public:
       const obj::string* symbol_name(int symbol_code) const {
         for(unsigned i=0; i < table.size(); i++) 
-          if(table[i].code == symbol_code)
+          if(table[i].sym->value() == symbol_code)
             return table[i].name;
         return NULL;
       }
       
-      const int* symbol_code(const obj::string& symbol_name) const {
+      obj::symbol* symbol_by_name(const obj::string& symbol_name) const {
         for(unsigned i=0; i < table.size(); i++) 
-          if(*table[i].name == symbol_name)
-            return &table[i].code;
+          if(*table[i].name == symbol_name) {
+            return table[i].sym;
+          }
+        return NULL;
+      }
+
+      obj::symbol* symbol_by_code(int symbol_code) const {
+        for(unsigned i=0; i < table.size(); i++) 
+          if(table[i].sym->value() == symbol_code)
+            return table[i].sym;
         return NULL;
       }
 
       void add(int code, obj::string* name) {
-        entry e = {code, name};
+        entry e = {new obj::symbol(code), name};
         table.push_back(e);
       }
       

@@ -57,12 +57,12 @@ namespace psil {
         
         std::cout << "# symbol: " << std::endl;
         for(int i=0; i < symbols.size(); i++) {
-          std::cout << " # [" << symbols.get_entry(i).code << "]" 
+          std::cout << " # [" << symbols.get_entry(i).sym->value() << "]" 
                     << " " << symbols.get_entry(i).name->show(buf) << std::endl;
         }
 
         // initial-data
-        in.read_init_data(hdr, env.get_binds());
+        in.read_init_data(hdr, env.get_binds(), symbols);
 
         std::cout << "# data: " << std::endl;
         {
@@ -79,7 +79,7 @@ namespace psil {
 
     private:
       void do_interpret(reader& in) { 
-        obj::object* o = in.read_object();
+        obj::object* o = in.read_object(symbols);
         std::cout << " # read: " << o->show(buf) << std::endl;
         
         obj::object* result = eval_expression(o, env);
