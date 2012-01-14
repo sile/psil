@@ -9,6 +9,8 @@
 #include "object.hh"
 #include "bindings.hh"
 #include "environment.hh"
+#include "native.hh"
+
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -19,13 +21,30 @@ namespace psil {
       typedef bytecode_reader reader;
       
     public:
-      interpreter() {}
+      interpreter() {
+        std::cout << "[INITIALIZE]" << std::endl;
+        std::cout << "# native function:" << std::endl;
+        
+        NATIVE_FN natives[] =
+          {
+            native::i_plus, native::i_minus, native::i_mul, native::i_div
+          };
+        
+        for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {
+          std::cout << " # [" << i << "] " << (long)natives[i] << std::endl;
+          env.add_native(i, natives[i]);
+        }
+
+        std::cout << std::endl;
+      }
       
       void interpret(std::istream& in) {
         bytecode_reader in2(in);
         interpret(in2);
       }
       void interpret(reader& in) {
+        std::cout << "[INTERPRET]" << std::endl;
+
         // header
         bytecode::header hdr;
         in.read_header(hdr);

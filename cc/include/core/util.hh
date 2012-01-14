@@ -43,7 +43,7 @@ namespace psil {
 
 #define LIST_EACH(var, list_val, exp)   \
   {\
-    PC_OBJ::object* cur = list_val->value(); \
+    PC_OBJ::object* cur = (list_val)->value();                        \
     for(; PC_OBJ::is_nil(cur)==false; cur = PC_OBJ::list::cdr(cur)) { \
       PC_OBJ::object* var = PC_OBJ::list::car(cur); \
       exp \
@@ -52,8 +52,8 @@ namespace psil {
 
 #define LIST_EACH2(var1, var2, list_val1, list_val2, exp)  \
   {\
-    PC_OBJ::object* cur1 = list_val1->value();  \
-    PC_OBJ::object* cur2 = list_val2->value();  \
+    PC_OBJ::object* cur1 = (list_val1)->value();        \
+    PC_OBJ::object* cur2 = (list_val2)->value();                      \
     for(; PC_OBJ::is_nil(cur1)==false && PC_OBJ::is_nil(cur2)==false; \
           cur1 = PC_OBJ::list::cdr(cur1), cur2 = PC_OBJ::list::cdr(cur2)) { \
       PC_OBJ::object* var1 = PC_OBJ::list::car(cur1); \

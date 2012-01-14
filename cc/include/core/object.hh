@@ -4,6 +4,7 @@
 #include "util.hh"
 #include <string>
 #include <istream>
+#include <cassert>
 
 namespace psil {
   namespace core {
@@ -172,7 +173,7 @@ namespace psil {
         // TODO: eq
         return o->type()==obj::O_SYMBOL && ((symbol*)o)->value() == NIL.value();
       }
-
+      
       class cons : public object {
       public:
         cons(object* car, object* cdr) 
@@ -244,11 +245,19 @@ namespace psil {
         static object* cdr(const object* x) {
           if(x==&NIL)
             return &NIL;
+          if(x->type()==obj::O_LIST)
+            x = ((list*)x)->value();
           return reinterpret_cast<const cons*>(x)->get_cdr();
         }
+        static list* cdr_list(const object* x) {
+          return new list(cdr(x));
+        }
+
         static object* car(const object* x) {
           if(x==&NIL)
             return &NIL;
+          if(x->type()==obj::O_LIST)
+            x = ((list*)x)->value();
           return reinterpret_cast<const cons*>(x)->get_car();
         }
 
@@ -443,6 +452,15 @@ namespace psil {
         default:
           ERR(std::string("Unexpected type: ") + util::to_string(type));
         }
+      }
+
+      bool is_integer(object* o) {
+        return o->type() == obj::O_INTEGER;
+      }
+      
+      integer* to_integer(object* o) {
+        assert(is_integer(o));
+        return (obj::integer*)o;
       }
     }
   }

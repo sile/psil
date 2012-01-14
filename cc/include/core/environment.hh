@@ -41,6 +41,10 @@ namespace psil {
         });
       }
       
+      static void add_native(int index, NATIVE_FN fn) {
+        native_fun_table[index] = fn;
+      }
+      
     public:
       static NATIVE_FN native_fun_table[256]; // XXX:
 

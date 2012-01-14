@@ -15,6 +15,11 @@
     (7 "C")
     (8 "IF")
     (9 "LAMDBA-MACRO")
+    
+    (10 "+")
+    (11 "-")
+    (12 "*")
+    (13 "/")
     ))
 
 (defparameter *data*
@@ -26,6 +31,12 @@
     (4 (:special 1)) ; 1 = progn
     (8 (:special 2)) ; 2 = if
     (9 (:special 3)) ; 3 = lambda-macro
+
+    (10 (:native-function 0)) ; +
+    (11 (:native-function 1)) ; -
+    (12 (:native-function 2)) ; *
+    (13 (:native-function 3)) ; /
+    
     ))
 
 (defun write-header (out)
@@ -164,7 +175,11 @@
     ))
 
 (defparameter *body* 
-  '(:native-function 0))
+  '(:list ((:symbol 13) ; /
+           (:integer 100)
+           (:integer 3)
+           (:integer 10)
+           )))
 
 (defun write-body (out)
   (write-data *body* out))
