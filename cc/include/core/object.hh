@@ -19,7 +19,10 @@ namespace psil {
         in.read(const_cast<char*>(buf.c_str()), count);
         return buf;
       }
-
+      
+      class object;
+      object* read_object(std::istream& in);
+      
       enum OBJ_TYPE {
         O_OBJECT=0,
         O_CONS,
@@ -27,7 +30,8 @@ namespace psil {
         O_STRING,
         O_REFER,
         O_INTEGER,
-        O_SYMBOL
+        O_SYMBOL,
+        O_QUOTE
       };
 
       class object {
@@ -69,6 +73,29 @@ namespace psil {
         }
       private:
         int code;
+      };
+
+      class quote : public object {
+      public:
+        quote(object* x) : object(obj::O_QUOTE), x(x) {
+        }
+        
+        std::string& show(std::string& buf) {
+          std::string b;
+          buf = "#<QUOTE ";
+          buf += x->show(b);
+          buf += ">";
+          return buf;
+        }
+
+        static object* read(std::istream& in) {
+          return new quote(read_object(in));
+        }
+
+        object* value() const { return x; }
+
+      private:
+        object* x;
       };
 
       class refer : public object {
@@ -222,6 +249,7 @@ namespace psil {
         case O_INTEGER: return integer::read(in);
         case O_OBJECT: return object::read(in);
         case O_SYMBOL: return symbol::read(in);
+        case O_QUOTE: return quote::read(in);
         default:
           ERR(std::string("Unexpected type: ") + util::to_string(type));
         }

@@ -62,17 +62,33 @@ namespace psil {
         
         obj::object* result;
         switch(o->type()) {
-        case obj::O_CONS: break;
-        case obj::O_LIST: break;
-        case obj::O_REFER: break;
+        case obj::O_LIST: 
+          o = ((obj::list*)o)->value();
+          if(o == &obj::NIL) {
+            result = o;
+            break;
+          }
+        case obj::O_CONS: 
+          // TODO:
+          break;
+        
+        case obj::O_REFER: 
+          // TODO?
+          break;
 
         case obj::O_SYMBOL: 
           result = symbol_value(reinterpret_cast<obj::symbol*>(o));
+          break;
+          
+        case obj::O_QUOTE:
+          result = ((obj::quote*)o)->value();
+          break;
           
         case obj::O_OBJECT:          
         case obj::O_INTEGER:
         case obj::O_STRING: 
           result = o;
+          break;
         }
 
         std::cout << " # result: " << result->show(buf) << std::endl;
