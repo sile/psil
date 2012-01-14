@@ -14,6 +14,7 @@
     (6 "B")
     (7 "C")
     (8 "IF")
+    (9 "LAMDBA-MACRO")
     ))
 
 (defparameter *data*
@@ -24,6 +25,7 @@
     (3 (:special 0)) ; 0 = lambda
     (4 (:special 1)) ; 1 = progn
     (8 (:special 2)) ; 2 = if
+    (9 (:special 3)) ; 3 = lambda-macro
     ))
 
 (defun write-header (out)
@@ -139,11 +141,21 @@
            (:integer 1)
            (:integer 2))))
 
+#+C
 (defparameter *body*
   '(:list ((:special 2) ; if
            (:symbol 0)  ; nil
            (:integer 2)
            (:integer 3))))
+
+(defparameter *body* 
+  '(:list
+    ((:list ((:symbol 9)  ; lambda-macro
+           (:list ())   ; ()
+           (:integer 1)
+           (:integer 2)
+           )))
+    ))
 
 (defun write-body (out)
   (write-data *body* out))

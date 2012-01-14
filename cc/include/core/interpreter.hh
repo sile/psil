@@ -101,6 +101,7 @@ namespace psil {
         case obj::O_INTEGER:
         case obj::O_STRING: 
         case obj::O_FUNCTION:
+        case obj::O_MACRO_FUNCTION:
         case obj::O_SPECIAL:
           result = o;
           break;
@@ -118,6 +119,9 @@ namespace psil {
           
         case obj::O_FUNCTION:
           return eval_function((obj::function*)car, args, e);
+
+        case obj::O_MACRO_FUNCTION:
+          return eval_macro_function((obj::macro_function*)car, args, e);
 
         case obj::O_QUOTE:
         case obj::O_SYMBOL: 
@@ -142,6 +146,9 @@ namespace psil {
 
         case obj::special::IF:
           return eval_sf_if(args, e);
+          
+        case obj::special::LAMBDA_MACRO:
+          return eval_sf_lambda_macro(args, e);
           
         default:
           ERR(sf->value()+" is not a special form");
@@ -169,6 +176,12 @@ namespace psil {
         return new obj::function(new obj::list(obj::list::car(args)),
                                  new obj::list(obj::list::cdr(args)));
       }
+
+      obj::object* eval_sf_lambda_macro(obj::cons* args, environment& e) {
+        assert(obj::is_nil(args) == false);
+        return new obj::macro_function(new obj::list(obj::list::car(args)),
+                                       new obj::list(obj::list::cdr(args)));
+      }
       
       obj::object* eval_sf_progn(obj::cons* args, environment& e) {
         obj::object* result;
@@ -183,6 +196,10 @@ namespace psil {
         environment& fn_e = *e.in_scope();
         fn_e.bind_symbols(fn->get_params(), new obj::list(args));
         return eval_expression(fn->get_body(), fn_e);
+      }
+
+      obj::object* eval_macro_function(obj::macro_function* fn, obj::cons* args, environment& e) {
+        return eval_expression(eval_function(fn, args, e), e);
       }
       
       bool is_proper_list(obj::cons* cons) {

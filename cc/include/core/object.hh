@@ -33,7 +33,8 @@ namespace psil {
         O_SYMBOL,
         O_QUOTE,
         O_FUNCTION,
-        O_SPECIAL
+        O_SPECIAL,
+        O_MACRO_FUNCTION
       };
 
       class object {
@@ -66,7 +67,8 @@ namespace psil {
         enum TYPE {
           LAMBDA = 0,
           PROGN = 1,
-          IF = 2
+          IF = 2,
+          LAMBDA_MACRO = 3
         };
 
         special(int code) : object(obj::O_SPECIAL), code(code) {}
@@ -86,6 +88,9 @@ namespace psil {
             break;
           case IF:
             buf += "IF";
+            break;
+          case LAMBDA_MACRO:
+            buf += "LAMBDA_MACRO";
             break;
           default:
             buf += "<<undef>>";
@@ -374,9 +379,28 @@ namespace psil {
         obj::list* get_params() const { return params; }
         obj::list* get_body() const { return body; }
         
-      private:
+      protected:
         obj::list* params;
         obj::list* body;
+      };
+
+      class macro_function : public function {
+      public:
+        macro_function(list* params, list* body) 
+          : function(params, body) {
+          m_type = obj::O_MACRO_FUNCTION;
+        }
+
+
+        std::string& show(std::string& buf) {
+          std::string b;
+          buf = "#<MACRO_FUNCTION ";
+          buf += params->show(b);
+          buf += " ";
+          buf += body->show(b);
+          buf += ">";
+          return buf;
+        }
       };
 
       object* read_object(std::istream& in) {
