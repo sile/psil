@@ -58,6 +58,18 @@
   (let ((x (first fields)))
     (write-data x out)))
 
+(defun @write-integer (fields out)
+  (assert (= (length fields) 1))
+  (let ((x (first fields)))
+    (write-lint x 4 out)))
+
+(defun @write-list (fields out)
+  (assert (= (length fields) 1))
+  (write-lint (length (first fields)) 4 out)
+  (loop FOR x IN (first fields)
+        DO
+        (write-data x out)))
+  
 (defun write-data (data out)
   (destructuring-bind (type . fields) data
     (write-lint (type-code type) 4 out)
@@ -65,6 +77,8 @@
       (:symbol (write-symbol fields out))
       (:string (@write-string fields out))
       (:quote (@write-quote fields out))
+      (:integer (@write-integer fields out))
+      (:list (@write-list fields out))
       )))
 
 (defun write-init-data (out)
@@ -78,7 +92,11 @@
   '(:string "abc"))
 
 (defparameter *body* 
-  '(:quote (:symbol 2)))
+  '(:list ((:integer 1) (:integer 2) (:integer 3))))
+
+#+C
+(defparameter *body*
+  '(:integer 10))
 
 #+C
 (defparameter *body* 

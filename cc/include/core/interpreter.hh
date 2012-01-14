@@ -10,6 +10,7 @@
 #include "bindings.hh"
 #include <iostream>
 #include <string>
+#include <cassert>
 
 namespace psil {
   namespace core {
@@ -27,7 +28,7 @@ namespace psil {
         // header
         bytecode::header hdr;
         in.read_header(hdr);
-        
+        assert(hdr.version == 1);
         std::cout << "# version: " << hdr.version << std::endl;
         
         // symbol-table
@@ -69,7 +70,9 @@ namespace psil {
             break;
           }
         case obj::O_CONS: 
-          // TODO:
+          if(is_proper_list((obj::cons*)o)==false)
+            ERR(o->show(buf)+" is not proper list");
+          result = eval_expression((obj::cons*)o);
           break;
         
         case obj::O_REFER: 
@@ -100,6 +103,14 @@ namespace psil {
         return g_binds[sym->value()];
       }
 
+      obj::object* eval_expression(obj::cons* exp) {
+        return exp;
+      }
+
+      bool is_proper_list(obj::cons* cons) {
+        // TODO:
+        return true;
+      }
     private:
       std::string buf;
       

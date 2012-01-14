@@ -188,6 +188,31 @@ namespace psil {
           return true;
         }
 
+        std::string& show(std::string& buf) {
+          std::string b;
+          buf = "#<LIST";
+
+          object* cur=head;
+          while(cur != &NIL) {
+            buf += " ";
+            buf += car(cur)->show(b);
+            cur = cdr(cur);
+          }
+          
+          buf += ">";
+          return buf;
+        }
+                  
+        static object* read(std::istream& in) {
+          list* lst = new list();
+          int len = read_int(in);
+          for(int i=0; i < len; i++) {
+            lst->push(read_object(in));
+          }
+          lst->reverse();
+          return lst;
+        }        
+
       protected:
         list(OBJ_TYPE type) : object(type), head(&NIL) {
         }
@@ -204,6 +229,15 @@ namespace psil {
           return n; 
         }
         
+        std::string& show(std::string& buf) {
+          buf = util::to_string(n);
+          return buf;
+        }
+                  
+        static object* read(std::istream& in) {
+          return new integer(read_int(in));
+        }        
+
       private:
         int n;
       };
