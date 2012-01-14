@@ -191,6 +191,7 @@ namespace psil {
         object* cdr;
       };
       
+      // TODO: => union{cons, nil} に変更
       class list : public object {
       public:
         list() : object(obj::O_LIST), head(&NIL) {

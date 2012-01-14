@@ -22,6 +22,24 @@
     (13 "/")
     (14 "=")
     (15 "<")
+
+    (16 "CAR")
+    (17 "CDR")
+    (18 "CONS")
+    
+    (19 "EQ")
+    (20 "TYPE-OF")
+    (21 "SET-SYMBOL-VALUE")
+    (22 "SET-CAR")
+    (23 "SET-CDR")
+    
+    (24 "OPEN")
+    (25 "CLOSE")
+    (26 "READ-BYTE")
+    (27 "WRITE-BYTE")
+    
+    (28 "INTERN")
+    (29 "SYMBOL-VALUE")
     ))
 
 (defparameter *data*
@@ -40,6 +58,24 @@
     (13 (:native-function 3)) ; /
     (14 (:native-function 4)) ; =
     (15 (:native-function 5)) ; <
+
+    (16 (:native-function 6)) ; car
+    (17 (:native-function 7)) ; cdr
+    (18 (:native-function 8)) ; cons
+    
+    (19 (:native-function 9)) ; eq
+    (20 (:native-function 10)) ; type-of
+    (21 (:native-function 11)) ; set-symbol-value
+    (22 (:native-function 12)) ; set-car
+    (23 (:native-function 13)) ; set-cdr
+    
+    (24 (:native-function 14)) ; open
+    (25 (:native-function 15)) ; close
+    (26 (:native-function 16)) ; read-byte
+    (27 (:native-function 17)) ; write-byte
+    
+    (28 (:native-function 18)) ; intern
+    (29 (:native-function 19)) ; symbol-value
     ))
 
 (defun write-header (out)
