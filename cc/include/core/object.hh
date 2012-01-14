@@ -65,7 +65,8 @@ namespace psil {
       public:
         enum TYPE {
           LAMBDA = 0,
-          PROGN = 1
+          PROGN = 1,
+          IF = 2
         };
 
         special(int code) : object(obj::O_SPECIAL), code(code) {}
@@ -82,6 +83,9 @@ namespace psil {
             break;
           case PROGN:
             buf += "PROGN";
+            break;
+          case IF:
+            buf += "IF";
             break;
           default:
             buf += "<<undef>>";
@@ -155,7 +159,13 @@ namespace psil {
 
       symbol NIL(0);
       
-      bool is_nil(object* o) { return o==&NIL; }
+      bool is_nil(object* o) { 
+        if(o==&NIL)
+          return true;
+        
+        // TODO: eq
+        return o->type()==obj::O_SYMBOL && ((symbol*)o)->value() == NIL.value();
+      }
 
       class cons : public object {
       public:

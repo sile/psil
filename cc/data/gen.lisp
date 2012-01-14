@@ -10,6 +10,10 @@
     (2 "HELLO")
     (3 "LAMBDA")
     (4 "PROGN")
+    (5 "A")
+    (6 "B")
+    (7 "C")
+    (8 "IF")
     ))
 
 (defparameter *data*
@@ -19,6 +23,7 @@
     (2 (:string "Hello World!"))
     (3 (:special 0)) ; 0 = lambda
     (4 (:special 1)) ; 1 = progn
+    (8 (:special 2)) ; 2 = if
     ))
 
 (defun write-header (out)
@@ -118,20 +123,27 @@
            (:integer 1)
            (:integer 2)
            )))
-
+#+C
 (defparameter *body* 
   '(:list 
     ((:list ((:symbol 3)  ; lambda
-             (:list ())   ; ()
+             (:list ((:symbol 5)))   ; (A)
              (:integer 1)
              (:symbol 2)
-             )))))
+             (:symbol 5)))
+     (:integer 10))))
 
 #+C
 (defparameter *body* 
   '(:list ((:symbol 4)  ; (progn 1 2)
            (:integer 1)
            (:integer 2))))
+
+(defparameter *body*
+  '(:list ((:special 2) ; if
+           (:symbol 0)  ; nil
+           (:integer 2)
+           (:integer 3))))
 
 (defun write-body (out)
   (write-data *body* out))

@@ -140,11 +140,30 @@ namespace psil {
         case obj::special::PROGN:
           return eval_sf_progn(args, e);
 
+        case obj::special::IF:
+          return eval_sf_if(args, e);
+          
         default:
           ERR(sf->value()+" is not a special form");
         }
       }
 
+      obj::object* eval_sf_if(obj::cons* args, environment& e) {
+        assert(obj::is_nil(args)==false);
+        obj::object* cond = obj::list::car(args);
+        
+        args = (obj::cons*)obj::list::cdr(args);
+        assert(obj::is_nil(args)==false);
+        obj::object* then = obj::list::car(args);
+        
+        args = (obj::cons*)obj::list::cdr(args);
+        obj::object* alt = obj::list::car(args); // optional
+        
+        if(obj::is_nil(eval_expression(cond, e)))
+          return eval_expression(alt, e);
+        return eval_expression(then, e);
+      }
+      
       obj::object* eval_sf_lambda(obj::cons* args, environment& e) {
         assert(obj::is_nil(args) == false);
         return new obj::function(new obj::list(obj::list::car(args)),
