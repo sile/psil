@@ -20,6 +20,8 @@
     (11 "-")
     (12 "*")
     (13 "/")
+    (14 "=")
+    (15 "<")
     ))
 
 (defparameter *data*
@@ -36,7 +38,8 @@
     (11 (:native-function 1)) ; -
     (12 (:native-function 2)) ; *
     (13 (:native-function 3)) ; /
-    
+    (14 (:native-function 4)) ; =
+    (15 (:native-function 5)) ; <
     ))
 
 (defun write-header (out)
@@ -174,11 +177,19 @@
            )))
     ))
 
+#+C
 (defparameter *body* 
   '(:list ((:symbol 13) ; /
            (:integer 100)
            (:integer 3)
            (:integer 10)
+           )))
+
+(defparameter *body* 
+  '(:list ((:symbol 15) ; <
+           (:integer 98)
+           (:integer 99)
+           (:integer 100)
            )))
 
 (defun write-body (out)

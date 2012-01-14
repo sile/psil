@@ -9,6 +9,7 @@
 namespace psil {
   namespace core {
     namespace native {
+      // +, -, *, /
       obj::object* i_plus(obj::list* args, environment* env) {
         int sum = 0;
         LIST_EACH(n, args, {
@@ -43,7 +44,33 @@ namespace psil {
             sum /= obj::to_integer(n)->value();
         });
         return new obj::integer(sum);
-      }   
+      }  
+
+      // =, <
+      obj::object* i_eql(obj::list* args, environment* env) {
+        assert(args->length() > 0);
+        
+        int a = obj::to_integer(obj::list::car(args))->value();
+        LIST_EACH(n, obj::list::cdr_list(args), {
+            if(a != obj::to_integer(n)->value())
+              return obj::o_nil();
+        });
+        
+        return obj::o_t();
+      } 
+
+      obj::object* i_less(obj::list* args, environment* env) {
+        assert(args->length() > 0);
+        
+        int a = obj::to_integer(obj::list::car(args))->value();
+        LIST_EACH(n, obj::list::cdr_list(args), {
+            if(!(a < obj::to_integer(n)->value())) 
+              return obj::o_nil();
+            a = obj::to_integer(n)->value();
+        });
+        
+        return obj::o_t();
+      }
     }
   }
 }

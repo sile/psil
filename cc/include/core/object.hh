@@ -165,6 +165,7 @@ namespace psil {
       };
 
       symbol NIL(0);
+      symbol TRUE(1);
       
       bool is_nil(object* o) { 
         if(o==&NIL)
@@ -453,6 +454,10 @@ namespace psil {
           ERR(std::string("Unexpected type: ") + util::to_string(type));
         }
       }
+
+      object* o_nil() { return &obj::NIL; }
+      object* o_t() { return &obj::TRUE; }
+      
 
       bool is_integer(object* o) {
         return o->type() == obj::O_INTEGER;
