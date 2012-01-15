@@ -14,7 +14,7 @@
 ;    (6 "B")
 ;    (7 "C")
     (8 "IF")
-    (9 "LAMDBA-MACRO")
+    (9 "LAMBDA-MACRO")
     
     (10 "+")
     (11 "-")
@@ -49,6 +49,11 @@
     (34 "N")
 
     (35 "LIST")
+    (36 "DEFUN")
+    (37 "FN-NAME")
+    (38 "ARGS")
+    (39 "BODY")
+    (40 "QUOTE")
     ))
 
 (defparameter *data*
@@ -91,6 +96,8 @@
     (32 (:integer 2)) ; FD: 2
 
     (35 (:native-function 20)) ; list
+
+    (40 (:special 4)) ; quote
     ))
 
 (defun write-header (out)

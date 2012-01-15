@@ -20,6 +20,7 @@
       (symbol (if #1=(gethash exp symbols)
                   `(:symbol ,#1#)
                   (progn
+                    (print (list :x exp))
                     (setf #1# (- (hash-table-count symbols))) ; XXX
                     `(:symbol ,#1#))))
       (cons (if (eq (car exp) 'quote)

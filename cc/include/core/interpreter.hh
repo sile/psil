@@ -186,6 +186,10 @@ namespace psil {
           
         case obj::special::LAMBDA_MACRO:
           return eval_sf_lambda_macro(args, e);
+
+        case obj::special::QUOTE:
+          assert(args->length() == 1);
+          return obj::lists::car(args);
           
         default:
           ERR(sf->value()+" is not a special form");
@@ -239,7 +243,10 @@ namespace psil {
       }
 
       obj::object* eval_macro_function(obj::macro_function* fn, obj::list* args, environment& e) {
-        return eval_expression(eval_function(fn, args, e), e);
+        environment& fn_e = *fn->get_env()->in_scope();
+        fn_e.bind_symbols(fn->get_params(), args);
+        obj::object* expanded_exp = eval_expression(fn->get_body()->value(), fn_e);
+        return eval_expression(expanded_exp, e);
       }
 
       obj::object* eval_native_function(obj::native_function* fn, obj::list* args, environment& e) {

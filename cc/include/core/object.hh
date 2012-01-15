@@ -32,7 +32,7 @@ namespace psil {
         O_REFER,
         O_INTEGER,
         O_SYMBOL,
-        O_QUOTE,
+        O_QUOTE,  // => special-form
         O_FUNCTION,
         O_SPECIAL,
         O_MACRO_FUNCTION,
@@ -70,7 +70,8 @@ namespace psil {
           LAMBDA = 0,
           PROGN = 1,
           IF = 2,
-          LAMBDA_MACRO = 3
+          LAMBDA_MACRO = 3,
+          QUOTE = 4
         };
 
         special(int code) : object(obj::O_SPECIAL), code(code) {}
@@ -93,6 +94,9 @@ namespace psil {
             break;
           case LAMBDA_MACRO:
             buf += "LAMBDA_MACRO";
+            break;
+          case QUOTE:
+            buf += "QUOTE";
             break;
           default:
             buf += "<<undef>>";
