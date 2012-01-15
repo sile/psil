@@ -439,11 +439,9 @@ namespace psil {
         }
 
         bool operator==(const string& s) const {
-          std::cout << "IN!" << head->length() << "," << s.head->length() << std::endl;
           if(head->length() != s.head->length())
             return false;
           
-          std::cout << "IN" << std::endl;
           X_LIST_EACH2(a, b, head, s.head, {
               if(((integer*)a)->value() != ((integer*)b)->value())
                 return false;
