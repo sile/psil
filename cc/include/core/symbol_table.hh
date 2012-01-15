@@ -52,9 +52,19 @@ namespace psil {
         return NULL;
       }
 
-      void add(int code, obj::string* name) {
-        entry e = {new obj::symbol(code), name};
+      void add(obj::symbol* sym, obj::string* name) {
+        entry e = {sym, name};
         table.push_back(e);
+      }
+      
+      obj::symbol* intern(obj::string* name) {
+        obj::symbol* sym = symbol_by_name(*name);
+        if(sym)
+          return sym;
+        
+        sym = obj::symbol::create_from_code(table.size());
+        add(sym, name);
+        return sym;
       }
       
       int size() const { return table.size(); }

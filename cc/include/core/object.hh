@@ -114,12 +114,26 @@ namespace psil {
         int code;
       };
 
+      class string;
       class symbol : public object {
         typedef symbol* (*TableLookupFn)(symbol*);
+        typedef symbol* (*TableLookupByNameFn)(string*);
+        typedef symbol* (*TableLookupByCodeFn)(int);
+        typedef symbol* (*TableLookupByNameFn2)(const char*);
 
       public:
-        symbol(int code) : object(obj::O_SYMBOL), code(code) {
+        symbol(string* name) : object(obj::O_SYMBOL), code(intern(name)->value()) {
         }
+
+        // XXX:
+        symbol(const char* name) : object(obj::O_SYMBOL), code(intern2(name)->value()) {
+        }
+
+        /*
+        symbol(int code) : object(obj::O_SYMBOL), code(code) {
+          
+        }
+        */
 
         std::string& show(std::string& buf) {
           switch(code) {
@@ -140,16 +154,30 @@ namespace psil {
         int value() const { return code; }
 
         static object* read(std::istream& in) {
-          return new symbol(read_int(in));
+          object* o = read_object(in);
+          assert(o->type() == obj::O_STRING);
+          return new symbol((string*)o);
         }
 
+        static symbol* create_from_code(int code) { return new symbol(code); }
+
+      private:
+        symbol(int code) : object(obj::O_SYMBOL), code(code) {}
+        
       public:
         static TableLookupFn table_lookup; // XXX:
-        
+        static TableLookupByNameFn table_lookup_by_name;
+        static TableLookupByCodeFn table_lookup_by_code;
+        static TableLookupByNameFn intern;
+        static TableLookupByNameFn2 intern2;
       private:
         int code;
       };
       symbol::TableLookupFn symbol::table_lookup = NULL;
+      symbol::TableLookupByNameFn symbol::table_lookup_by_name = NULL;
+      symbol::TableLookupByNameFn symbol::intern = NULL;
+      symbol::TableLookupByNameFn2 symbol::intern2 = NULL;
+      symbol::TableLookupByCodeFn symbol::table_lookup_by_code = NULL;
 
       class quote : public object {
       public:
@@ -185,8 +213,8 @@ namespace psil {
         object* x;
       };
 
-      symbol NIL(0);
-      symbol TRUE(1);
+      symbol NIL("NIL");
+      symbol TRUE("T");
       
       bool is_nil(const object* o) { 
         if(o==&NIL)

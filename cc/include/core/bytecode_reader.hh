@@ -26,6 +26,7 @@ namespace psil {
       }
 
       void read_symbol_table(const bytecode::header& hdr, symbol_table& table) {
+        // XXX: 無意味になった
         int code;
         std::string name;
         for(int i=0; i < hdr.symbol_count; i++) {
@@ -34,7 +35,7 @@ namespace psil {
           // string:length
           read_int(&code);
           read_string(name);
-          table.add(code, new obj::string(name.c_str()));
+          //table.add(code, new obj::string(name.c_str()));
         }
       }
 

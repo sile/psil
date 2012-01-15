@@ -21,6 +21,22 @@ namespace psil {
       symbol* sym_table_lookup(symbol* o) {
         return symbol_table::g_table->symbol_by_code(o->value());
       }
+
+      symbol* sym_table_lookup_by_name(string* name) {
+        return symbol_table::g_table->symbol_by_name(*name);
+      }
+
+      symbol* sym_table_lookup_by_code(int code) {
+        return symbol_table::g_table->symbol_by_code(code);
+      }
+      
+      symbol* sym_intern(string* name) {
+        return symbol_table::g_table->intern(name);
+      }
+
+      symbol* sym_intern2(const char* name) {
+        return symbol_table::g_table->intern(new string(name));
+      }
     }
 
     class interpreter {
@@ -30,6 +46,10 @@ namespace psil {
       interpreter() : env(&symbols) {
         symbol_table::g_table = &symbols; // XXX:
         obj::symbol::table_lookup = obj::sym_table_lookup; // XXX:
+        obj::symbol::table_lookup_by_code = obj::sym_table_lookup_by_code; // XXX:
+        obj::symbol::table_lookup_by_name = obj::sym_table_lookup_by_name; // XXX:
+        obj::symbol::intern = obj::sym_intern;
+        obj::symbol::intern2 = obj::sym_intern2;
 
         std::cout << "[INITIALIZE]" << std::endl;
         std::cout << "# native function:" << std::endl;
