@@ -40,7 +40,7 @@ namespace psil {
             native::i_eql, native::i_less,
             native::car, native::cdr, native::cons,
             0, 0, native::set_symbol_value, 0, 0,
-            0, 0, native::read_byte, native::write_byte,
+            native::open, native::close, native::read_byte, native::write_byte,
             0, 0, native::list
           };
         
@@ -137,6 +137,7 @@ namespace psil {
         case obj::O_MACRO_FUNCTION:
         case obj::O_NATIVE_FUNCTION:
         case obj::O_SPECIAL:
+        case obj::O_STREAM:
           result = o;
           break;
         }
@@ -167,7 +168,8 @@ namespace psil {
         case obj::O_LIST:
         case obj::O_OBJECT:          
         case obj::O_INTEGER:
-        case obj::O_STRING: 
+        case obj::O_STRING:
+        case obj::O_STREAM:
           ERR(o->show(buf)+" is not a function");
         }
         return o;

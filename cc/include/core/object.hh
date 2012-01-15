@@ -36,7 +36,8 @@ namespace psil {
         O_FUNCTION,
         O_SPECIAL,
         O_MACRO_FUNCTION,
-        O_NATIVE_FUNCTION
+        O_NATIVE_FUNCTION,
+        O_STREAM
       };
 
       class object {
@@ -289,6 +290,18 @@ namespace psil {
           // TODO: validation
           return to_list(cdr(x));
         }
+        
+        static object* first(list* x) {
+          return car(x);
+        }
+
+        static object* second(list* x) {
+          return car(cdr_list(x));
+        }
+
+        static object* third(list* x) {
+          return car(cdr_list(cdr_list(x)));
+        }        
 
         static list* to_list(object* x) {
           return reinterpret_cast<list*>(x);
@@ -389,6 +402,14 @@ namespace psil {
           return lists::eql(head, str.head);
         }
 
+        std::string& c_string(std::string& buf) const {
+          buf.clear();
+          X_LIST_EACH(c, head, {
+              buf += ((obj::integer*)c)->value();
+            });
+          return buf;
+        }
+
       private:
         list* head;
       };
@@ -468,6 +489,29 @@ namespace psil {
         int fn_index;
       };
 
+      // file-stream
+      class stream : public object {
+      public:
+        stream(int fd) : object(obj::O_STREAM), fd(fd) {
+        }
+
+        std::string& show(std::string& buf) {
+          buf = "#<STREAM ";
+          buf += util::to_string(fd);
+          buf += ">";
+          return buf;
+        }
+        
+        int value() const { return fd; }
+        
+        static object* read(std::istream& in) {
+          return new stream(read_int(in));
+        }        
+        
+      private:
+        int fd;
+      };
+
       object* read_object(std::istream& in) {
         int type = read_int(in);
         switch(type) {
@@ -476,6 +520,7 @@ namespace psil {
         case O_STRING: return string::read(in);
         case O_REFER: return refer::read(in);
         case O_INTEGER: return integer::read(in);
+        case O_STREAM: return stream::read(in);
         case O_OBJECT: return object::read(in);
         case O_SYMBOL: 
           {
@@ -497,22 +542,29 @@ namespace psil {
       object* o_t() { return &obj::TRUE; }
       
 
-      bool is_integer(object* o) {
-        return o->type() == obj::O_INTEGER;
-      }
-
-      bool is_symbol(object* o) {
-        return o->type() == obj::O_SYMBOL;
-      }
+      bool is_integer(object* o) { return o->type() == obj::O_INTEGER; }
+      bool is_symbol(object* o) { return o->type() == obj::O_SYMBOL; }
+      bool is_string(object* o) { return o->type() == obj::O_STRING; }
+      bool is_stream(object* o) { return o->type() == obj::O_STREAM; }
       
       integer* to_integer(object* o) {
         assert(is_integer(o));
-        return (obj::integer*)o;
+        return (integer*)o;
       }
 
       symbol* to_symbol(object* o) {
         assert(is_symbol(o));
-        return (obj::symbol*)o;
+        return (symbol*)o;
+      }
+
+      string* to_string(object* o) {
+        assert(is_string(o));
+        return (string*)o;
+      }
+
+      stream* to_stream(object* o) {
+        assert(is_stream(o));
+        return (stream*)o;
       }
     }
   }

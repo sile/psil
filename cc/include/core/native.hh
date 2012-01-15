@@ -8,6 +8,9 @@
 
 // XXX: 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 namespace psil {
   namespace core {
@@ -120,11 +123,36 @@ namespace psil {
       }
 
       // open, close, read_byte, write_byte
+      obj::object* open(obj::list* args, environment* env) {
+        assert(args->length() == 2);
+        
+        obj::string* path = obj::to_string(obj::lists::first(args));
+        obj::integer* flags = obj::to_integer(obj::lists::second(args));
+
+        std::string buf;
+        
+        
+        int ret = ::open(path->c_string(buf).c_str(), flags->value());
+        if(ret==-1)
+          return obj::o_nil();
+        return new obj::stream(ret);
+      }
+
+      obj::object* close(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        obj::stream* stream = obj::to_stream(obj::lists::first(args));
+
+        int ret = ::close(stream->value());
+        if(ret==-1)
+          return obj::o_nil();
+        return obj::o_t();
+      }
+      
       obj::object* read_byte(obj::list* args, environment* env) {
         assert(args->length() == 0 || args->length() == 1);
         
         obj::object* fst = obj::lists::car(args);
-        int fd = obj::is_nil(fst) ? 1 : obj::to_integer(fst)->value();
+        int fd = obj::is_nil(fst) ? 1 : obj::to_stream(fst)->value();
         int buf;
         if(read(fd, &buf, 1)==-1)
           return obj::o_nil();
@@ -138,7 +166,7 @@ namespace psil {
         obj::object* snd = obj::lists::car(obj::lists::cdr_list(args));
       
         char byte = obj::to_integer(fst)->value() & 0xFF;
-        int fd = obj::is_nil(snd) ? 1 : obj::to_integer(snd)->value();
+        int fd = obj::is_nil(snd) ? 1 : obj::to_stream(snd)->value();
         return succeeded(write(fd, &byte, 1));
       }
     }

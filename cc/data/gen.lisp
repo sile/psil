@@ -54,6 +54,12 @@
     (38 "ARGS")
     (39 "BODY")
     (40 "QUOTE")
+
+    (41 "O-CREAT")
+    (42 "O-EXCL")
+    (43 "O-RDONLY")
+    (44 "O-WRONLY")
+    (45 "O-RDWR")
     ))
 
 (defparameter *data*
@@ -91,13 +97,19 @@
     (28 (:native-function 18)) ; intern
     (29 (:native-function 19)) ; symbol-value
 
-    (30 (:integer 0)) ; FD: 0
-    (31 (:integer 1)) ; FD: 1
-    (32 (:integer 2)) ; FD: 2
+    (30 (:stream 0)) ; FD: 0
+    (31 (:stream 1)) ; FD: 1
+    (32 (:stream 2)) ; FD: 2
 
     (35 (:native-function 20)) ; list
 
     (40 (:special 4)) ; quote
+
+    (41 (:integer 64)) ; O_CREAT
+    (42 (:integer 128)) ; O_EXCL
+    (43 (:integer 0)) ; O_RDONLY
+    (44 (:integer 1)) ; O_WRONLY
+    (45 (:integer 2)) ; O_RDWR
     ))
 
 (defun write-header (out)
@@ -125,7 +137,8 @@
 (defun type-code (type)
   (position type '(:object :cons :list :string :refer :integer
                            :symbol :quote :function :special
-                           :macro-function :native-function)))
+                           :macro-function :native-function 
+                           :stream)))
 
 (defun write-symbol (fields out)
   (assert (= (length fields) 1))
@@ -157,6 +170,9 @@
 (defun @write-special (fields out)
   (@write-integer fields out))
 
+(defun @write-stream (fields out)
+  (@write-integer fields out))
+
 (defun @write-native-function (fields out)
   (@write-integer fields out))
   
@@ -168,6 +184,7 @@
       (:string (@write-string fields out))
       (:quote (@write-quote fields out))
       (:integer (@write-integer fields out))
+      (:stream (@write-stream fields out))
       (:list (@write-list fields out))
       (:special (@write-special fields out))
       (:native-function (@write-native-function fields out))

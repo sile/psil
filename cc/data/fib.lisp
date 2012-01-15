@@ -1,4 +1,11 @@
 (progn
+  ;; open/close
+  ((lambda (n)
+     (write-byte 104 n)
+     (close n))
+   (open "/tmp/abc.txt" (+ o-creat o-rdwr)))
+
+  ;; fib
   (set-symbol-value 'defun
     (lambda-macro (fn-name args body)
                   (list 'set-symbol-value (list 'quote fn-name)
