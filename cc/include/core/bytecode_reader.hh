@@ -39,15 +39,14 @@ namespace psil {
         }
       }
 
-      void read_init_data(const bytecode::header& hdr, bindings& bindings, const symbol_table& symbols) {
-        int code;
+      void read_init_data(const bytecode::header& hdr, bindings& bindings) {
         for(int i=0; i < hdr.data_count; i++) {
-          read_int(&code);
-          bindings[code] = read_object(symbols);
+          obj::symbol* sym = obj::to_symbol(read_object());
+          bindings[sym->value()] = read_object();
         }
       }
 
-      obj::object* read_object(const symbol_table& symbols) {
+      obj::object* read_object() {
         obj::object* o = obj::read_object(in);
         return o;
       }

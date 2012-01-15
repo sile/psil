@@ -64,52 +64,51 @@
 
 (defparameter *data*
   '(
-    (0 (:symbol 0))
-    (1 (:symbol 1))
-    (2 (:string "Hello World!"))
-    (3 (:special 0)) ; 0 = lambda
-    (4 (:special 1)) ; 1 = progn
-    (8 (:special 2)) ; 2 = if
-    (9 (:special 3)) ; 3 = lambda-macro
+    ((:symbol "NIL") (:symbol "NIL"))
+    ((:symbol "T") (:symbol "T"))
+    ((:symbol "LAMBDA") (:special 0)) ; 0 = lambda
+    ((:symbol "PROGN") (:special 1)) ; 1 = progn
+    ((:symbol "IF") (:special 2)) ; 2 = if
+    ((:symbol "LAMBDA-MACRO") (:special 3)) ; 3 = lambda-macro
 
-    (10 (:native-function 0)) ; +
-    (11 (:native-function 1)) ; -
-    (12 (:native-function 2)) ; *
-    (13 (:native-function 3)) ; /
-    (14 (:native-function 4)) ; =
-    (15 (:native-function 5)) ; <
+    ((:symbol "+") (:native-function 0)) ; +
+    ((:symbol "-") (:native-function 1)) ; -
+    ((:symbol "*") (:native-function 2)) ; *
+    ((:symbol "/") (:native-function 3)) ; /
+    ((:symbol "=") (:native-function 4)) ; =
+    ((:symbol "<") (:native-function 5)) ; <
 
-    (16 (:native-function 6)) ; car
-    (17 (:native-function 7)) ; cdr
-    (18 (:native-function 8)) ; cons
+    ((:symbol "CAR") (:native-function 6)) ; car
+    ((:symbol "CDR") (:native-function 7)) ; cdr
+    ((:symbol "CONS") (:native-function 8)) ; cons
     
-    (19 (:native-function 9)) ; eq
-    (20 (:native-function 10)) ; type-of
-    (21 (:native-function 11)) ; set-symbol-value
-    (22 (:native-function 12)) ; set-car
-    (23 (:native-function 13)) ; set-cdr
+    ((:symbol "EQ") (:native-function 9)) ; eq
+    ((:symbol "TYPE-OF") (:native-function 10)) ; type-of
+    ((:symbol "SET-SYMBOL-VALUE") (:native-function 11)) ; set-symbol-value
+    ((:symbol "SET-CAR") (:native-function 12)) ; set-car
+    ((:symbol "SET-CDR") (:native-function 13)) ; set-cdr
     
-    (24 (:native-function 14)) ; open
-    (25 (:native-function 15)) ; close
-    (26 (:native-function 16)) ; read-byte
-    (27 (:native-function 17)) ; write-byte
+    ((:symbol "OPEN") (:native-function 14)) ; open
+    ((:symbol "CLOSE") (:native-function 15)) ; close
+    ((:symbol "READ-BYTE") (:native-function 16)) ; read-byte
+    ((:symbol "WRITE-BYTE") (:native-function 17)) ; write-byte
     
-    (28 (:native-function 18)) ; intern
-    (29 (:native-function 19)) ; symbol-value
+    ((:symbol "INTERN") (:native-function 18)) ; intern
+    ((:symbol "INTERN2") (:native-function 19)) ; symbol-value
 
-    (30 (:stream 0)) ; FD: 0
-    (31 (:stream 1)) ; FD: 1
-    (32 (:stream 2)) ; FD: 2
+    ((:symbol "*STDIN*") (:stream 0)) ; FD: 0
+    ((:symbol "*STDOUT*") (:stream 1)) ; FD: 1
+    ((:symbol "*STDERR*") (:stream 2)) ; FD: 2
 
-    (35 (:native-function 20)) ; list
+    ((:symbol "LIST") (:native-function 20)) ; list
 
-    (40 (:special 4)) ; quote
+    ((:symbol "QUOTE") (:special 4)) ; quote
 
-    (41 (:integer 64)) ; O_CREAT
-    (42 (:integer 128)) ; O_EXCL
-    (43 (:integer 0)) ; O_RDONLY
-    (44 (:integer 1)) ; O_WRONLY
-    (45 (:integer 2)) ; O_RDWR
+    ((:symbol "O-CREAT") (:integer 64)) ; O_CREAT
+    ((:symbol "O-EXCL") (:integer 128)) ; O_EXCL
+    ((:symbol "O-RDONLY") (:integer 0)) ; O_RDONLY
+    ((:symbol "O-WRONLY") (:integer 1)) ; O_WRONLY
+    ((:symbol "O-RDWR") (:integer 2)) ; O_RDWR
     ))
 
 (defun write-header (out)
@@ -142,8 +141,8 @@
 
 (defun write-symbol (fields out)
   (assert (= (length fields) 1))
-  (let ((symbol-code (first fields)))
-    (write-lint symbol-code 4 out)))
+  (let ((symbol-name (first fields)))
+    (write-psil-string symbol-name out)))
 
 (defun @write-string (fields out)
   (assert (= (length fields) 1))
@@ -191,9 +190,9 @@
       )))
 
 (defun write-init-data (out)
-  (loop FOR (sym-code data) IN *data*
+  (loop FOR (sym data) IN *data*
         DO
-        (write-lint sym-code 4 out)
+        (write-data sym out)
         (write-data data out)))
 
 #+C
@@ -212,9 +211,9 @@
 (defparameter *body* 
   '(:symbol 3))
 
-#+C
+
 (defparameter *body* 
-  '(:list ((:symbol 3)  ; lambda
+  '(:list ((:symbol "LAMBDA")  ; lambda
            (:list ())   ; ()
            (:integer 1)
            (:integer 2)
@@ -279,6 +278,7 @@
            (:integer 90)
            (:symbol 31))))
 
+#+C
 (defparameter *body* 
   '(:list ((:symbol 4) ; progn
            (:list ((:symbol 21)  ; (set-symbol-value a 40)

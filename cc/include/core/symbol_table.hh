@@ -38,10 +38,11 @@ namespace psil {
       }
       
       obj::symbol* symbol_by_name(const obj::string& symbol_name) const {
-        for(unsigned i=0; i < table.size(); i++) 
+        for(unsigned i=0; i < table.size(); i++) {
           if(*table[i].name == symbol_name) {
             return table[i].sym;
           }
+        }
         return NULL;
       }
 

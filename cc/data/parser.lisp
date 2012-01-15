@@ -9,27 +9,19 @@
         (setf (gethash (intern name) m) code))
   m)
 
-;; TODO: symbolの動的解決の仕組みが必要
-(defun @compile (exp &optional (symbols (init-symbols)))
+(defun @compile (exp)
   (if (eq exp t)
       `(:symbol 1)
     (etypecase exp
       (fixnum `(:integer ,exp))
       (string `(:string ,exp))
-      (null `(:symbol 0))
-      (symbol (if #1=(gethash exp symbols)
-                  `(:symbol ,#1#)
-                  (progn
-                    (print (list :x exp))
-                    (setf #1# (- (hash-table-count symbols))) ; XXX
-                    `(:symbol ,#1#))))
+      (null `(:symbol "NIL"))
+      (symbol `(:symbol ,(symbol-name exp)))
       (cons (if (eq (car exp) 'quote)
                 `(:quote ,(@compile (second exp)))
               `(:list ,(mapcar (lambda (e)
-                                 (@compile e symbols))
+                                 (@compile e))
                                exp)))))))
-        
-  
 
 (define-symbol-macro d
  (with-open-file (out "fib.bin" :direction :output

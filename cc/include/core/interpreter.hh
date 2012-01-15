@@ -46,6 +46,7 @@ namespace psil {
       interpreter() : env(&symbols) {
         symbol_table::g_table = &symbols; // XXX:
         obj::symbol::table_lookup = obj::sym_table_lookup; // XXX:
+
         obj::symbol::table_lookup_by_code = obj::sym_table_lookup_by_code; // XXX:
         obj::symbol::table_lookup_by_name = obj::sym_table_lookup_by_name; // XXX:
         obj::symbol::intern = obj::sym_intern;
@@ -95,7 +96,7 @@ namespace psil {
         }
 
         // initial-data
-        in.read_init_data(hdr, env.get_binds(), symbols);
+        in.read_init_data(hdr, env.get_binds());
 
         std::cout << "# data: " << std::endl;
         {
@@ -112,7 +113,7 @@ namespace psil {
 
     private:
       void do_interpret(reader& in) { 
-        obj::object* o = in.read_object(symbols);
+        obj::object* o = in.read_object();
         std::cout << " # read: " << o->show(buf) << std::endl;
         
         obj::object* result = eval_expression(o, env);

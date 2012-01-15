@@ -46,12 +46,12 @@ namespace psil {
           return m_type;
         }
           
-        virtual std::string& show(std::string& buf) {
+        virtual std::string& show(std::string& buf) const {
           buf = "<<undef>>";
           return buf;
         }
         
-        std::string show() {
+        std::string show() const {
           std::string b;
           return show(b);
         }
@@ -81,7 +81,7 @@ namespace psil {
           return code;
         }
         
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const {
           buf = "#<SPECIAL ";
           switch(code) {
           case LAMBDA:
@@ -135,7 +135,7 @@ namespace psil {
         }
         */
 
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const {
           switch(code) {
           case 0:
             buf = "NIL";
@@ -154,9 +154,14 @@ namespace psil {
         int value() const { return code; }
 
         static object* read(std::istream& in) {
+          int len = read_int(in);
+          std::string buf;
+          return new symbol(read_str(in, len, buf).c_str());
+          /*
           object* o = read_object(in);
           assert(o->type() == obj::O_STRING);
           return new symbol((string*)o);
+          */
         }
 
         static symbol* create_from_code(int code) { return new symbol(code); }
@@ -184,7 +189,7 @@ namespace psil {
         quote(object* x) : object(obj::O_QUOTE), x(x) {
         }
         
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const {
           std::string b;
           buf = "#<QUOTE ";
           buf += x->show(b);
@@ -213,8 +218,9 @@ namespace psil {
         object* x;
       };
 
-      symbol NIL("NIL");
-      symbol TRUE("T");
+      // XXX:
+      symbol NIL = *symbol::create_from_code(0);
+      symbol TRUE = *symbol::create_from_code(1);
       
       bool is_nil(const object* o) { 
         if(o==&NIL)
@@ -234,7 +240,7 @@ namespace psil {
         void set_cdr(object* _cdr) { cdr=_cdr; }
         void set_car(object* _car) { car=_car; }
 
-        std::string& show(std::string& buf);      
+        std::string& show(std::string& buf) const; 
 
         bool is_proper_list() const {
           const cons* cur = this;
@@ -259,7 +265,7 @@ namespace psil {
         OBJ_TYPE type() const { return u_obj.type(); }
         bool is_null() const { return is_nil(&u_obj); }
 
-        std::string& show(std::string& buf);
+        std::string& show(std::string& buf) const;
         static object* read(std::istream& in);
 
         int length() const;
@@ -276,7 +282,7 @@ namespace psil {
           return n; 
         }
         
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const{
           buf = util::to_string(n);
           return buf;
         }
@@ -335,17 +341,23 @@ namespace psil {
           return reinterpret_cast<list*>(x);
         }
 
+        static const list* to_list(const object* x) {
+          return reinterpret_cast<const list*>(x);
+        }
+
+        /*
         static bool eql(const list* x, const list* y) {
           if(x->length() != y->length())
             return false;
           
           X_LIST_EACH2(a, b, x, y, {
-              if(!(a==b))
+              if(!(*a == *b))
                 return false;
             });
           
           return true;
         }
+        */
       };
 
       int list::length() const {
@@ -365,7 +377,7 @@ namespace psil {
         return &lists::reverse(head)->u_obj;
       }   
 
-      std::string& list::show(std::string& buf) {
+      std::string& list::show(std::string& buf) const{
           std::string b;
           buf = "#<LIST";
           
@@ -378,14 +390,14 @@ namespace psil {
           return buf;
       }
 
-      std::string& cons::show(std::string& buf) {
+      std::string& cons::show(std::string& buf) const{
         if(is_proper_list()) 
           return lists::to_list(this)->show(buf);
         
         std::string b;
         buf = "#<CONS";
         
-        object* cur = this;
+        const object* cur = this;
         for(; cur->type()==obj::O_CONS; cur = ((cons*)cur)->cdr) {
           buf += " ";
           buf += ((cons*)cur)->car->show(b);
@@ -409,7 +421,7 @@ namespace psil {
           head = lists::reverse(head);
         }
         
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const{
           buf = "\"";
 
           X_LIST_EACH(x, head, {
@@ -426,8 +438,18 @@ namespace psil {
           return new string(read_str(in, len, buf).c_str());
         }
 
-        bool operator==(const string& str) const {
-          return lists::eql(head, str.head);
+        bool operator==(const string& s) const {
+          std::cout << "IN!" << head->length() << "," << s.head->length() << std::endl;
+          if(head->length() != s.head->length())
+            return false;
+          
+          std::cout << "IN" << std::endl;
+          X_LIST_EACH2(a, b, head, s.head, {
+              if(((integer*)a)->value() != ((integer*)b)->value())
+                return false;
+            });
+          
+          return true;
         }
 
         std::string& c_string(std::string& buf) const {
@@ -455,7 +477,7 @@ namespace psil {
           this->body = lists::to_list(new cons(new special(special::PROGN), &body->u_obj));
         }
 
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const{
           std::string b;
           buf = "#<FUNCTION ";
           buf += params->show(b);
@@ -482,7 +504,7 @@ namespace psil {
           m_type = obj::O_MACRO_FUNCTION;
         }
 
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const{
           std::string b;
           buf = "#<MACRO_FUNCTION ";
           buf += params->show(b);
@@ -502,7 +524,7 @@ namespace psil {
           return table[fn_index](args, env);
         }
 
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const{
           buf = "#<NATIVE_FUNCTION ";
           buf += util::to_string(fn_index);
           buf += ">";
@@ -523,7 +545,7 @@ namespace psil {
         stream(int fd) : object(obj::O_STREAM), fd(fd) {
         }
 
-        std::string& show(std::string& buf) {
+        std::string& show(std::string& buf) const{
           buf = "#<STREAM ";
           buf += util::to_string(fd);
           buf += ">";
