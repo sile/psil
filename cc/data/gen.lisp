@@ -207,11 +207,10 @@
 (defparameter *body*
   '(:integer 10))
 
-#+C
 (defparameter *body* 
-  '(:symbol 3))
+  '(:symbol "NIL"))
 
-
+#+C
 (defparameter *body* 
   '(:list ((:symbol "LAMBDA")  ; lambda
            (:list ())   ; ()

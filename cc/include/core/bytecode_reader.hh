@@ -16,6 +16,8 @@ namespace psil {
         return bytecode::TYPE_INT;
       }
 
+      bool eos() const { in.peek(); return in.eof(); }
+
       void read_header(bytecode::header& hdr) {
         // version:4
         // symbol_count:4

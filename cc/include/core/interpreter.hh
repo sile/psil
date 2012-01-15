@@ -108,7 +108,9 @@ namespace psil {
         
         // interpret
         std::cout << "# interpret:" << std::endl;
-        do_interpret(in);
+        do {
+          do_interpret(in);
+        } while (in.eos()==false);
       }
 
     private:
@@ -117,7 +119,7 @@ namespace psil {
         std::cout << " # read: " << o->show(buf) << std::endl;
         
         obj::object* result = eval_expression(o, env);
-        std::cout << " # result: " << result->show(buf) << std::endl;
+        std::cout << "  => " << result->show(buf) << std::endl;
       }
 
       obj::object* symbol_value(obj::symbol* sym, environment& e) {
