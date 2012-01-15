@@ -44,6 +44,9 @@
     (30 "*STDIN*")
     (31 "*STDOUT*")
     (32 "*STDERR*")
+
+    (33 "FIB")
+    (34 "N")
     ))
 
 (defparameter *data*

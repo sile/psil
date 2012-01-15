@@ -17,11 +17,20 @@
 
 namespace psil {
   namespace core {
+    namespace obj {
+      symbol* sym_table_lookup(symbol* o) {
+        return symbol_table::g_table->symbol_by_code(o->value());
+      }
+    }
+
     class interpreter {
       typedef bytecode_reader reader;
       
     public:
       interpreter() : env(&symbols) {
+        symbol_table::g_table = &symbols; // XXX:
+        obj::symbol::table_lookup = obj::sym_table_lookup; // XXX:
+
         std::cout << "[INITIALIZE]" << std::endl;
         std::cout << "# native function:" << std::endl;
         
@@ -149,9 +158,9 @@ namespace psil {
 
         case obj::O_NATIVE_FUNCTION:
           return eval_native_function((obj::native_function*)car, args, e);
-          
-        case obj::O_QUOTE:
+
         case obj::O_SYMBOL: 
+        case obj::O_QUOTE:
         case obj::O_REFER: 
         case obj::O_CONS:           
         case obj::O_LIST:

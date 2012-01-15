@@ -14,6 +14,22 @@ namespace psil {
       };
 
     public:
+      symbol_table() {
+        
+        // XXX:
+        // reserved
+        {
+          entry e = {(obj::symbol*)obj::o_nil(), new obj::string("NIL")};
+          table.push_back(e);
+        }
+
+        // XXX:
+        // reserved
+        {
+          entry e = {(obj::symbol*)obj::o_t(), new obj::string("T")};
+          table.push_back(e);
+        }
+      }
       const obj::string* symbol_name(int symbol_code) const {
         for(unsigned i=0; i < table.size(); i++) 
           if(table[i].sym->value() == symbol_code)
@@ -44,9 +60,13 @@ namespace psil {
       int size() const { return table.size(); }
       
       const entry& get_entry(int i) const { return table[i]; }
+    public:
+      static symbol_table *g_table; // XXX:
+      
     private:
       std::vector<entry> table;
     };
+    symbol_table* symbol_table::g_table = NULL;
   }
 }
 

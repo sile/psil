@@ -2,7 +2,6 @@
 #define PSIL_CORE_OBJECT_HH
 
 #include "util.hh"
-#include "symbol_table.hh"
 #include <string>
 #include <istream>
 #include <cassert>
@@ -111,6 +110,8 @@ namespace psil {
       };
 
       class symbol : public object {
+        typedef symbol* (*TableLookupFn)(symbol*);
+
       public:
         symbol(int code) : object(obj::O_SYMBOL), code(code) {
         }
@@ -136,9 +137,14 @@ namespace psil {
         static object* read(std::istream& in) {
           return new symbol(read_int(in));
         }
+
+      public:
+        static TableLookupFn table_lookup; // XXX:
+        
       private:
         int code;
       };
+      symbol::TableLookupFn symbol::table_lookup = NULL;
 
       class quote : public object {
       public:
@@ -387,14 +393,13 @@ namespace psil {
       public:
         function(list* params, list* body, environment* e) 
           : object(obj::O_FUNCTION), params(params), body(body), env(e) {
-
           X_LIST_EACH(p, params, {
               if(p->type() != obj::O_SYMBOL)
                 ERR(p->show() + " is not a symbol");
           });
 
           // add implicit progn
-          body = lists::to_list(new cons(new special(special::PROGN), &body->u_obj));
+          this->body = lists::to_list(new cons(new special(special::PROGN), &body->u_obj));
         }
 
         std::string& show(std::string& buf) {
@@ -468,7 +473,14 @@ namespace psil {
         case O_REFER: return refer::read(in);
         case O_INTEGER: return integer::read(in);
         case O_OBJECT: return object::read(in);
-        case O_SYMBOL: return symbol::read(in);
+        case O_SYMBOL: 
+          {
+            // for eq
+            obj::symbol* o = (obj::symbol*)symbol::read(in);
+            o = symbol::table_lookup(o);
+            assert(o != NULL);
+            return o;
+          }
         case O_QUOTE: return quote::read(in);
         case O_SPECIAL: return special::read(in);
         case O_NATIVE_FUNCTION: return native_function::read(in);

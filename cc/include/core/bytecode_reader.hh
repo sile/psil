@@ -48,16 +48,7 @@ namespace psil {
 
       obj::object* read_object(const symbol_table& symbols) {
         obj::object* o = obj::read_object(in);
-        switch(o->type()) {
-        case obj::O_SYMBOL:
-          // for eq
-          o = symbols.symbol_by_code(((obj::symbol*)o)->value());
-          assert(o != NULL);
-          return o;
-
-        default:
-          return o;
-        }
+        return o;
       }
 
     private:
