@@ -373,14 +373,15 @@ namespace psil {
 
       std::string& list::show(std::string& buf) const{
           std::string b;
-          buf = "#<LIST";
+          buf = "(";
           
           X_LIST_EACH(x, this, {
-              buf += " ";
+              if(buf.size() != 1)
+                buf += " ";
               buf += x->show(b);
             });
           
-          buf += ">";
+          buf += ")";
           return buf;
       }
 
@@ -389,17 +390,18 @@ namespace psil {
           return lists::to_list(this)->show(buf);
         
         std::string b;
-        buf = "#<CONS";
+        buf = "(";
         
         const object* cur = this;
         for(; cur->type()==obj::O_CONS; cur = ((cons*)cur)->cdr) {
-          buf += " ";
+          if(buf.size() != 1)
+            buf += " ";
           buf += ((cons*)cur)->car->show(b);
         }
         buf += " . ";
         buf += cur->show(b);
 
-        buf += ">";
+        buf += ")";
         return buf;
       }
 
