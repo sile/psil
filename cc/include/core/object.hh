@@ -186,9 +186,8 @@ namespace psil {
         
         std::string& show(std::string& buf) const {
           std::string b;
-          buf = "#<QUOTE ";
+          buf = "'";
           buf += x->show(b);
-          buf += ">";
           return buf;
         }
 
