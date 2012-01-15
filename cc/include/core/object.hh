@@ -129,6 +129,9 @@ namespace psil {
         symbol(const char* name) : object(obj::O_SYMBOL), code(intern2(name)->value()) {
         }
 
+        bool eq(const symbol* s) const {
+          return this == s;
+        }
         /*
         symbol(int code) : object(obj::O_SYMBOL), code(code) {
           

@@ -110,6 +110,7 @@ namespace psil {
         std::cout << "# interpret:" << std::endl;
         do {
           do_interpret(in);
+          std::cout << std::endl;
         } while (in.eos()==false);
       }
 

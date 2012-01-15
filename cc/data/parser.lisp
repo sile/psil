@@ -3,11 +3,11 @@
   (with-open-file (in path)
     (read in)))
 
-(defun init-symbols (&aux (m (make-hash-table)))
-  (loop FOR (code name) IN *symbols*
-        DO
-        (setf (gethash (intern name) m) code))
-  m)
+(defun @read2 (path)
+  (with-open-file (in path)
+    (loop FOR exp = (read in nil nil)
+          WHILE exp
+          COLLECT exp)))
 
 (defun @compile (exp)
   (if (eq exp t)
@@ -23,13 +23,12 @@
                                  (@compile e))
                                exp)))))))
 
-(define-symbol-macro d
- (with-open-file (out "fib.bin" :direction :output
+(defun @compile-file (input output)
+ (with-open-file (out output :direction :output
                      :if-exists :supersede 
                      :element-type 'octet)
   (let ((*symbols* '())
-        (*data* '())
-        (*body* (@compile (@read "fib.lisp"))))
+        (*data* '()))
     ;; header
     (write-header out)
 
@@ -40,6 +39,8 @@
     (write-init-data out)
     
     ;; body
-    (write-body out))))
+    (dolist (exp (@read2 input))
+      (let ((*body* (@compile exp)))
+        (write-body out))))))
 
 (define-symbol-macro e (@compile (@read "fib.lisp")))

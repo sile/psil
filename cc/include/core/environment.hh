@@ -35,11 +35,29 @@ namespace psil {
       }
 
       void bind_symbols(obj::list* symbols, obj::list* values) {
-        assert(symbols->length() == values->length());
+        obj::symbol* rest = obj::symbol::intern2("&REST");
 
-        X_LIST_EACH2(sym, val, symbols, values, {
-            binds[((obj::symbol*)sym)->value()] = val;
-        });
+        obj::list* sl = symbols;
+        obj::list* vl = values;
+        
+        std::string b;
+        for(; sl->is_null()==false && vl->is_null()==false;
+            sl = obj::lists::cdr_list(sl), vl = obj::lists::cdr_list(vl)) {
+          obj::symbol* s = obj::to_symbol(obj::lists::car(sl));
+
+          if(s->eq(rest)) {
+            sl = obj::lists::cdr_list(sl);
+            s = obj::to_symbol(obj::lists::car(sl));
+            assert(obj::lists::cdr_list(sl)->is_null());
+            
+            binds[s->value()] = vl->value();
+            return;
+          } else {
+            obj::object* v = obj::lists::car(vl);
+            binds[s->value()] = v;
+          }
+        }
+        assert(sl->is_null() && vl->is_null());
       }
       
       static void add_native(int index, NATIVE_FN fn) {
