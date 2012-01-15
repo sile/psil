@@ -60,7 +60,7 @@ namespace psil {
             native::i_plus, native::i_minus, native::i_mul, native::i_div,
             native::i_eql, native::i_less,
             native::car, native::cdr, native::cons,
-            0, 0, native::set_symbol_value, 0, 0,
+            native::eq, 0, native::set_symbol_value, 0, 0,
             native::open, native::close, native::read_byte, native::write_byte,
             0, 0, native::list
           };

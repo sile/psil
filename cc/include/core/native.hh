@@ -169,6 +169,15 @@ namespace psil {
         int fd = obj::is_nil(snd) ? 1 : obj::to_stream(snd)->value();
         return succeeded(write(fd, &byte, 1));
       }
+
+      // eq
+      obj::object* eq(obj::list* args, environment* env) {
+        assert(args->length() == 2);
+       
+        if(obj::lists::first(args) == obj::lists::second(args))
+          return obj::o_t();
+        return obj::o_nil();
+      }
     }
   }
 }
