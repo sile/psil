@@ -9,13 +9,13 @@
           WHILE exp
           COLLECT exp)))
 
+;; TODO: 同じS式は同一参照を保持するような仕組みを作って、サイズを節約する
 (defun @compile (exp)
   (if (eq exp t)
       `(:symbol 1)
     (etypecase exp
       (fixnum `(:integer ,exp))
       (string `(:string ,exp))
-      (null `(:symbol "NIL"))
       (symbol `(:symbol ,(symbol-name exp)))
       (cons (if (eq (car exp) 'quote)
                 `(:quote ,(@compile (second exp)))

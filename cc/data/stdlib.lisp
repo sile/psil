@@ -39,6 +39,13 @@
   (cons (cons 'lambda (cons (mapcar first binds) body))
         (mapcar second binds)))
 
+;; open/r, open/w
+(defun open/r (path)
+  (open path (+ o-rdonly)))
+
+(defun open/w (path)
+  (open path (+ o-creat o-rdwr)))
+
 (mapcar (lambda (n) (+ n n 1)) '(1 2 3))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -55,6 +55,8 @@ namespace psil {
         std::cout << "[INITIALIZE]" << std::endl;
         std::cout << "# native function:" << std::endl;
         
+        /////////////////////////////////////
+        // NATIVES
         NATIVE_FN natives[] =
           {
             native::i_plus, native::i_minus, native::i_mul, native::i_div,
