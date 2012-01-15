@@ -37,6 +37,13 @@ namespace psil {
       symbol* sym_intern2(const char* name) {
         return symbol_table::g_table->intern(new string(name));
       }
+
+      const string* find_symbol_name(const symbol* sym, std::string& buf) {
+        const string* s = symbol_table::g_table->symbol_name(sym->value());
+        if(s != NULL)
+          s->c_string(buf);
+        return s;
+      }
     }
 
     class interpreter {
@@ -51,6 +58,7 @@ namespace psil {
         obj::symbol::table_lookup_by_name = obj::sym_table_lookup_by_name; // XXX:
         obj::symbol::intern = obj::sym_intern;
         obj::symbol::intern2 = obj::sym_intern2;
+        obj::symbol::find_symbol_name = obj::find_symbol_name;
 
         std::cout << "[INITIALIZE]" << std::endl;
         std::cout << "# native function:" << std::endl;

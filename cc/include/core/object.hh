@@ -120,7 +120,8 @@ namespace psil {
         typedef symbol* (*TableLookupByNameFn)(string*);
         typedef symbol* (*TableLookupByCodeFn)(int);
         typedef symbol* (*TableLookupByNameFn2)(const char*);
-
+        typedef const string* (*SymbolNameFn)(const symbol*, std::string&);
+        
       public:
         symbol(string* name) : object(obj::O_SYMBOL), code(intern(name)->value()) {
         }
@@ -132,21 +133,10 @@ namespace psil {
         bool eq(const symbol* s) const {
           return this == s;
         }
-        /*
-        symbol(int code) : object(obj::O_SYMBOL), code(code) {
-          
-        }
-        */
 
         std::string& show(std::string& buf) const {
-          switch(code) {
-          case 0:
-            buf = "NIL";
-            break;
-          case 1:
-            buf = "T";
-            break;
-          default:
+          const obj::string* name = find_symbol_name(this, buf);
+          if(name == NULL)  {
             buf = "#<SYMBOL ";
             buf += util::Str::toString(code);
             buf += ">";
@@ -178,6 +168,7 @@ namespace psil {
         static TableLookupByCodeFn table_lookup_by_code;
         static TableLookupByNameFn intern;
         static TableLookupByNameFn2 intern2;
+        static SymbolNameFn find_symbol_name;
       private:
         int code;
       };
@@ -186,6 +177,7 @@ namespace psil {
       symbol::TableLookupByNameFn symbol::intern = NULL;
       symbol::TableLookupByNameFn2 symbol::intern2 = NULL;
       symbol::TableLookupByCodeFn symbol::table_lookup_by_code = NULL;
+      symbol::SymbolNameFn symbol::find_symbol_name = NULL;
 
       class quote : public object {
       public:
