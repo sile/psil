@@ -81,7 +81,7 @@ namespace psil {
         return obj::o_t();
       }
 
-      // car, cdr, cons
+      // car, cdr, cons, list
       obj::object* car(obj::list* args, environment* env) {
         assert(args->length() == 1);
         
@@ -99,6 +99,10 @@ namespace psil {
         
         return new obj::cons(obj::lists::car(args),
                              obj::lists::car(obj::lists::cdr_list(args)));
+      }
+
+      obj::object* list(obj::list* args, environment* env) {
+        return args->value();
       }
 
       // set-symbol-value

@@ -40,7 +40,8 @@ namespace psil {
             native::i_eql, native::i_less,
             native::car, native::cdr, native::cons,
             0, 0, native::set_symbol_value, 0, 0,
-            0, 0, native::read_byte, native::write_byte
+            0, 0, native::read_byte, native::write_byte,
+            0, 0, native::list
           };
         
         for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {

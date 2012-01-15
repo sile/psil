@@ -5,4 +5,6 @@
           n
         (+ (fib (- n 2)) (fib (- n 1))))))
 
-  (fib 25))
+  (list (fib 21)
+        (fib 22)
+        (fib 23)))

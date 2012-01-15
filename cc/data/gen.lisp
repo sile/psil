@@ -47,6 +47,8 @@
 
     (33 "FIB")
     (34 "N")
+
+    (35 "LIST")
     ))
 
 (defparameter *data*
@@ -87,6 +89,8 @@
     (30 (:integer 0)) ; FD: 0
     (31 (:integer 1)) ; FD: 1
     (32 (:integer 2)) ; FD: 2
+
+    (35 (:native-function 20)) ; list
     ))
 
 (defun write-header (out)
