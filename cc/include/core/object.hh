@@ -460,6 +460,8 @@ namespace psil {
           return buf;
         }
 
+        list* to_list() const { return head; }
+
       private:
         list* head;
       };

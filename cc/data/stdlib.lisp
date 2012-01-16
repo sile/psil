@@ -46,3 +46,17 @@
 (defun open/w (path)
   (open path (+ o-creat o-rdwr)))
 
+;; append
+(defun append (list1 list2)
+  (if (null list1)
+      list2
+    (cons (car list1) (append (cdr list1) list2))))
+
+;; string-upcase
+(defun string-upcase (str)
+  (list-to-string
+   (mapcar (lambda (c)
+             (if (< 96 c 123) ; a-z
+                 (- c 32)
+               c))
+           (string-to-list str))))

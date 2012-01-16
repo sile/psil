@@ -101,6 +101,9 @@
     ((:symbol "*STDERR*") (:stream 2)) ; FD: 2
 
     ((:symbol "LIST") (:native-function 20)) ; list
+    ((:symbol "LIST-TO-STRING") (:native-function 21)) ; list-to-string
+    ((:symbol "STRING-TO-LIST") (:native-function 22)) ; string-to-list
+    
 
     ((:symbol "QUOTE") (:special 4)) ; quote
 

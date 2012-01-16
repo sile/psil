@@ -185,10 +185,15 @@ namespace psil {
         return obj::o_nil();
       }
 
-      // list-to-string
+      // list-to-string, string-to-list
       obj::object* list_to_string(obj::list* args, environment* env) {
         assert(args->length() == 1);
         return new obj::string(obj::lists::to_list(obj::lists::first(args)));
+      }
+      
+      obj::object* string_to_list(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        return obj::to_string(obj::lists::first(args))->to_list()->value();
       }
     }
   }
