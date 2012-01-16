@@ -73,7 +73,7 @@ namespace psil {
             native::eq, 0, native::set_symbol_value, 0, 0,
             native::open, native::close, native::read_byte, native::write_byte,
             native::intern, 0, native::list, native::list_to_string, native::string_to_list,
-            native::show
+            native::show, native::i_mod
           };
         
         for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {

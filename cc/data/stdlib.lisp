@@ -26,6 +26,28 @@
     (cons (fn (car list))
           (mapcar fn (cdr list)))))
 
+(defun mapcar2 (fn list1 list2)
+  (if (or (null list1) (null list2))
+      nil
+    (cons (fn (car list1) (car list2))
+          (mapcar2 fn (cdr list1) (cdr list2)))))
+
+;; or
+(defmacro or (&rest exps)
+  (if (null exps)
+      nil
+    (let ((v (gensym.tmp)))
+      (list 'let (list (list v (car exps)))
+        (list 'if v v (cons 'or (cdr exps)))))))
+
+;; and
+(defmacro and (&rest exps)
+  (if (null exps)
+      t
+    (let ((v (gensym.tmp)))
+      (list 'let (list (list v (car exps)))
+        (list 'if v (cons 'and (cdr exps)) v)))))
+
 ;; first
 (defun first (list)
   (car list))
@@ -49,25 +71,65 @@
   (cons (list 'lambda-macro (mapcar first binds) (cons 'progn body))
         (mapcar second binds)))
 
+;; => symbol-macrolet
 (defmacro macro-let (binds &rest body)
   (show
   (append (list 'let (mapcar (lambda (bind)
                                (list (first bind)
-                                     (list 'lambda-macro nil (second bind))))
+                                     (list 'symbol-macro (second bind))))
                              binds))
           body)))
 
-(defmacro labels (binds &rest body)
-  (let ((main (cons (cons 'lambda (cons (mapcar (lambda (c) 'a) #+C first binds) body))
-                    (mapcar (lambda (bind)
-                              (list 'lambda (mapcar (lambda (c) 'a) #+C first binds) (second bind)))
-                            binds))))
+(defun reverse-impl (list acc)
+  (if (null list)
+      acc
+    (reverse-impl (cdr list) (cons (car list) acc))))
+
+(defun reverse (list)
+  (reverse-impl list nil))
     
-    (list 'macro-let (mapcar (lambda (bind)
-                               (list (first bind)
-                                     (cons 'a #+C(first bind) (mapcar (lambda (c) 'a) #+C first binds))))
-                             binds)
-          main)))
+(defun integer-to-string-impl (n)
+  (let ((i (+ (mod n 10) 48)))
+    (if (< 0 (/ n 10))
+        (cons i (integer-to-string-impl (/ n 10)))
+      (list i))))
+
+(defun integer-to-string (n)
+  (list-to-string (reverse (integer-to-string-impl n))))
+
+(defun string+ (s1 s2)
+  (list-to-string
+   (append (string-to-list s1) (string-to-list s2))))
+           
+(setq *gensym.seq* 0)
+(defun gensym.tmp ()
+  (let ((sym (intern (string+ "GEN_" (integer-to-string *gensym.seq*)))))
+    (setq *gensym.seq* (+ *gensym.seq* 1))
+    sym))
+  
+(defun length (list)
+  (if (null list)
+      0
+    (+ 1 (length (cdr list)))))
+
+(defun gensym-list (n)
+  (if (= n 0)
+      '()
+    (cons (gensym.tmp)
+          (gensym-list (- n 1)))))
+
+(defmacro let-rec (binds &rest body)
+  (let ((args (gensym-list (length binds))))
+    (let ((main (cons (cons 'lambda (cons args body))
+                      (mapcar (lambda (bind)
+                                (list 'lambda args (second bind)))
+                              binds))))
+    
+      (list 'macro-let (mapcar2 (lambda (bind arg)
+                                  (list (first bind)
+                                        (cons arg args)))
+                                binds args)
+          main))))
 #|
 ((lambda (fib)
    ((fib fib) 10))
@@ -110,8 +172,8 @@
 
 ;; parse-integer
 (defun parse-integer (str)
-  (setq recur (lambda (n bytes)
-                (if (null bytes)
-                    n
-                  (recur (+ (* n 10) (car bytes)) (cdr bytes)))))
-  (recur 0 (mapcar (lambda (c) (- c 48)) (string-to-list str))))
+  (let-rec ((recur (lambda (n bytes)
+                     (if (null bytes)
+                         n
+                       (recur (+ (* n 10) (car bytes)) (cdr bytes))))))
+    (recur 0 (mapcar (lambda (c) (- c 48)) (string-to-list str)))))

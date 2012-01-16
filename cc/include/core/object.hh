@@ -119,6 +119,7 @@ namespace psil {
         int code;
       };
 
+      // TODO: internしないシンボルにも対応
       class string;
       class symbol : public object {
         typedef symbol* (*TableLookupFn)(symbol*);

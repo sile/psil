@@ -77,11 +77,11 @@
   (@read-byte in) ; each #\(
   
   ;; XXX: => (recur-let  ) ?
-  (setq recur (lambda ()
-                (if (= (@peek-byte in) 41) ; #\)
-                    (progn (@read-byte in) nil)
-                  (cons (@parse in) (recur)))))
-  (recur))
+  (let-rec ((recur (lambda ()
+                     (if (= (@peek-byte in) 41) ; #\)
+                         (progn (@read-byte in) nil)
+                       (cons (@parse in) (recur))))))
+    (recur)))
 
 (setq *delimiters* (append '(91 40 93 41 39) *whitespaces*))
 
@@ -110,28 +110,27 @@
       (intern (string-upcase (list-to-string bytes))))))
 
 #+C
-(@parse-file "data/fib.lisp")
-
-#+C
 (labels ((n (lambda (x)
               (+ x x))))
   (n 10))
 
 
-#+C
 (macro-let ((n (show 1)))
-  (n) (n) (n))
+  n n n)
 
-(setq n (symbol-macro (+ 1 2)))
+;;(setq n (symbol-macro (+ 1 2)))
 
-(list n n)
+;;(list n n)
 
-#+C
-(MACRO-LET ((N (A A))) 
-  ((LAMBDA (A) 
-     (show "IN")
-     (show N)
-     (N 10))
-   (LAMBDA (A) 
-     (LAMBDA (X)
-       (+ X X)))))
+(let-rec ((fib (lambda (x)
+                 (if (< x 2)
+                     x
+                   (+ (fib (- x 2)) (fib (- x 1)))))))
+  (fib 10))
+
+
+(@parse-file "data/fib.lisp")
+
+;(or nil 1 2)
+
+;(mapcar2 + '(1 2 3) '(2 3 4))

@@ -58,6 +58,13 @@ namespace psil {
         return new obj::integer(sum);
       }  
 
+      obj::object* i_mod(obj::list* args, environment* env) {
+        assert(args->length() == 2);
+
+        return new obj::integer(obj::to_integer(obj::lists::first(args))->value() %
+                                obj::to_integer(obj::lists::second(args))->value());
+      }  
+
       // =, <
       obj::object* i_eql(obj::list* args, environment* env) {
         assert(args->length() > 0);

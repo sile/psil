@@ -104,7 +104,7 @@
     ((:symbol "LIST-TO-STRING") (:native-function 21)) ; list-to-string
     ((:symbol "STRING-TO-LIST") (:native-function 22)) ; string-to-list
     ((:symbol "SHOW") (:native-function 23)) ; show
-    
+    ((:symbol "MOD") (:native-function 24))
 
     ((:symbol "QUOTE") (:special 4)) ; quote
     ((:symbol "SYMBOL-MACRO") (:special 5)) ; symbol-macro
