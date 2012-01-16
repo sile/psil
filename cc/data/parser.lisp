@@ -44,3 +44,6 @@
         (write-body out))))))
 
 (define-symbol-macro e (@compile (@read "fib.lisp")))
+
+(define-symbol-macro d (progn (@compile-file "stdlib.lisp" "stdlib.bin")
+                              (@compile-file "parse.lisp" "parse.bin")))

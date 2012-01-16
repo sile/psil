@@ -46,13 +46,3 @@
 (defun open/w (path)
   (open path (+ o-creat o-rdwr)))
 
-(mapcar (lambda (n) (+ n n 1)) '(1 2 3))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun fib (n)
-  (if (< n 2)
-      n
-    (+ (fib (- n 2)) (fib (- n 1)))))
-
-(let ((n 10))
-  (list (fib n) (fib (+ n 1))))
