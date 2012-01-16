@@ -103,9 +103,11 @@
     ((:symbol "LIST") (:native-function 20)) ; list
     ((:symbol "LIST-TO-STRING") (:native-function 21)) ; list-to-string
     ((:symbol "STRING-TO-LIST") (:native-function 22)) ; string-to-list
+    ((:symbol "SHOW") (:native-function 23)) ; show
     
 
     ((:symbol "QUOTE") (:special 4)) ; quote
+    ((:symbol "SYMBOL-MACRO") (:special 5)) ; symbol-macro
 
     ((:symbol "O-CREAT") (:integer 64)) ; O_CREAT
     ((:symbol "O-EXCL") (:integer 128)) ; O_EXCL
@@ -140,7 +142,7 @@
   (position type '(:object :cons :list :string :refer :integer
                            :symbol :quote :function :special
                            :macro-function :native-function 
-                           :stream)))
+                           :stream :symbol-macro)))
 
 (defun write-symbol (fields out)
   (assert (= (length fields) 1))

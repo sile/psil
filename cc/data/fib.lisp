@@ -1,4 +1,4 @@
-(abc )
+(abc "c" 'd 10)
 
 (progn
   ((lambda (n)

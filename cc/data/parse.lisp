@@ -78,8 +78,6 @@
   
   ;; XXX: => (recur-let  ) ?
   (setq recur (lambda ()
-                (write-byte (@peek-byte in) *stdout*)
-                (write-byte 10 *stdout*)
                 (if (= (@peek-byte in) 41) ; #\)
                     (progn (@read-byte in) nil)
                   (cons (@parse in) (recur)))))
@@ -95,4 +93,40 @@
       nil
     (cons (@read-byte in) (@read-until bag in))))
 
+(defun @parse-string (in)
+  (@read-byte in) ; eat #\"
+  (let ((s (list-to-string (@read-until '(34) in))))
+    (@read-byte in) ; eat #\"
+    s))
+
+(defun @parse-quote (in)
+  (@read-byte in) ; eat #\'
+  (list 'quote (@parse in)))
+
+(defun @parse-symbol-or-integer (in)
+  (let ((bytes (@read-until *delimiters* in)))
+    (if (every digit-char-p bytes)
+        (parse-integer (list-to-string bytes))
+      (intern (string-upcase (list-to-string bytes))))))
+
+#+C
 (@parse-file "data/fib.lisp")
+
+#+C
+(labels ((n (lambda (x)
+              (+ x x))))
+  (n 10))
+
+
+(macro-let ((n (show 1)))
+  (n) (n) (n))
+
+#+C
+(MACRO-LET ((N (A A))) 
+  ((LAMBDA (A) 
+     (show "IN")
+     (show N)
+     (N 10))
+   (LAMBDA (A) 
+     (LAMBDA (X)
+       (+ X X)))))

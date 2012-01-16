@@ -195,6 +195,13 @@ namespace psil {
         assert(args->length() == 1);
         return obj::to_string(obj::lists::first(args))->to_list()->value();
       }
+
+      // show
+      obj::object* show(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        std::cout << obj::lists::first(args)->show() << std::endl;
+        return obj::lists::first(args);
+      }
     }
   }
 }

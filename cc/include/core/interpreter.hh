@@ -72,7 +72,8 @@ namespace psil {
             native::car, native::cdr, native::cons,
             native::eq, 0, native::set_symbol_value, 0, 0,
             native::open, native::close, native::read_byte, native::write_byte,
-            native::intern, 0, native::list, native::list_to_string, native::string_to_list
+            native::intern, 0, native::list, native::list_to_string, native::string_to_list,
+            native::show
           };
         
         for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {
@@ -165,6 +166,9 @@ namespace psil {
         case obj::O_QUOTE:
           result = ((obj::quote*)o)->value();
           break;
+
+        case obj::O_SYMBOL_MACRO:
+          return eval_symbol_macro((obj::symbol_macro*)o, e);
           
         case obj::O_OBJECT:          
         case obj::O_INTEGER:
@@ -197,6 +201,10 @@ namespace psil {
         case obj::O_NATIVE_FUNCTION:
           return eval_native_function((obj::native_function*)car, args, e);
 
+        case obj::O_SYMBOL_MACRO:
+          return eval_cons(new obj::cons(eval_symbol_macro((obj::symbol_macro*)car, e),
+                                         args->value()), e);
+
         case obj::O_SYMBOL: 
         case obj::O_QUOTE:
         case obj::O_REFER: 
@@ -209,6 +217,10 @@ namespace psil {
           ERR(o->show(buf)+" is not a function");
         }
         return o;
+      }
+
+      obj::object* eval_symbol_macro(obj::symbol_macro *sym, environment& e) {
+        return eval_expression(sym->value(), e);
       }
 
       obj::object* eval_special_form(obj::special* sf, obj::list* args, environment& e) {
@@ -228,6 +240,9 @@ namespace psil {
         case obj::special::QUOTE:
           assert(args->length() == 1);
           return obj::lists::car(args);
+
+        case obj::special::SYMBOL_MACRO:
+          return eval_sf_symbol_macro(args, e);
           
         default:
           ERR(sf->value()+" is not a special form");
@@ -263,6 +278,12 @@ namespace psil {
                                        obj::lists::cdr_list(args),
                                        &e);
       }
+
+      obj::object* eval_sf_symbol_macro(obj::list* args, environment& e) {
+        assert(args->is_null()==false);
+        assert(args->length() == 1);
+        return new obj::symbol_macro(obj::lists::first(args));
+      }
       
       obj::object* eval_sf_progn(obj::list* args, environment& e) {
         obj::object* result = obj::o_nil();
@@ -284,6 +305,7 @@ namespace psil {
         environment& fn_e = *fn->get_env()->in_scope();
         fn_e.bind_symbols(fn->get_params(), args);
         obj::object* expanded_exp = eval_expression(fn->get_body()->value(), fn_e);
+        //std::cerr << "> " << expanded_exp->show() << std::endl;
         return eval_expression(expanded_exp, e);
       }
 

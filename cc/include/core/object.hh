@@ -37,7 +37,8 @@ namespace psil {
         O_SPECIAL,
         O_MACRO_FUNCTION,
         O_NATIVE_FUNCTION,
-        O_STREAM
+        O_STREAM,
+        O_SYMBOL_MACRO
       };
 
       class object {
@@ -72,7 +73,8 @@ namespace psil {
           PROGN = 1,
           IF = 2,
           LAMBDA_MACRO = 3,
-          QUOTE = 4
+          QUOTE = 4,
+          SYMBOL_MACRO = 5
         };
 
         special(int code) : object(obj::O_SPECIAL), code(code) {}
@@ -98,6 +100,9 @@ namespace psil {
             break;
           case QUOTE:
             buf += "QUOTE";
+            break;
+          case SYMBOL_MACRO:
+            buf += "SYMBOL-MACRO";
             break;
           default:
             buf += "<<undef>>";
@@ -179,6 +184,7 @@ namespace psil {
       symbol::TableLookupByCodeFn symbol::table_lookup_by_code = NULL;
       symbol::SymbolNameFn symbol::find_symbol_name = NULL;
 
+      // XXX: delete
       class quote : public object {
       public:
         quote(object* x) : object(obj::O_QUOTE), x(x) {
@@ -314,7 +320,24 @@ namespace psil {
           return x->u_cons.get_cdr();          
         }
 
+        static const object* car(const list* x) {
+          if(x->is_null())
+            return &NIL;
+          return x->u_cons.get_car();
+        }
+        
+        static const object* cdr(const list* x) {
+          if(x->is_null())
+            return &NIL;
+          return x->u_cons.get_cdr();          
+        }
+
         static list* cdr_list(list* x) {
+          // TODO: validation
+          return to_list(cdr(x));
+        }
+
+        static const list* cdr_list(const list* x) {
           // TODO: validation
           return to_list(cdr(x));
         }
@@ -324,6 +347,14 @@ namespace psil {
         }
 
         static object* second(list* x) {
+          return car(cdr_list(x));
+        }
+
+        static const object* first(const list* x) {
+          return car(x);
+        }
+
+        static const object* second(const list* x) {
           return car(cdr_list(x));
         }
 
@@ -371,7 +402,13 @@ namespace psil {
         return &lists::reverse(head)->u_obj;
       }   
 
-      std::string& list::show(std::string& buf) const{
+      std::string& list::show(std::string& buf) const {
+        if(length()==2 && lists::first(this) == symbol::intern2("QUOTE")) {
+          std::string b;
+          buf = "'";
+          buf += lists::second(this)->show(b);
+          return buf;
+        } else {
           std::string b;
           buf = "(";
           
@@ -383,6 +420,7 @@ namespace psil {
           
           buf += ")";
           return buf;
+        }
       }
 
       std::string& cons::show(std::string& buf) const{
@@ -515,6 +553,25 @@ namespace psil {
           buf += ">";
           return buf;
         }
+      };
+
+      class symbol_macro : public object {
+      public:
+        symbol_macro(object* exp) 
+          : object(obj::O_SYMBOL_MACRO), exp(exp) {
+        }
+
+        std::string& show(std::string& buf) const{
+          buf = "#<SYMBOL_MACRO ";
+          buf += exp->show();
+          buf += ">";
+          return buf;
+        }
+
+        object* value() const { return exp; }
+
+      private:
+        object* exp;
       };
 
       class native_function : public object {
