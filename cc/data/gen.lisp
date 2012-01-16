@@ -108,7 +108,7 @@
 
     ((:symbol "QUOTE") (:special 4)) ; quote
     ((:symbol "SYMBOL-MACRO") (:special 5)) ; symbol-macro
-
+    
     ((:symbol "O-CREAT") (:integer 64)) ; O_CREAT
     ((:symbol "O-EXCL") (:integer 128)) ; O_EXCL
     ((:symbol "O-RDONLY") (:integer 0)) ; O_RDONLY

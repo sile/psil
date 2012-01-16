@@ -161,6 +161,8 @@ namespace psil {
 
         case obj::O_SYMBOL: 
           result = symbol_value(reinterpret_cast<obj::symbol*>(o), e);
+          if(result->type() == obj::O_SYMBOL_MACRO) // XXX:
+            result = eval_symbol_macro((obj::symbol_macro*)result, e);
           break;
           
         case obj::O_QUOTE:

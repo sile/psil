@@ -118,8 +118,13 @@
   (n 10))
 
 
+#+C
 (macro-let ((n (show 1)))
   (n) (n) (n))
+
+(setq n (symbol-macro (+ 1 2)))
+
+(list n n)
 
 #+C
 (MACRO-LET ((N (A A))) 
