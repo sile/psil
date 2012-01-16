@@ -416,6 +416,12 @@ namespace psil {
           }
           head = lists::reverse(head);
         }
+
+        string(list* src) : object(obj::O_STRING), head(src) {
+          X_LIST_EACH(x, src, {
+              assert(x->type() == obj::O_INTEGER);
+            });
+        }
         
         std::string& show(std::string& buf) const{
           buf = "\"";

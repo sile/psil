@@ -41,7 +41,7 @@ namespace psil {
         obj::list* vl = values;
         
         std::string b;
-        for(; sl->is_null()==false && vl->is_null()==false;
+        for(; sl->is_null()==false;
             sl = obj::lists::cdr_list(sl), vl = obj::lists::cdr_list(vl)) {
           obj::symbol* s = obj::to_symbol(obj::lists::car(sl));
 
@@ -53,6 +53,8 @@ namespace psil {
             binds[s->value()] = vl->value();
             return;
           } else {
+            if(vl->is_null())
+              break;
             obj::object* v = obj::lists::car(vl);
             binds[s->value()] = v;
           }

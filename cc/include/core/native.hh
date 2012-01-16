@@ -178,6 +178,12 @@ namespace psil {
           return obj::o_t();
         return obj::o_nil();
       }
+
+      // list-to-string
+      obj::object* list_to_string(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        return new obj::string(obj::lists::to_list(obj::lists::first(args)));
+      }
     }
   }
 }
