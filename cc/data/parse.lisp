@@ -13,15 +13,19 @@
 
 (defun @parse (in)
   (let ((type (maybe-object-type in)))
-      (if (eq type 'cons)
-          (@parse-cons in)
-        (if (eq type 'string)
-            (@parse-string in)
-          (if (eq type 'quote)
-              (@parse-quote in)
-            (if (eq type 'symbol)
-                (@parse-symbol in)
-              (@parse-symbol-or-integer in)))))))
+    (if (eq type 'cons)
+        (@parse-cons in)
+      (if (eq type 'string)
+          (@parse-string in)
+        (if (eq type 'quote)
+            (@parse-quote in)
+          (if (eq type 'quash-quote)
+              (@parse-quash-quote in)
+            (if (eq type 'unquash)
+                (@parse-unquash in)
+              (if (eq type 'symbol)
+                  (@parse-symbol in)
+                (@parse-symbol-or-integer in)))))))))
 
 (setq *whitespaces* '(32 ; space
                       9  ; tab
@@ -65,15 +69,19 @@
 
 (defun maybe-object-type (in)
   (let ((n (@peek-byte in)))
-      (if (= n 40) ; #\(
+    (if (= n 40) ; #\(
         'cons
       (if (= n 34) ; #\"
           'string
         (if (= n 39) ; #\'
             'quote
-          (if (digit-char-p n)
-              'symbol-or-integer
-            'symbol))))))
+          (if (= n 96) ; #\`
+              'quash-quote
+            (if (= n 44) ; #\,
+                'unquash
+              (if (digit-char-p n)
+                  'symbol-or-integer
+                'symbol))))))))
 
 (defun digit-char-p (n)
   (< 47 n 58)) ; #\0 - #\9
@@ -107,6 +115,14 @@
 (defun @parse-quote (in)
   (@read-byte in) ; eat #\'
   (list 'quote (@parse in)))
+
+(defun @parse-quash-quote (in)
+  (@read-byte in) ; eat #\'
+  (list 'quash-quote (@parse in)))
+
+(defun @parse-unquash (in)
+  (@read-byte in) ; eat #\,
+  (list 'unquash (@parse in)))
 
 (defun @parse-symbol-or-integer (in)
   (let ((bytes (@read-until *delimiters* in)))

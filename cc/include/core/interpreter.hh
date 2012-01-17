@@ -247,12 +247,57 @@ namespace psil {
           assert(args->length() == 1);
           return obj::lists::car(args);
 
+        case obj::special::QUASH_QUOTE:
+          return eval_sf_quash_quote(args, e);
+
+        case obj::special::UNQUASH:
+          return eval_sf_unquash(args, e);
+
         case obj::special::SYMBOL_MACRO:
           return eval_sf_symbol_macro(args, e);
           
         default:
           ERR(sf->value()+" is not a special form");
         }
+      }
+      
+      obj::object* eval_sf_quash_quote(obj::list* args, environment& e) {
+        assert(args->length() == 1);
+
+        obj::object* o = obj::lists::first(args);
+        return quash_iterate_all(o, e);
+      }
+
+      obj::object* quash_iterate_all(obj::object* o, environment& e) {
+        switch(o->type()) {
+        case obj::O_CONS:
+          {
+            obj::cons* c = (obj::cons*)o;
+            obj::object* car = c->get_car();
+            obj::list* args = obj::lists::to_list(c->get_cdr());
+            if(car == obj::symbol::intern2("UNQUASH") ||
+               (car->type() == obj::O_SPECIAL && 
+                ((obj::special*)car)->value() == obj::special::UNQUASH)) {
+              assert(args->length() == 1);
+              return eval_expression(obj::lists::first(args), e);
+              c->set_cdr(obj::o_nil());
+            } else {
+              obj::object* head = new obj::cons(quash_iterate_all(car, e), obj::o_nil());
+              X_LIST_EACH(a, args, {
+                  head = new obj::cons(quash_iterate_all(a, e), head);
+                });
+              return obj::lists::reverse(obj::lists::to_list(head))->value();
+            }
+          }
+          break;
+        default:
+          return o;
+        }
+      }
+
+      obj::object* eval_sf_unquash(obj::list* args, environment& e) {
+        // quash経由以外でunquashがされるのはおかしい
+        assert(false);
       }
 
       obj::object* eval_sf_if(obj::list* args, environment& e) {

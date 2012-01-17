@@ -74,7 +74,9 @@ namespace psil {
           IF = 2,
           LAMBDA_MACRO = 3,
           QUOTE = 4,
-          SYMBOL_MACRO = 5
+          SYMBOL_MACRO = 5,
+          QUASH_QUOTE,
+          UNQUASH
         };
 
         special(int code) : object(obj::O_SPECIAL), code(code) {}
@@ -100,6 +102,12 @@ namespace psil {
             break;
           case QUOTE:
             buf += "QUOTE";
+            break;
+          case QUASH_QUOTE:
+            buf += "QUASH_QUOTE";
+            break;
+          case UNQUASH:
+            buf += "UNQUASH";
             break;
           case SYMBOL_MACRO:
             buf += "SYMBOL-MACRO";
@@ -309,6 +317,11 @@ namespace psil {
           return (list*)next;
         }
         
+        static void set_car(list* x, object* o) {
+          assert(x->is_null()==false);
+          x->u_cons.set_car(o);
+        }
+
         static object* car(list* x) {
           if(x->is_null())
             return &NIL;

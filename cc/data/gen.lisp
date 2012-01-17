@@ -109,6 +109,8 @@
 
     ((:symbol "QUOTE") (:special 4)) ; quote
     ((:symbol "SYMBOL-MACRO") (:special 5)) ; symbol-macro
+    ((:symbol "QUASH-QUOTE") (:special 6))
+    ((:symbol "UNQUASH") (:special 7))
     
     ((:symbol "O-CREAT") (:integer 64)) ; O_CREAT
     ((:symbol "O-EXCL") (:integer 128)) ; O_EXCL
