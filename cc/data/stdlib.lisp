@@ -73,12 +73,11 @@
 
 ;; => symbol-macrolet
 (defmacro macro-let (binds &rest body)
-  (show
   (append (list 'let (mapcar (lambda (bind)
                                (list (first bind)
                                      (list 'symbol-macro (second bind))))
                              binds))
-          body)))
+          body))
 
 (defun reverse-impl (list acc)
   (if (null list)

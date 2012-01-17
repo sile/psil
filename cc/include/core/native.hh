@@ -14,6 +14,8 @@
 
 namespace psil {
   namespace core {
+    obj::object* eval_exp(obj::object* exp, environment* env);
+
     namespace native {
       namespace {
         obj::object* succeeded(int ret) {
@@ -161,8 +163,11 @@ namespace psil {
         obj::object* fst = obj::lists::car(args);
         int fd = obj::is_nil(fst) ? 1 : obj::to_stream(fst)->value();
         int buf;
-        if(read(fd, &buf, 1)==-1)
+        int ret = read(fd, &buf, 1);
+        if(ret == -1)
           return obj::o_nil();
+        if(ret == 0)
+          return obj::o_nil(); // XXX:
         return new obj::integer(buf&0xFF);
       }
 
@@ -208,6 +213,11 @@ namespace psil {
         assert(args->length() == 1);
         std::cout << obj::lists::first(args)->show() << std::endl;
         return obj::lists::first(args);
+      }
+
+      obj::object* eval(obj::list* args, environment* env) {
+        assert(args->length() == 1);
+        return eval_exp(obj::lists::first(args), env->get_global_env());
       }
     }
   }

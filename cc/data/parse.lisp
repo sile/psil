@@ -4,19 +4,24 @@
   (let ((in (open/r path)))
     (if (null in)
         nil
-      (@parse in))))
+      (@parse-rec in))))
+
+(defun @parse-rec (in)
+  (if (@eos in)
+      nil
+    (cons (@parse in) (@parse-rec in))))
 
 (defun @parse (in)
   (let ((type (maybe-object-type in)))
-    (if (eq type 'cons)
-        (@parse-cons in)
-      (if (eq type 'string)
-          (@parse-string in)
-        (if (eq type 'quote)
-            (@parse-quote in)
-          (if (eq type 'symbol)
-              (@parse-symbol in)
-            (@parse-symbol-or-integer in)))))))
+      (if (eq type 'cons)
+          (@parse-cons in)
+        (if (eq type 'string)
+            (@parse-string in)
+          (if (eq type 'quote)
+              (@parse-quote in)
+            (if (eq type 'symbol)
+                (@parse-symbol in)
+              (@parse-symbol-or-integer in)))))))
 
 (setq *whitespaces* '(32 ; space
                       9  ; tab
@@ -47,7 +52,7 @@
   (null (@peek-byte in)))
 
 (defun @skip-whitespace (in)
-  (if (find-n (@peek-byte2 in) *whitespaces*)
+  (if (and (@peek-byte2 in) (find-n (@peek-byte2 in) *whitespaces*))
       (progn (@read-byte in)
              (@skip-whitespace in))))
 
@@ -60,7 +65,7 @@
 
 (defun maybe-object-type (in)
   (let ((n (@peek-byte in)))
-    (if (= n 40) ; #\(
+      (if (= n 40) ; #\(
         'cons
       (if (= n 34) ; #\"
           'string
@@ -109,6 +114,7 @@
         (parse-integer (list-to-string bytes))
       (intern (string-upcase (list-to-string bytes))))))
 
+#|
 #+C
 (labels ((n (lambda (x)
               (+ x x))))
@@ -134,3 +140,10 @@
 ;(or nil 1 2)
 
 ;(mapcar2 + '(1 2 3) '(2 3 4))
+|#
+
+(defun load (path)
+  (eval (cons 'progn (@parse-file path))))
+
+
+(load "data/fib.lisp")

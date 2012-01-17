@@ -51,6 +51,8 @@ namespace psil {
       
     public:
       interpreter() : env(&symbols) {
+        env.intr = this;
+
         symbol_table::g_table = &symbols; // XXX:
         obj::symbol::table_lookup = obj::sym_table_lookup; // XXX:
 
@@ -73,7 +75,7 @@ namespace psil {
             native::eq, 0, native::set_symbol_value, 0, 0,
             native::open, native::close, native::read_byte, native::write_byte,
             native::intern, 0, native::list, native::list_to_string, native::string_to_list,
-            native::show, native::i_mod
+            native::show, native::i_mod, native::eval
           };
         
         for(unsigned i=0; i < sizeof(natives)/sizeof(NATIVE_FN); i++) {
@@ -140,6 +142,7 @@ namespace psil {
         return e.symbol_value(sym);
       }
 
+    public:
       obj::object* eval_expression(obj::object* o, environment& e) {
         obj::object* result;
         switch(o->type()) {
@@ -186,6 +189,7 @@ namespace psil {
         return result;
       }
 
+    private:
       obj::object* eval_cons(obj::cons* o, environment& e) {
         obj::object* car = eval_expression(o->get_car(), e);
         obj::list* args = obj::lists::to_list(o->get_cdr());
@@ -333,6 +337,10 @@ namespace psil {
       symbol_table symbols;
       environment env; // global
     };
+
+    obj::object* eval_exp(obj::object* exp, environment* env) {
+      return env->intr->eval_expression(exp, *env);
+    }
   }
 }
 

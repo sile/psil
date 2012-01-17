@@ -10,6 +10,8 @@
 
 namespace psil {
   namespace core {
+    class interpreter;
+
     class environment {
     public:
       environment(symbol_table* symbols) : symbols(symbols), parent(NULL) {}
@@ -79,6 +81,7 @@ namespace psil {
     public:
       static NATIVE_FN native_fun_table[256]; // XXX:
 
+      interpreter *intr;
     private:
       std::string buf;
       bindings binds;
