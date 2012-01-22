@@ -1,4 +1,3 @@
-
 (defun write-string (s)
   (mapcar write-byte (string-to-list s))
   'ok)
@@ -12,5 +11,7 @@
     (write-string " => ")
     (show rlt))
   (repl))
+
+(load "data/stdlib2.lisp")
 
 (repl)
