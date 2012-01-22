@@ -1,8 +1,9 @@
 (defpackage psil
   (:use :common-lisp)
-  (:shadow :common-lisp read read-from-string eval)
-  (:export read 
-           read-from-string
-           eval
-           init-env))
+  (:export exec
+           execute-bytecode
+           execute-bytecode-from-file
+           execute-bytecode-from-octets))
 (in-package :psil)
+
+(deftype octet () '(unsigned-byte 8))
