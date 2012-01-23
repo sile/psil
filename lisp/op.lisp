@@ -18,15 +18,28 @@
 
 (defun read-op (in)
   (ecase (op.code->sym (read-byte in))
-    (:i.add (values #'@i.add 0 2))
-    (:i.sub (values #'@i.sub 0 2))
-    (:i.mul (values #'@i.mul 0 2))
-    (:i.div (values #'@i.div 0 2))
-    (:i.mod (values #'@i.mod 0 2))
-    (:int (values #'@int 1 1))
-    (:car (values #'@car 0 1))
-    (:cdr (values #'@cdr 0 1))
-    (:cons (values #'@cons 0 2))))
+    (:i.add (values #'@i.add 2))
+    (:i.sub (values #'@i.sub 2))
+    (:i.mul (values #'@i.mul 2))
+    (:i.div (values #'@i.div 2))
+    (:i.mod (values #'@i.mod 2))
+    (:int (values #'@int 0 t))
+    (:car (values #'@car 1))
+    (:cdr (values #'@cdr 1))
+    (:cons (values #'@cons 2))
+    (:jump (values #'@jump 1 t))
+    (:when.jump (values #'@when.jump 2 t))
+    ))
+
+(defun read-uint (in)
+  (loop FOR i FROM 3 DOWNTO 0
+        SUM (ash (read-byte in) (* i 8))))
+
+(defun read-int (in)
+  (let ((n (read-uint in)))
+    (if (< n #x80000000)
+        n
+      (- n #x100000000))))
 
 (defun read-operand (in)
   (loop FOR i FROM 3 DOWNTO 0
@@ -42,20 +55,35 @@
      (,type (,coerce 
              (,raw-op ,@(mapcar (lambda (a)
                                   `(,(symb type '-value) ,a))
-                                args))))))
+                                (reverse args)))))))
 
 ;;;;
-(def-binary-op @i.add (n1 n2) %int +)
-(def-binary-op @i.sub (n1 n2) %int -)
-(def-binary-op @i.mul (n1 n2) %int *)
-(def-binary-op @i.div (n1 n2) %int / floor)
-(def-binary-op @i.mod (n1 n2) %int mod)
+(def-binary-op @i.add (n2 n1) %int +)
+(def-binary-op @i.sub (n2 n1) %int -)
+(def-binary-op @i.mul (n2 n1) %int *)
+(def-binary-op @i.div (n2 n1) %int / floor)
+(def-binary-op @i.mod (n2 n1) %int mod)
 
-(defun @int (r1)
-  (declare ((unsigned-byte 32) r1))
-  (%int r1))
+(defun @int (in stack)
+  (declare (ignore stack))
+  (cons (%int (read-int in)) stack))
 
 ;;;;
 (defun @cons (x1 x2) (%cons x1 x2))
 (defun @car (cs1) (%cons-car cs1))
 (defun @cdr (cs1) (%cons-cdr cs1))
+
+;;;;
+;; TODO: 遷移先はtagで指定するようにする
+(defun @jump (n1 in stack)
+  (declare (ignore stack)
+           (%int n1))
+  (let ((pos (file-position in)))
+    (file-position in (+ pos (%int-value n1))))
+  stack)
+
+(defun @when.jump (n1 b1 in stack)
+  (declare (%int n1 b1))
+  (if (/= (%int-value b1) 0)
+      (@jump n1 in stack)
+    stack))

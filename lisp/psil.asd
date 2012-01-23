@@ -13,5 +13,5 @@
                (:file "bytecode")
                (:file "op")
                (:file "bytecode-executor")
-               
+               (:file "compile")
                (:file "psil")))

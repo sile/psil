@@ -20,4 +20,8 @@
   (etypecase in
     (stream (execute-bytecode in))
     (string (execute-bytecode-from-file in))
-    (array  (execute-bytecode-from-octets in))))
+    (array  (execute-bytecode-from-octets in))
+    (list   (execute-bytecode-from-octets (psil.compile:compile-ops in)))))
+
+(defun c (ops)
+  (psil.compile:compile-ops ops))
