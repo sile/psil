@@ -72,6 +72,15 @@ abs-jump 29
 
 make-refer 30
 
+size 31
+
+intern 32
+symload 33
+symstore 34
+
+set 35
+get 36
+allocate 37
 |#
 
 (defparameter *code-sym*
@@ -111,6 +120,15 @@ make-refer 30
     (30 :make-refer)
     (15 :load)
     (16 :store)
+
+    (31 :size) 
+    
+    (32 :intern)
+    (33 :symload)
+    (34 :symstore)
+    (35 :set)
+    (36 :get)
+    (37 :allocate)
     ))
 
 (defun op.code->sym (op)

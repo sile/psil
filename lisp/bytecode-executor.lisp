@@ -6,7 +6,7 @@
 (defun eos? (stream)
   (null (listen stream)))
 
-(defun execute (bytecode-stream &optional stack rstack)
+(defun execute (bytecode-stream &optional stack rstack (psil.op:*heap* #()))
   (macrolet ((call (op arity)
                `(if (null look-ahead-mode)
                     (funcall ,op ,@(loop REPEAT arity COLLECT '(pop stack)))
@@ -30,4 +30,4 @@
                        result)))
           (if (eos? bytecode-stream)
               stack
-            (execute bytecode-stream stack (or new-rstack rstack))))))))
+            (execute bytecode-stream stack (or new-rstack rstack) psil.op:*heap*)))))))

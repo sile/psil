@@ -12,6 +12,8 @@
            @car
            @cdr
            @cons
+           
+           *heap*
            ))
 (in-package :psil.op)
 
@@ -46,12 +48,21 @@
     (:make-array (values #'@make-array 1))
     (:ref (values #'@ref 2))
     (:ref! (values #'@ref! 3))
+    (:size (values #'@size 1))
 
     (:make-symbol (values #'@make-symbol 2))
     
     (:make-refer (values #'@make-refer 1))
     (:load (values #'@load 1))
     (:store (values #'@store 2))
+    
+    (:intern (values #'@intern 1))
+    (:symload (values #'@symload 1))
+    (:symstore (values #'@symstore 2))
+
+    (:set (values #'@set 2))
+    (:get (values #'@get 1))
+    (:allocate (values #'@allocate 1))
     ))
 
 (defun read-uint (in)
@@ -178,6 +189,12 @@
     (%array (aref (%array-data a1) (%int-value n1)))
     (%string (%int (aref (%string-octets a1) (%int-value n1))))))
 
+(defun @size (a1)
+  (declare ((or %array %string) a1))
+  (typecase a1
+    (%array (%int (length (%array-data a1))))
+    (%string (%int (length (%string-octets a1))))))
+
 (defun @ref! (x1 n1 a1)
   (declare (%int n1)
            ((or %array %string) a1)
@@ -217,4 +234,31 @@
 
 (defun @store (x1 rf1)
   (setf (%refer-value rf1) x1)
-  rf1)
+  '())
+
+(defparameter *symbol-table* (make-hash-table :test #'equalp))
+
+(defun @intern (name)
+  (unless (gethash (%string-octets name) *symbol-table*)
+    (setf (gethash (%string-octets name) *symbol-table*) (%symbol name (%int 0))))
+  '())
+
+(defun @symload (name)
+  (%symbol-value (gethash (%string-octets name) *symbol-table*))) ;; TODO: error-check
+
+(defun @symstore (value name)
+  (@intern name)
+  (setf (%symbol-value (gethash (%string-octets name) *symbol-table*)) value)
+  '())
+
+(defparameter *heap* #())
+(defun @allocate (n1)
+  (setf *heap* (make-array (%int-value n1)))
+  '())
+
+(defun @get (n1)
+  (aref *heap* (%int-value n1)))
+
+(defun @set (x1 n1)
+  (setf (aref *heap* (%int-value n1)) x1)
+  '())
