@@ -41,7 +41,12 @@
                        (len (length bytes)))
                   (compile-ops-impl rest `(,@bytes ,@(int-to-bytes len) ,(op.sym->code :string) ,@octets)
                                     label-poses ref-poses)))
-        (symbol (compile-ops-impl rest (cons (op.sym->code op) octets) label-poses ref-poses))
+        (symbol (case op
+                  (:return 
+                   (compile-ops-impl rest `(,(op.sym->code :abs-jump) ,(op.sym->code :rpop) ,@octets)
+                                     label-poses ref-poses))
+                  (otherwise
+                   (compile-ops-impl rest (cons (op.sym->code op) octets) label-poses ref-poses))))
         (cons
          (destructuring-bind (tag arg) op
            (ecase tag

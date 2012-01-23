@@ -30,8 +30,13 @@
     (:cons (values #'@cons 2))
     (:jump (values #'@jump 1 t))
     (:when.jump (values #'@when.jump 2 t))
+    (:abs-jump (values #'@abs-jump 1 t))
     (:lambda (values #'@lambda 2 t))
-    (:invoke (values #'@invoke 1 t))
+;;    (:return (values #'@return 0 t t))
+    (:rpush (values #'@rpush 1 t t))
+    (:rpop (values #'@rpop 0 t t))
+
+    (:invoke (values #'@invoke 1 t t))
     (:dup (values #'@dup 1))
     (:pop (values #'@pop 1))
 
@@ -41,6 +46,8 @@
     (:make-array (values #'@make-array 1))
     (:ref (values #'@ref 2))
     (:ref! (values #'@ref! 3))
+
+    (:make-symbol (values #'@make-symbol 2))
     ))
 
 (defun read-uint (in)
@@ -98,6 +105,11 @@
     (file-position in (+ pos (%int-value n1))))
   stack)
 
+(defun @abs-jump (n1 in stack)
+  (declare (%int n1))
+  (file-position in (%int-value n1))
+  stack)
+
 (defun @when.jump (n1 b1 in stack)
   (declare (%int n1 b1))
   (if (/= (%int-value b1) 0)
@@ -106,9 +118,10 @@
 
 (defun @lambda (n1 n2 in stack)
   (declare (%int n1 n2))
-  (cons (%lambda (read-octets (%int-value n1) in)
-                 (loop REPEAT (%int-value n2) COLLECT (pop stack)))
-        stack))
+  (let ((fn (%lambda (file-position in)
+                     (loop REPEAT (%int-value n2) COLLECT (pop stack)))))
+    (read-octets (%int-value n1) in) ; discard
+  (cons fn stack)))
 
 (defmacro with-input-from-octets ((in octets) &body body)
   (let ((path (gensym))
@@ -123,13 +136,13 @@
            ,@body)
          (delete-file ,path)))))
 
-(defun @invoke (fn1 in stack)
-  (declare (ignore in)
-           (%lambda fn1))
-  (let ((body (%lambda-body fn1))
-        (closure-stack (%lambda-stack fn1)))
-    (with-input-from-octets (in body)
-      (psil.bytecode-executor:execute in (append closure-stack stack)))))
+(defun @invoke (fn1 in stack rstack)
+  (declare (%lambda fn1))
+  (let ((body-pos (%int (%lambda-body fn1)))
+        (closure-stack (%lambda-stack fn1))
+        (return-pos (file-position in)))
+    (values (@abs-jump body-pos in (append closure-stack stack))
+            (cons (%int return-pos) rstack))))
 
 (defun @dup (x1)
   (declare (%root x1))
@@ -172,3 +185,22 @@
       (declare (%int x1))
       (setf (aref (%string-octets a1) (%int-value n1)) (%int-value x1)))))
   a1)
+
+(defun @make-symbol (value name)
+  (declare (%root value)
+           (%string name))
+  (%symbol name value))
+
+(defun @return (in stack rstack)
+  (declare (ignore in))
+  (let ((addr (pop rstack)))
+    (values (cons addr stack) rstack)))
+
+(defun @rpush (x1 in stack rstack)
+  (declare (ignore in))
+  (values stack (cons x1 rstack)))
+
+(defun @rpop (in stack rstack)
+  (declare (ignore in))
+  (let ((x1 (pop rstack)))
+    (values (cons x1 stack) rstack)))

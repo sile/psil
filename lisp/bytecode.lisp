@@ -8,6 +8,7 @@
            %lambda %lambda-body %lambda-stack
            %array %array-data
            %string %string-octets
+           %symbol %symbol-name %symbol-value
            ))
 (in-package :psil.bytecode)
 
@@ -19,6 +20,10 @@ cons   2    [car cdr]
 lambda 3    [bytecodes]
 array  4    [data]
 string 5    [octets]
+symbol 6    [name value]
+
+refer  7    [pointer]
+native 8    [...]
 
 ### OP ###
 [name] [code] [in-stack] [operand] [out-stack] [description]
@@ -58,6 +63,12 @@ ref!   24
 
 i.=    25
 i.<    26
+
+make-symbol 27
+
+return 28
+abs-jump 29
+
 |#
 
 (defparameter *code-sym*
@@ -77,6 +88,9 @@ i.<    26
     (13 :dup)
     (14 :pop)
 
+    (17 :rpush)
+    (18 :rpop)
+
     (19 :string)
     (20 :make-string)
     (21 :array)
@@ -86,6 +100,10 @@ i.<    26
 
     (25 :i.=)
     (26 :i.<)
+
+    (27 :make-symbol)
+;;    (28 :return)
+    (29 :abs-jump)
     ))
 
 (defun op.code->sym (op)
@@ -117,10 +135,10 @@ i.<    26
 (defstruct (%lambda (:include %root)
                     (:constructor %lambda (body &optional stack &aux (tag 3))))
   (stack '() :type list) ; for closure
-  (body #() :type (vector (unsigned-byte 8))))
+  (body #() :type fixnum))
 (defmethod print-object ((o %lambda) stream)
   (print-unreadable-object (o stream :identity t)
-    (format stream "LAMBDA")))
+    (format stream "LAMBDA ~a" (%lambda-body o))))
 
 (defstruct (%array (:include %root)
                    (:constructor %array (len &aux (tag 4) (data (make-array len)))))
@@ -136,3 +154,12 @@ i.<    26
 (defmethod print-object ((o %string) stream)
   (print-unreadable-object (o stream)
     (format stream "~s" (sb-ext:octets-to-string (%string-octets o)))))
+
+;; TODO: 多分廃止
+(defstruct (%symbol (:include %root)
+                    (:constructor %symbol (name value &aux (tag 6))))
+  (name t :type %string)
+  (value t :type %root))
+(defmethod print-object ((o %symbol) stream)
+  (print-unreadable-object (o stream)
+    (format stream "SYMBOL ~a ~a" (%symbol-name o) (%symbol-value o))))
