@@ -32,6 +32,11 @@
     (:invoke (values #'@invoke 1 t))
     (:dup (values #'@dup 1))
     (:pop (values #'@pop 1))
+
+    (:string (values #'@string 0 t))
+    (:make-string (values #'@make-string 1))
+;;    (:array (values #'@array 0 t))
+    (:make-array (values #'@make-array 1))
     ))
 
 (defun read-uint (in)
@@ -124,3 +129,18 @@
 (defun @pop (x1)
   (declare (ignore x1))
   '())
+
+(defun @string (in stack)
+  (let* ((len (read-int in))
+         (octets (read-octets len in))
+         (s (%string 0)))
+    (setf (%string-octets s) octets)
+    (cons s stack)))
+
+(defun @make-string (n1)
+  (declare (%int n1))
+  (%string (%int-value n1)))
+
+(defun @make-array (n1)
+  (declare (%int n1))
+  (%array (%int-value n1)))

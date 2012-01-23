@@ -26,6 +26,9 @@
     DO
     (setf (subseq octets pos (+ pos 4)) (nreverse (int-to-bytes (- ref-pos (+ 5 pos))))))
   octets)
+
+(defun str-to-bytes (str)
+  (coerce (nreverse (sb-ext:string-to-octets str)) 'list))
         
 (defun compile-ops-impl (ops octets label-poses ref-poses)
   (if (null ops)
@@ -34,6 +37,10 @@
     (destructuring-bind (op . rest) ops
       (etypecase op
         (integer (compile-ops-impl rest `(,@(int-to-bytes op) ,(op.sym->code :int) ,@octets) label-poses ref-poses))
+        (string (let* ((bytes (str-to-bytes op))
+                       (len (length bytes)))
+                  (compile-ops-impl rest `(,@bytes ,@(int-to-bytes len) ,(op.sym->code :string) ,@octets)
+                                    label-poses ref-poses)))
         (symbol (compile-ops-impl rest (cons (op.sym->code op) octets) label-poses ref-poses))
         (cons
          (destructuring-bind (tag arg) op

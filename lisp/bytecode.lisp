@@ -6,6 +6,8 @@
            %int %int-value
            %cons %cons-car %cons-cdr
            %lambda %lambda-body %lambda-stack
+           %array %array-data
+           %string %string-octets
            ))
 (in-package :psil.bytecode)
 
@@ -15,6 +17,8 @@
 int    1    [(signed-byte 32)]
 cons   2    [car cdr]
 lambda 3    [bytecodes]
+array  4    [data]
+string 5    [octets]
 
 ### OP ###
 [name] [code] [in-stack] [operand] [out-stack] [description]
@@ -43,6 +47,11 @@ store  16
 
 rpush  17   (return-stack)
 rpop   18
+
+string 19                    n1    s1           n1=length
+make-string 20               
+array  21
+make-array 22
 |#
 
 (defparameter *code-sym*
@@ -61,6 +70,11 @@ rpop   18
     (12 :invoke)
     (13 :dup)
     (14 :pop)
+
+    (19 :string)
+    (20 :make-string)
+    (21 :array)
+    (22 :make-array)
     ))
 
 (defun op.code->sym (op)
@@ -96,3 +110,18 @@ rpop   18
 (defmethod print-object ((o %lambda) stream)
   (print-unreadable-object (o stream :identity t)
     (format stream "LAMBDA")))
+
+(defstruct (%array (:include %root)
+                   (:constructor %array (len &aux (tag 4) (data (make-array len)))))
+  (data #() :type simple-array))
+(defmethod print-object ((o %array) stream)
+  (print-unreadable-object (o stream)
+    (format stream "[~{~a~^ ~}]" (coerce (%array-data o) 'list))))
+
+(defstruct (%string (:include %root)
+                    (:constructor %string (len &aux (tag 5) 
+                                               (octets (make-array len :element-type '(unsigned-byte 8))))))
+  (octets #() :type (simple-array (unsigned-byte 8))))
+(defmethod print-object ((o %string) stream)
+  (print-unreadable-object (o stream)
+    (format stream "~s" (sb-ext:octets-to-string (%string-octets o)))))
