@@ -22,6 +22,8 @@
     (:i.mul (values #'@i.mul 2))
     (:i.div (values #'@i.div 2))
     (:i.mod (values #'@i.mod 2))
+    (:i.= (values #'@i.= 2))
+    (:i.< (values #'@i.< 2))
     (:int (values #'@int 0 t))
     (:car (values #'@car 1))
     (:cdr (values #'@cdr 1))
@@ -37,6 +39,8 @@
     (:make-string (values #'@make-string 1))
 ;;    (:array (values #'@array 0 t))
     (:make-array (values #'@make-array 1))
+    (:ref (values #'@ref 2))
+    (:ref! (values #'@ref! 3))
     ))
 
 (defun read-uint (in)
@@ -65,13 +69,18 @@
              (,raw-op ,@(mapcar (lambda (a)
                                   `(,(symb type '-value) ,a))
                                 (reverse args)))))))
-
 ;;;;
 (def-binary-op @i.add (n2 n1) %int +)
 (def-binary-op @i.sub (n2 n1) %int -)
 (def-binary-op @i.mul (n2 n1) %int *)
 (def-binary-op @i.div (n2 n1) %int / floor)
 (def-binary-op @i.mod (n2 n1) %int mod)
+
+(defun bool-to-int (b)
+  (if b 1 0))
+
+(def-binary-op @i.= (n2 n1) %int = bool-to-int)
+(def-binary-op @i.< (n2 n1) %int < bool-to-int)
 
 (defun @int (in stack)
   (cons (%int (read-int in)) stack))
@@ -144,3 +153,22 @@
 (defun @make-array (n1)
   (declare (%int n1))
   (%array (%int-value n1)))
+
+(defun @ref (n1 a1)
+  (declare (%int n1)
+           ((or %array %string) a1))
+  (typecase a1
+    (%array (aref (%array-data a1) (%int-value n1)))
+    (%string (%int (aref (%string-octets a1) (%int-value n1))))))
+
+(defun @ref! (x1 n1 a1)
+  (declare (%int n1)
+           ((or %array %string) a1)
+           (%root x1))
+  (typecase a1
+    (%array (setf (aref (%array-data a1) (%int-value n1)) x1))
+    (%string 
+     (locally
+      (declare (%int x1))
+      (setf (aref (%string-octets a1) (%int-value n1)) (%int-value x1)))))
+  a1)

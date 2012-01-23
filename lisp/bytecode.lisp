@@ -52,6 +52,12 @@ string 19                    n1    s1           n1=length
 make-string 20               
 array  21
 make-array 22
+
+ref    23 
+ref!   24
+
+i.=    25
+i.<    26
 |#
 
 (defparameter *code-sym*
@@ -75,6 +81,11 @@ make-array 22
     (20 :make-string)
     (21 :array)
     (22 :make-array)
+    (23 :ref)
+    (24 :ref!)
+
+    (25 :i.=)
+    (26 :i.<)
     ))
 
 (defun op.code->sym (op)
