@@ -9,3 +9,10 @@
 (in-package :psil)
 
 (deftype octet () '(unsigned-byte 8))
+
+
+;;;; XXXX
+(defpackage psil.bytecode-executor
+  (:use :common-lisp)
+  (:export execute))
+

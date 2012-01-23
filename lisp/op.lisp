@@ -1,7 +1,6 @@
 (defpackage :psil.op
   (:use :common-lisp :psil.bytecode)
   (:export read-op
-           read-operand
 
            @i.add
            @i.sub
@@ -29,6 +28,10 @@
     (:cons (values #'@cons 2))
     (:jump (values #'@jump 1 t))
     (:when.jump (values #'@when.jump 2 t))
+    (:lambda (values #'@lambda 2 t))
+    (:invoke (values #'@invoke 1 t))
+    (:dup (values #'@dup 1))
+    (:pop (values #'@pop 1))
     ))
 
 (defun read-uint (in)
@@ -41,9 +44,10 @@
         n
       (- n #x100000000))))
 
-(defun read-operand (in)
-  (loop FOR i FROM 3 DOWNTO 0
-        SUM (ash (read-byte in) (* i 8))))
+(defun read-octets (n in)
+  (coerce (loop REPEAT n 
+                COLLECT (read-byte in))
+          '(vector (unsigned-byte 8))))
   
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun symb (&rest args)
@@ -65,7 +69,6 @@
 (def-binary-op @i.mod (n2 n1) %int mod)
 
 (defun @int (in stack)
-  (declare (ignore stack))
   (cons (%int (read-int in)) stack))
 
 ;;;;
@@ -76,8 +79,7 @@
 ;;;;
 ;; TODO: 遷移先はtagで指定するようにする
 (defun @jump (n1 in stack)
-  (declare (ignore stack)
-           (%int n1))
+  (declare (%int n1))
   (let ((pos (file-position in)))
     (file-position in (+ pos (%int-value n1))))
   stack)
@@ -87,3 +89,38 @@
   (if (/= (%int-value b1) 0)
       (@jump n1 in stack)
     stack))
+
+(defun @lambda (n1 n2 in stack)
+  (declare (%int n1 n2))
+  (cons (%lambda (read-octets (%int-value n1) in)
+                 (loop REPEAT (%int-value n2) COLLECT (pop stack)))
+        stack))
+
+(defmacro with-input-from-octets ((in octets) &body body)
+  (let ((path (gensym))
+        (out (gensym)))
+    `(let ((,path (format nil "/tmp/~a" (gentemp))))
+       (with-open-file (,out ,path :direction :output
+                                   :if-exists :supersede
+                                   :element-type '(unsigned-byte 8))
+         (write-sequence ,octets ,out))
+       (unwind-protect
+         (with-open-file (,in ,path :element-type '(unsigned-byte 8))
+           ,@body)
+         (delete-file ,path)))))
+
+(defun @invoke (fn1 in stack)
+  (declare (ignore in)
+           (%lambda fn1))
+  (let ((body (%lambda-body fn1))
+        (closure-stack (%lambda-stack fn1)))
+    (with-input-from-octets (in body)
+      (psil.bytecode-executor:execute in (append closure-stack stack)))))
+
+(defun @dup (x1)
+  (declare (%root x1))
+  (list x1 x1))
+
+(defun @pop (x1)
+  (declare (ignore x1))
+  '())

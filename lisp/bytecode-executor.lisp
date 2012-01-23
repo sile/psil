@@ -1,6 +1,3 @@
-(defpackage psil.bytecode-executor
-  (:use :common-lisp)
-  (:export execute))
 (in-package :psil.bytecode-executor)
 
 (defun eos? (stream)
@@ -21,7 +18,9 @@
                        (4 (call op 4))
                        (5 (call op 5))))
              (stack (if (null look-ahead-mode)
-                        (cons result stack)
+                        (if (listp result) ;; XXX:
+                            (append result stack)
+                          (cons result stack))
                       result)))
         (if (eos? bytecode-stream)
             stack

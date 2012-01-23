@@ -39,7 +39,7 @@
          (destructuring-bind (tag arg) op
            (ecase tag
              (:label (compile-ops-impl rest octets (acons arg (length octets) label-poses) ref-poses))
-             ((:jump :when.jump)
+             ((:jump :when.jump :lambda)
               (compile-ops-impl rest 
                                 `(,(op.sym->code tag) ,@(int-to-bytes 0) ,(op.sym->code :int) ,@octets) 
                                 label-poses 
