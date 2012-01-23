@@ -48,6 +48,10 @@
     (:ref! (values #'@ref! 3))
 
     (:make-symbol (values #'@make-symbol 2))
+    
+    (:make-refer (values #'@make-refer 1))
+    (:load (values #'@load 1))
+    (:store (values #'@store 2))
     ))
 
 (defun read-uint (in)
@@ -204,3 +208,13 @@
   (declare (ignore in))
   (let ((x1 (pop rstack)))
     (values (cons x1 stack) rstack)))
+
+(defun @make-refer (x1)
+  (%refer x1))
+
+(defun @load (rf1)
+  (%refer-value rf1))
+
+(defun @store (x1 rf1)
+  (setf (%refer-value rf1) x1)
+  rf1)

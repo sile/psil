@@ -9,6 +9,7 @@
            %array %array-data
            %string %string-octets
            %symbol %symbol-name %symbol-value
+           %refer %refer-value
            ))
 (in-package :psil.bytecode)
 
@@ -69,6 +70,8 @@ make-symbol 27
 return 28
 abs-jump 29
 
+make-refer 30
+
 |#
 
 (defparameter *code-sym*
@@ -104,6 +107,10 @@ abs-jump 29
     (27 :make-symbol)
 ;;    (28 :return)
     (29 :abs-jump)
+    
+    (30 :make-refer)
+    (15 :load)
+    (16 :store)
     ))
 
 (defun op.code->sym (op)
@@ -163,3 +170,10 @@ abs-jump 29
 (defmethod print-object ((o %symbol) stream)
   (print-unreadable-object (o stream)
     (format stream "SYMBOL ~a ~a" (%symbol-name o) (%symbol-value o))))
+
+(defstruct (%refer (:include %root)
+                   (:constructor %refer (value &aux (tag 7))))
+  (value t :type %root))
+(defmethod print-object ((o %refer) stream)
+  (print-unreadable-object (o stream)
+    (format stream "{~a}" (%refer-value o))))
