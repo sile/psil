@@ -10,6 +10,7 @@
   :components ((:file "package")
                (:file "environment")
                (:file "stream")
+               (:file "type")
                (:file "op")
                (:file "executor")
                (:file "psil-vm")))

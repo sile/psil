@@ -6,7 +6,9 @@
            bytecodes
            stack
            return-stack
-           heap))
+           heap
+           
+           env))
 (in-package :pvm.environment)
 
 (defstruct env
