@@ -81,6 +81,8 @@ symstore 34
 set 35
 get 36
 allocate 37
+
+eq 38
 |#
 
 (defparameter *code-sym*
@@ -129,6 +131,8 @@ allocate 37
     (35 :set)
     (36 :get)
     (37 :allocate)
+
+    (38 :eq)
     ))
 
 (defun op.code->sym (op)
