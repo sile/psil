@@ -153,7 +153,7 @@
     env))
 
 (defun @call (env)
-  (/r.push /pc)
+  (/r.push (%int /pc))
   (@jump env))
 
 (defun @return (env)
