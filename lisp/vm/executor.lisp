@@ -6,9 +6,11 @@
 (in-package :pvm.executor)
 
 (defun execute (env)
+  (declare #.*fastest*)
   (if (pvm.stream:eos? env)
       env
     (let ((op (pvm.op:read-op env)))
+      (declare (function op))
       (execute (funcall op env)))))
 
 (defun execute-from-octets (octets &optional env)

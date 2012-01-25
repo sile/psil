@@ -5,6 +5,8 @@
            read-op))
 (in-package :psil-vm.op)
 
+;; (declaim #.*fastest*)
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *op-list*
     '(
@@ -56,6 +58,7 @@
   (get-op-fun (pvm.stream:read-octet env)))
 
 ;;;;;;;;;;
+(declaim (inline spush spop shead ssecond rpush rpop rhead b2i))
 (defun spush (x env)
   (push x (pvm.env:stack env))
   env)
