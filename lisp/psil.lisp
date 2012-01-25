@@ -24,4 +24,7 @@
     (list   (execute-bytecode-from-octets (psil.compile:compile-ops in)))))
 
 (defun c (ops)
-  (psil.compile:compile-ops ops))
+  (etypecase ops
+   (list (psil.compile:compile-ops ops))
+   (string (with-open-file (in ops)
+             (psil.compile:compile-ops (read in))))))

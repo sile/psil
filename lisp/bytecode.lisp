@@ -13,6 +13,8 @@
            ))
 (in-package :psil.bytecode)
 
+;; (declaim (optimize (speed 3) (safety 0)))
+
 #|
 ### TYPE ###
 [name] [tag] [value]
@@ -83,6 +85,7 @@ get 36
 allocate 37
 
 eq 38
+swap 39
 |#
 
 (defparameter *code-sym*
@@ -133,6 +136,7 @@ eq 38
     (37 :allocate)
 
     (38 :eq)
+    (39 :swap)
     ))
 
 (defun op.code->sym (op)

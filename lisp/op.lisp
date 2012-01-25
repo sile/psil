@@ -17,6 +17,8 @@
            ))
 (in-package :psil.op)
 
+;; (declaim (optimize (speed 3) (safety 0)))
+
 (defun read-op (in)
   (ecase (op.code->sym (read-byte in))
     (:i.add (values #'@i.add 2))
@@ -40,6 +42,7 @@
 
     (:invoke (values #'@invoke 1 t t))
     (:dup (values #'@dup 1))
+    (:swap (values #'@swap 2))
     (:pop (values #'@pop 1))
 
     (:string (values #'@string 0 t))
@@ -268,3 +271,6 @@
 (defun @set (n1 x1)
   (setf (aref *heap* (%int-value n1)) x1)
   '())
+
+(defun @swap (x1 x2)
+  (list x2 x1))
