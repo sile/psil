@@ -30,6 +30,12 @@
       (17  :r> @r>)
       (18  :r@ @r@)
       (19  :r@3 @r@3)
+
+      (20 :jump @jump)
+      (21 :jump.if @jump.if)
+      (22 :call @call)
+      (23 :return @return)
+
       )))
 
 #.`(progn
@@ -83,6 +89,8 @@
 (define-symbol-macro /r.head (rhead env))
 (defmacro /r.push (x) `(rpush ,x env))
 
+(define-symbol-macro /pc (pvm.env:pc env))
+
 (defun b2i (bool) (if bool 1 0))
 
 ;;;;;;;;;;
@@ -120,3 +128,23 @@
 (defun @r@ (env) (/push /r.head))
 (defun @r@3 (env) (let ((rstack (pvm.env:return-stack env)))
                     (/push (third rstack))))
+
+;;;
+(defun @jump (env)
+  (setf /pc /i.pop)
+  env)
+
+(defun @jump.if (env)
+  (let ((new-pc /i.pop))
+    (unless (= /i.pop 0)
+      (setf /pc new-pc)))
+  env)
+
+(defun @call (env)
+  (/r.push /pc)
+  (@jump env))
+
+(defun @return (env)
+  (let ((caller-pc (%int-value /r.pop)))
+    (setf /pc caller-pc)
+    env))
