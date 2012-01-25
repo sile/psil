@@ -33,8 +33,10 @@
 
       (20 :jump @jump)
       (21 :jump.if @jump.if)
-      (22 :call @call)
-      (23 :return @return)
+      (22 :rel.jump @rel.jump)
+      (23 :rel.jump.if @rel.jump.if)
+      (24 :call @call)
+      (25 :return @return)
 
       )))
 
@@ -139,6 +141,16 @@
     (unless (= /i.pop 0)
       (setf /pc new-pc)))
   env)
+
+(defun @rel.jump (env)
+  (incf /pc /i.pop)
+  env)
+
+(defun @rel.jump.if (env)
+  (let ((offset /i.pop))
+    (unless (= /i.pop 0)
+      (incf /pc offset))
+    env))
 
 (defun @call (env)
   (/r.push /pc)
