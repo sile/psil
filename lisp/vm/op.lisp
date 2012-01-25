@@ -25,6 +25,11 @@
       (13  :swap @swap)
       (14  :over @over)
       (15  :rot @rot)
+
+      (16  :>r @>r)
+      (17  :r> @r>)
+      (18  :r@ @r@)
+      (19  :r@3 @r@3)
       )))
 
 #.`(progn
@@ -56,6 +61,16 @@
 (defun ssecond (env)
   (second (pvm.env:stack env)))
 
+(defun rpush (x env)
+  (push x (pvm.env:return-stack env))
+  env)
+
+(defun rpop (env)
+  (pop (pvm.env:return-stack env)))
+
+(defun rhead (env)
+  (car (pvm.env:return-stack env)))
+
 (define-symbol-macro /pop (spop env))
 (define-symbol-macro /head (shead env))
 (define-symbol-macro /second (ssecond env))
@@ -63,6 +78,10 @@
 
 (define-symbol-macro /i.pop (%int-value /pop))
 (defmacro /i.push (x) `(/push (%int ,x)))
+
+(define-symbol-macro /r.pop (rpop env))
+(define-symbol-macro /r.head (rhead env))
+(defmacro /r.push (x) `(rpush ,x env))
 
 (defun b2i (bool) (if bool 1 0))
 
@@ -84,6 +103,7 @@
 (defun @i.= (env) (/i.push (b2i (= /i.pop /i.pop))))
 (defun @i.< (env) (/i.push (b2i (> /i.pop /i.pop))))
 
+;;;
 (defun @dup (env) (/push /head))
 (defun @drop (env) /pop env)
 (defun @over (env) (/push /second))
@@ -93,3 +113,10 @@
 (defun @rot (env) (let ((stack (pvm.env:stack env)))
                     (rotatef (third stack) (second stack) (first stack))
                     env))
+
+;;;
+(defun @>r (env) (/r.push /pop))
+(defun @r> (env) (/push /r.pop))
+(defun @r@ (env) (/push /r.head))
+(defun @r@3 (env) (let ((rstack (pvm.env:return-stack env)))
+                    (/push (third rstack))))
