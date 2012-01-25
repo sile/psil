@@ -51,23 +51,11 @@ namespace pvm {
 
   class environment {
   public:
-    // TODO: => move to pvm.cc
-    void show(std::ostream& out) const {
-      out << "[data stack]" << std::endl;
-      for(int i = data_stack.size()-1; i >= 0; i--) {
-        out << " " << (data_stack.size()-1-i) << "# " << data_stack[i] << std::endl;
-      }
-      out << std::endl;
-
-      out << "[return stack]" << std::endl;
-      for(int i = return_stack.size()-1; i >= 0; i--) {
-        out << " " << (return_stack.size()-1-i) << "# " << return_stack[i] << std::endl;
-      }
-      out << std::endl;
-    }
-
     std::vector<int>& dstack() { return data_stack; }
     std::vector<int>& rstack() { return return_stack; }
+
+    const std::vector<int>& dstack() const { return data_stack; }
+    const std::vector<int>& rstack() const { return return_stack; }
 
   private:
     std::vector<int> data_stack;
