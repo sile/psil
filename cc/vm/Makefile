@@ -1,5 +1,5 @@
 CC=g++
-CC_FLAGS=-O2 -Wall -ansi -pedantic-errors -I include/ -std=c++0x
+CC_FLAGS=-O2 -Wall -ansi -pedantic-errors
 
 pvm: pvm.cc pvm.hh
 	${CC} ${CC_FLAGS} -o ${@} ${<} 
