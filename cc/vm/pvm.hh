@@ -9,6 +9,7 @@
 
 namespace pvm {
   typedef unsigned char octet;
+  typedef std::vector<int> stack_t;
 
   // bytecode_stream
   class bytecode_stream {
@@ -51,15 +52,15 @@ namespace pvm {
 
   class environment {
   public:
-    std::vector<int>& dstack() { return data_stack; }
-    std::vector<int>& rstack() { return return_stack; }
+    stack_t& dstack() { return data_stack; }
+    stack_t& rstack() { return return_stack; }
 
-    const std::vector<int>& dstack() const { return data_stack; }
-    const std::vector<int>& rstack() const { return return_stack; }
+    const stack_t& dstack() const { return data_stack; }
+    const stack_t& rstack() const { return return_stack; }
 
   private:
-    std::vector<int> data_stack;
-    std::vector<int> return_stack;
+    stack_t data_stack;
+    stack_t return_stack;
   };
 
   typedef void (*OPFUN)(bytecode_stream&, environment&);
@@ -108,7 +109,7 @@ namespace pvm {
 
     static void op_int(bcs& in, env& e) { DPUSH(in.read_int()); }
     static void op_add(bcs& in, env& e) { DPUSH(DPOP + DPOP); }
-    static void op_sub(bcs& in, env& e) { DPUSH(- DPOP + DPOP); }
+    static void op_sub(bcs& in, env& e) { int n = DPOP; DPUSH(DPOP - n); }
     static void op_mul(bcs& in, env& e) { DPUSH(DPOP * DPOP); }
     static void op_div(bcs& in, env& e) { int n = DPOP; DPUSH(DPOP / n); }
     static void op_mod(bcs& in, env& e) { int n = DPOP; DPUSH(DPOP % n); }
@@ -140,7 +141,7 @@ namespace pvm {
 #undef RNTH
 
   private:
-    static int pop_back(std::vector<int>& stack) {
+    static int pop_back(stack_t& stack) {
       int x = stack.back();
       stack.pop_back();
       return x;
