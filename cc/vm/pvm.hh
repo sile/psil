@@ -1,3 +1,6 @@
+/**
+ * バイトコードインタプリタ
+ */
 #ifndef PVM_HH
 #define PVM_HH
 
@@ -11,7 +14,10 @@ namespace pvm {
   typedef unsigned char octet;
   typedef std::vector<int> stack_t;
 
-  // bytecode_stream
+  
+  /**
+   * バイトコード読み込みストリーム
+   */
   class bytecode_stream {
   public:
     bytecode_stream(const char* filepath) : bytecodes(NULL), position(0) {
@@ -23,15 +29,11 @@ namespace pvm {
       in.read((char*)bytecodes, length);
     }
     
-    ~bytecode_stream() {
-      delete [] bytecodes;
-    }
+    ~bytecode_stream() { delete [] bytecodes; }
     
     bool eos() const { return position >= length; }
     
-    octet read_octet () {
-      return bytecodes[position++];
-    }
+    octet read_octet () { return bytecodes[position++]; }
 
     // sizeof(int) == 4 と仮定
     int read_int() {
@@ -50,6 +52,10 @@ namespace pvm {
     unsigned position;
   };
 
+
+  /**
+   * データスタックとリターンスタック
+   */
   class environment {
   public:
     stack_t& dstack() { return data_stack; }
@@ -63,11 +69,15 @@ namespace pvm {
     stack_t return_stack;
   };
 
+
+  /**
+   * 各種操作(命令)
+   */
   class op {
   public:
     static void call(octet opcode, bytecode_stream& in, environment& env) {
       switch(opcode) {
-      case  1: op_int(in, env); break; // read int value
+      case  1: op_int(in, env); break; // int値構築
       case  2: op_add(in, env); break; // +
       case  3: op_sub(in, env); break; // -
       case  4: op_mul(in, env); break; // *
@@ -76,20 +86,20 @@ namespace pvm {
       case  7: op_eql(in, env); break; // ==
       case  8: op_less(in, env); break;// <
 
-      case  9: op_dup(in, env); break; // duplicates head of data stack
-      case 10: op_drop(in, env); break; // drop head of data stack
-      case 11: op_swap(in, env); break; // swap first and second of data stack
-      case 12: op_over(in, env); break; // copy second of data stack and push to front
-      case 13: op_rot(in, env); break;  // rotate third to first
+      case  9: op_dup(in, env); break;  // データスタックの先頭要素を複製
+      case 10: op_drop(in, env); break; // データスタックの先頭要素を破棄
+      case 11: op_swap(in, env); break; // データスタックの最初の二つの要素を入れ替え
+      case 12: op_over(in, env); break; // データスタックの二番目の要素を先頭にコピーする
+      case 13: op_rot(in, env); break;  // データスタックの先頭三つの要素をローテーションする
         
-      case 14: op_rpush(in, env); break; // 
-      case 15: op_rpop(in, env); break; //
-      case 16: op_rcopy(in, env); break; //
+      case 14: op_rpush(in, env); break; // データスタックの先頭要素を取り出しリターンスタックに追加する
+      case 15: op_rpop(in, env); break;  // リターンスタックの先頭要素を取り出しデータスタックに追加する
+      case 16: op_rcopy(in, env); break; // リターンスタックの先頭要素をデータすタックに追加する
 
-      case 17: op_jump(in, env); break;
-      case 18: op_jump_if(in, env); break;
-      case 19: op_call(in, env); break;
-      case 20: op_return(in, env); break;
+      case 17: op_jump(in, env); break;    // 無条件分岐
+      case 18: op_jump_if(in, env); break; // 条件分岐
+      case 19: op_call(in, env); break;    // 関数呼び出し
+      case 20: op_return(in, env); break;  // 関数から復帰
         
       default:
         assert(false);
@@ -121,8 +131,7 @@ namespace pvm {
     static void op_drop(bcs& in, env& e) { DPOP; }
     static void op_swap(bcs& in, env& e) { std::swap(DNTH(0), DNTH(1)); }
     static void op_over(bcs& in, env& e) { DPUSH(DNTH(1)); }
-    static void op_rot(bcs& in, env& e) { std::swap(DNTH(2), DNTH(0)); 
-                                          std::swap(DNTH(1), DNTH(2)); }
+    static void op_rot(bcs& in, env& e) { std::swap(DNTH(2), DNTH(0)); std::swap(DNTH(1), DNTH(2)); }
 
     static void op_rpush(bcs& in, env& e) { RPUSH(DPOP); }
     static void op_rpop(bcs& in, env& e) { DPUSH(RPOP); }
@@ -149,7 +158,10 @@ namespace pvm {
     }
   };
 
-  // executor
+
+  /**
+   * バイトコード実行
+   */
   class executor {
   public:
     void execute(const char* filepath) {
