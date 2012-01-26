@@ -63,36 +63,37 @@ namespace pvm {
     stack_t return_stack;
   };
 
-  typedef void (*OPFUN)(bytecode_stream&, environment&);
   class op {
   public:
-    static OPFUN get_op(octet opcode) {
+    static void call(octet opcode, bytecode_stream& in, environment& env) {
       switch(opcode) {
-      case  1: return op_int; // read int value
-      case  2: return op_add; // +
-      case  3: return op_sub; // -
-      case  4: return op_mul; // *
-      case  5: return op_div; // /
-      case  6: return op_mod; // %
-      case  7: return op_eql; // ==
-      case  8: return op_less;// <
+      case  1: op_int(in, env); break; // read int value
+      case  2: op_add(in, env); break; // +
+      case  3: op_sub(in, env); break; // -
+      case  4: op_mul(in, env); break; // *
+      case  5: op_div(in, env); break; // /
+      case  6: op_mod(in, env); break; // %
+      case  7: op_eql(in, env); break; // ==
+      case  8: op_less(in, env); break;// <
 
-      case  9: return op_dup; // duplicates head of data stack
-      case 10: return op_drop; // drop head of data stack
-      case 11: return op_swap; // swap first and second of data stack
-      case 12: return op_over; // copy second of data stack and push to front
-      case 13: return op_rot;  // rotate third to first
+      case  9: op_dup(in, env); break; // duplicates head of data stack
+      case 10: op_drop(in, env); break; // drop head of data stack
+      case 11: op_swap(in, env); break; // swap first and second of data stack
+      case 12: op_over(in, env); break; // copy second of data stack and push to front
+      case 13: op_rot(in, env); break;  // rotate third to first
         
-      case 14: return op_rpush; // 
-      case 15: return op_rpop; //
-      case 16: return op_rcopy; //
+      case 14: op_rpush(in, env); break; // 
+      case 15: op_rpop(in, env); break; //
+      case 16: op_rcopy(in, env); break; //
 
-      case 17: return op_jump;
-      case 18: return op_jump_if;
-      case 19: return op_call;
-      case 20: return op_return;
+      case 17: op_jump(in, env); break;
+      case 18: op_jump_if(in, env); break;
+      case 19: op_call(in, env); break;
+      case 20: op_return(in, env); break;
+        
+      default:
+        assert(false);
       }
-      assert(false);
     }
 
   private:
@@ -156,7 +157,7 @@ namespace pvm {
       
       while(in.eos() == false) {
         octet opcode = in.read_octet();
-        op::get_op(opcode)(in, env);
+        op::call(opcode, in, env);
       }
     }
     
