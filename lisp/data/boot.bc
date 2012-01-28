@@ -1,0 +1,34 @@
+(;;init
+ 256 :allocate   ; for global veriables
+ 1 0 :set        ; last index
+ 
+ ;; fib
+ 0
+ (:lambda :fib-end)
+ :dup
+ 2
+ :i.<
+ (:when.jump :fib-return)
+ 
+ :dup
+ 2
+ :i.sub
+ 1 :get
+ :invoke
+ 
+ :swap
+ 1
+ :i.sub
+ 1 :get
+ :invoke 
+
+ :i.add 
+
+ (:label :fib-return)
+ :return
+ (:label :fib-end) 
+ 1 :set
+
+ 21
+ 1 :get
+ :invoke)
