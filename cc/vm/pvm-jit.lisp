@@ -46,6 +46,7 @@
 (load "pvm-execute")
 
 (defmain main (bytecode-filepath)
+  "Usage: ~a BYTECODE_FILEPTAH"
   (print (pvme:execute bytecode-filepath))
   (terpri))
 
