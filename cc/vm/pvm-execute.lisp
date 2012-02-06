@@ -205,12 +205,12 @@
        #'<
        :key #'first))))
 
-(defun bytecode-to-mnemonics (bytecodes)
+(defun convert-to-executable (bytecodes)
   (eval 
    `(body ,@(mapcar #'second (resolve-addrs bytecodes))
           (@pop %eax))))
 
 (defun execute (filepath)
   (with-open-file (in filepath :element-type 'octet)
-    (cl-asm:execute (bytecode-to-mnemonics (read-bytecodes in))
+    (cl-asm:execute (convert-to-executable (read-bytecodes in))
                     (function int))))
