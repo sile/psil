@@ -33,14 +33,13 @@
         (op :call 203)
         (op :return 204)
         
-        (op :d.ref 300)
-        (op :d.dup 301)
-        (op :d.swap 302)
-        (op :d.over 303)
-        (op :d.rot 304)
-        (op :d.push 305)
-        (op :d.pop 306)
-        (op :d.drop 307)
+        (op :d.dup 300)
+        (op :d.swap 301)
+        (op :d.over 302)
+        (op :d.rot 303)
+        (op :d.push 304)
+        (op :d.pop 305)
+        (op :d.drop 306)
         
         (op :r.> 400)
         (op :r.< 401)
@@ -89,6 +88,17 @@
 (defun __i.bit-or (env) (@push (logior @pop @pop)))
 (defun __i.bit-xor (env) (@push (logxor @pop @pop)))
 
+(defun __and (env) (__i.bit-and env))
+(defun __or (env) (__i.bit-or env))
+(defun __not (env) (@push (if (zerop @pop) 1 0)))
+(defun __eq (env) (@push (if (= @pop @pop) 1 0)))
+(defun __i.= (env) (@push (if (= @pop @pop) 1 0)))
+(defun __i.< (env) (@push (if (< @pop @pop) 1 0)))
+(defun __i.<=(env) (@push (if (<= @pop @pop) 1 0)))
+(defun __i.> (env) (@push (if (> @pop @pop) 1 0)))
+(defun __i.>=(env) (@push (if (>= @pop @pop) 1 0)))
+(defun __i.!=(env) (@push (if (/= @pop @pop) 1 0)))
+
 #|
 [整数系]
 int
@@ -103,7 +113,7 @@ i.bit-and
 i.bit-or
 i.bit-xor
 
-[真偽系]
+[真偽系] 0=false, non-0=true
 and
 or
 not
@@ -123,7 +133,6 @@ call
 return
 
 [データスタック系]
-d.ref
 d.dup
 d.swap
 d.over
