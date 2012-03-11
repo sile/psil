@@ -7,4 +7,5 @@
        ,else)))
 
 (defun symb (&rest args)
-  (intern (format nil "~{~a~}" args)))
+  (intern (format nil "~{~a~}" args) :pvm))
+

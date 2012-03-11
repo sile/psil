@@ -11,11 +11,10 @@
         (op :i.mul 3)
         (op :i.div 4)
         (op :i.mod 5)
-        (op :i.bsl 6)
-        (op :i.bsr 7)
-        (op :i.bit-and 8)
-        (op :i.bit-or 9)
-        (op :i.bit-xor 10)
+        (op :i.ash 6)
+        (op :i.bit-and 7)
+        (op :i.bit-or 8)
+        (op :i.bit-xor 9)
 
         (op :and 100)
         (op :or 101)
@@ -77,10 +76,18 @@
     (error "undefined op name: ~a" name)))
 
 (defun op.call (code env &aux (op (code=>op code)))
-  (apply (symb "__" (op-name op)) env))
+  (funcall (symb "__" (op-name op)) env))
 
-(defun __int (env)
-  ($push env ($read-int env)))
+(defun __int (env) (@push @read-int))
+(defun __i.add (env) (@push (+ @pop @pop)))
+(defun __i.sub (env) (@push (+ (- @pop) @pop)))
+(defun __i.mul (env) (@push (* @pop @pop)))
+(defun __i.div (env &aux (n @pop)) (@push (floor (/ @pop n))))
+(defun __i.mod (env &aux (n @pop)) (@push (mod @pop n)))
+(defun __i.ash (env &aux (n @pop)) (@push (ash @pop n)))
+(defun __i.bit-and (env) (@push (logand @pop @pop)))
+(defun __i.bit-or (env) (@push (logior @pop @pop)))
+(defun __i.bit-xor (env) (@push (logxor @pop @pop)))
 
 #|
 [整数系]
