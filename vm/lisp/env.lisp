@@ -44,6 +44,20 @@
   (the int4 (pop (env-stack env))))
 (define-symbol-macro @pop ($pop env))
 
+(defun $head (env)
+  (the int4 (first (env-stack env))))
+(define-symbol-macro @head ($head env))
+
+(defun $swap (env &aux (stack (env-stack env)))
+  (rotatef (first stack) (second stack)))
+(define-symbol-macro @swap ($swap env))
+
+(defun $ref (env i)
+  (nth i (env-stack env)))
+(defmacro @ref (i) `($ref env ,i))
+
+(defun $rot (env &aux (stack (env-stack env)))
+  (rotatef (first stack) (third stack) (second stack)))
 
 (defun empty-env (stream)
   (make-env :stream stream))

@@ -37,9 +37,7 @@
         (op :d.swap 301)
         (op :d.over 302)
         (op :d.rot 303)
-        (op :d.push 304)
-        (op :d.pop 305)
-        (op :d.drop 306)
+        (op :d.drop 304)
         
         (op :r.> 400)
         (op :r.< 401)
@@ -77,6 +75,7 @@
 (defun op.call (code env &aux (op (code=>op code)))
   (funcall (symb "__" (op-name op)) env))
 
+;; [整数系]
 (defun __int (env) (@push @read-int))
 (defun __i.add (env) (@push (+ @pop @pop)))
 (defun __i.sub (env) (@push (+ (- @pop) @pop)))
@@ -88,6 +87,7 @@
 (defun __i.bit-or (env) (@push (logior @pop @pop)))
 (defun __i.bit-xor (env) (@push (logxor @pop @pop)))
 
+;; [真偽系] 0=false, non-0=true
 (defun __and (env) (__i.bit-and env))
 (defun __or (env) (__i.bit-or env))
 (defun __not (env) (@push (if (zerop @pop) 1 0)))
@@ -99,32 +99,15 @@
 (defun __i.>=(env) (@push (if (>= @pop @pop) 1 0)))
 (defun __i.!=(env) (@push (if (/= @pop @pop) 1 0)))
 
+;; [データスタック系]
+(defun __d.dup (env) (@push @head))
+(defun __d.swap (env) @swap)
+(defun __d.over (env) (@push (@ref 1)))
+(defun __d.rot (env) ($rot env))
+(defun __d.drop (env) @pop)
+
+
 #|
-[整数系]
-int
-i.add
-i.sub
-i.mul
-i.div
-i.mod
-i.bsl
-i.bsr
-i.bit-and
-i.bit-or
-i.bit-xor
-
-[真偽系] 0=false, non-0=true
-and
-or
-not
-eq
-i.=
-i.<
-i.<=
-i.>
-i.>=
-i.!=
-
 [遷移系]
 jump
 jump-if
@@ -137,8 +120,6 @@ d.dup
 d.swap
 d.over
 d.rot
-d.push
-d.pop
 d.drop
 
 [リターンスタック系]
