@@ -54,8 +54,8 @@
         
         (op :constant 700)
         (op :variable 701)
-        (op :getvar 702)
-        (op :setvar 703)
+        (op :getval 702)
+        (op :setval 703)
         
         (op :i.print 800)
 
@@ -124,14 +124,25 @@
 (defun __m.set (env)
   ($m.set env @pop @pop @pop))
 
-#|
-[遷移系]
-jump
-jump-if
-label
-call
-return
+;; [遷移系]
+(defun __jump (env)
+  ($jump env @pop))
 
+(defun __jump-if (env &aux (pos @pop))
+  (unless (zerop @pop)
+    ($jump env pos)))
+
+(defun __label (env)
+  @read-int) ;; 実行時には何もしない
+
+(defun __call (env)
+  (@r.push @pc)
+  (__jump env))
+
+(defun __return (env)
+  ($jump env @r.pop))
+
+#|
 [関数系]
 fun        ; (fun ...)
 end
@@ -140,12 +151,13 @@ native-fun
 [定数/変数系]
 constant
 variable
-getvar
-setvar
+getval
+setval
 
 [組み込み関数系]
 ・・・
 
 [その他]
 load-native-library
+noop
 |#

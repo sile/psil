@@ -5,7 +5,8 @@
   stack
   rstack
   (heap (make-hash-table))
-  (heap-index 0 :type fixnum))
+  (heap-index 0 :type fixnum)
+  (label=>addr (make-hash-table)))
 
 (defun empty-env (stream)
   (make-env :stream stream))
@@ -92,3 +93,14 @@
 
 (defun $m.set (env h.index m.index value)
   (setf (aref (gethash h.index (env-heap env)) m.index) value))
+
+(defun $pc (env)
+  (file-position (env-stream env)))
+(define-symbol-macro @pc ($pc env))
+
+(defun $set-pc (env pos)
+  (file-position (env-stream env) pos))
+
+(defun $jump (env pos)
+  ($set-pc env pos))
+
