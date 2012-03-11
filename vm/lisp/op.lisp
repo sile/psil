@@ -106,6 +106,10 @@
 (defun __d.rot (env) ($rot env))
 (defun __d.drop (env) @pop)
 
+;; [リターンスタック系]
+(defun __r.> (env) (@r.push @pop))
+(defun __r.< (env) (@push @r.pop))
+(defun __r.copy (env) (@push @r.head))
 
 #|
 [遷移系]
@@ -114,18 +118,6 @@ jump-if
 label
 call
 return
-
-[データスタック系]
-d.dup
-d.swap
-d.over
-d.rot
-d.drop
-
-[リターンスタック系]
-r.>
-r.<
-r.copy
 
 [ヒープ系]
 m.alloc

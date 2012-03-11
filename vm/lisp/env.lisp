@@ -5,6 +5,9 @@
   stack
   rstack)
 
+(defun empty-env (stream)
+  (make-env :stream stream))
+
 (defun read-uint (in)
   (loop FOR i FROM 3 DOWNTO 0 
         SUM (ash (read-byte in) (* i 8))))
@@ -59,5 +62,15 @@
 (defun $rot (env &aux (stack (env-stack env)))
   (rotatef (first stack) (third stack) (second stack)))
 
-(defun empty-env (stream)
-  (make-env :stream stream))
+(defun $r.push (env x)
+  (declare (int4 x))
+  (push x (env-rstack env)))
+(defmacro @r.push (x) `($r.push env ,x))
+
+(defun $r.pop (env)
+  (the int4 (pop (env-rstack env))))
+(define-symbol-macro @r.pop ($r.pop env))
+
+(defun $r.head (env)
+  (first (env-rstack env)))
+(define-symbol-macro @r.head ($r.head env))
