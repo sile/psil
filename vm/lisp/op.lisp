@@ -43,23 +43,23 @@
         (op :r.< 401)
         (op :r.copy 402)
         
-        (op :m.alloc 400)
-        (op :m.free 401)
-        (op :m.i.ref 402)
-        (op :m.i.set 403)
+        (op :m.alloc 500)
+        (op :m.free 501)
+        (op :m.ref 502)
+        (op :m.set 503)
         
-        (op :fun 500)
-        (op :end 501)
-        (op :native-fun 502)
+        (op :fun 600)
+        (op :end 601)
+        (op :native-fun 602)
         
-        (op :constant 600)
-        (op :variable 601)
-        (op :getvar 602)
-        (op :setvar 603)
+        (op :constant 700)
+        (op :variable 701)
+        (op :getvar 702)
+        (op :setvar 703)
         
-        (op :i.print 700)
+        (op :i.print 800)
 
-        (op :load-native-library 800)
+        (op :load-native-library 900)
         ))
 
 (defun code=>op (code)
@@ -111,6 +111,19 @@
 (defun __r.< (env) (@push @r.pop))
 (defun __r.copy (env) (@push @r.head))
 
+;; [ヒープ系]
+(defun __m.alloc (env) 
+  (@push ($h.register env (make-array @pop :element-type 'int4))))
+
+(defun __m.free (env)
+  ($h.deregister env @pop))
+
+(defun __m.ref (env)
+  (@push ($m.ref env @pop @pop)))
+
+(defun __m.set (env)
+  ($m.set env @pop @pop @pop))
+
 #|
 [遷移系]
 jump
@@ -118,12 +131,6 @@ jump-if
 label
 call
 return
-
-[ヒープ系]
-m.alloc
-m.free
-m.i.ref
-m.i.set
 
 [関数系]
 fun        ; (fun ...)

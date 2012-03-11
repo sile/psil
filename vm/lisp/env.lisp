@@ -3,7 +3,9 @@
 (defstruct env
   stream
   stack
-  rstack)
+  rstack
+  (heap (make-hash-table))
+  (heap-index 0 :type fixnum))
 
 (defun empty-env (stream)
   (make-env :stream stream))
@@ -74,3 +76,19 @@
 (defun $r.head (env)
   (first (env-rstack env)))
 (define-symbol-macro @r.head ($r.head env))
+
+(defun $h.register (env x)
+  (with-slots (heap heap-index) env
+    (setf (gethash (incf heap-index) heap) x)
+    heap-index))
+
+(defun $h.deregister (env index)
+  (unless (gethash index (env-heap env))
+    (error "wrong heap index: ~a" index))
+  (remhash index (env-heap env)))
+
+(defun $m.ref (env h.index m.index)
+  (aref (gethash h.index (env-heap env)) m.index))
+
+(defun $m.set (env h.index m.index value)
+  (setf (aref (gethash h.index (env-heap env)) m.index) value))
