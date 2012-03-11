@@ -52,10 +52,9 @@
         (op :end 601)
         (op :native-fun 602)
         
-        (op :constant 700)
-        (op :variable 701)
-        (op :getval 702)
-        (op :setval 703)
+        (op :variable 700)
+        (op :getval 701)
+        (op :setval 702)
         
         (op :i.print 800)
 
@@ -126,9 +125,9 @@
 
 ;; [遷移系]
 (defun __jump (env)
-  ($jump env @pop))
+  ($jump env ($label-addr env @pop)))
 
-(defun __jump-if (env &aux (pos @pop))
+(defun __jump-if (env &aux (pos ($label-addr env @pop)))
   (unless (zerop @pop)
     ($jump env pos)))
 
@@ -142,14 +141,23 @@
 (defun __return (env)
   ($jump env @r.pop))
 
+;; [グルーバル変数系]
+(defun __variable (env)
+  ($v.register env @read-int))
+
+(defun __getval (env)
+  (@push ($v.get env @pop)))
+
+(defun __setval (env)
+  ($v.set env @pop @pop))
+
 #|
 [関数系]
 fun        ; (fun ...)
 end
 native-fun
 
-[定数/変数系]
-constant
+[グローバル変数系]
 variable
 getval
 setval
@@ -159,5 +167,4 @@ setval
 
 [その他]
 load-native-library
-noop
 |#

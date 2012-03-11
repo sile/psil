@@ -6,6 +6,7 @@
   rstack
   (heap (make-hash-table))
   (heap-index 0 :type fixnum)
+  (vars (make-hash-table))
   (label=>addr (make-hash-table)))
 
 (defun empty-env (stream)
@@ -104,3 +105,20 @@
 (defun $jump (env pos)
   ($set-pc env pos))
 
+(defun $add-label (env)
+  (setf (gethash @read-int (env-label=>addr env)) @pc))
+
+(defun $label-addr (env label)
+  (assert #1=(gethash label (env-label=>addr env)) () "unknown label: ~a" label)
+  #1#)
+
+(defun $v.register (env var-index)
+  (setf (gethash var-index (env-vars env)) 0))
+
+(defun $v.get (env var-index)
+  (assert #1=(gethash var-index (env-vars env)) () "unknown variable: ~a" var-index)
+  #1#)
+
+(defun $v.set (env var-index value)
+  (assert #1=(gethash var-index (env-vars env)) () "unknown variable: ~a" var-index)
+  (setf #1# value))
