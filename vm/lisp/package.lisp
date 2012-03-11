@@ -1,4 +1,5 @@
 (defpackage pvm
   (:use :common-lisp)
-  (:export ))
+  (:export execute
+           execute-from-file))
 (in-package :pvm)
