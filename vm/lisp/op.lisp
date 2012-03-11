@@ -48,17 +48,11 @@
         (op :m.ref 502)
         (op :m.set 503)
         
-        (op :fun 600)
-        (op :end 601)
-        (op :native-fun 602)
-        
         (op :variable 700)
         (op :getval 701)
         (op :setval 702)
         
-        (op :i.print 800)
-
-        (op :load-native-library 900)
+        (op :c.print 800)
         ))
 
 (defun code=>op (code)
@@ -151,20 +145,6 @@
 (defun __setval (env)
   ($v.set env @pop @pop))
 
-#|
-[関数系]
-fun        ; (fun ...)
-end
-native-fun
-
-[グローバル変数系]
-variable
-getval
-setval
-
-[組み込み関数系]
-・・・
-
-[その他]
-load-native-library
-|#
+;; [組み込み関数系]
+(defun __c.print (env)
+  (write-byte @pop *standard-output*))
