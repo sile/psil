@@ -9,6 +9,7 @@
   :components ((:file "package")
                (:file "util")
                (:file "op")
+               (:file "symtable")
                (:file "object")
                (:file "parse")
                (:file "compile")

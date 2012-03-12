@@ -1,5 +1,6 @@
 (in-package :pc)
 
-(defun cp (ast)
-  (flatten (from-object ast)))
+(defun cp (ast &aux (*quote* nil))
+  (flatten (list (init-symtable)
+                 (from-object ast))))
    
