@@ -7,4 +7,9 @@
   :description "A bytecode-compiler for psil"
   :serial t
   :components ((:file "package")
+               (:file "util")
+               (:file "op")
+               (:file "object")
+               (:file "parse")
+               (:file "compile")
                (:file "pc")))
