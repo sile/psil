@@ -15,10 +15,10 @@
   `(,($ :d.dup) ,value ,field ,($ :d.rot) ,($ :m.set)))
 
 (defun get-field (field)
-  `(,($ :d.dup) ,field ,($ :d.rot) ,($ :m.get)))
+  `(,($ :d.dup) ,field ,($ :d.rot) ,($ :m.ref)))
 
 (defun get-field2 (field)
-  `(,field ,($ :d.swap) ,($ :m.get)))
+  `(,field ,($ :d.swap) ,($ :m.ref)))
 
 (defun obj (size tag)
   `(,(int (1+ size)) ,($ :m.alloc)    ; allocate
@@ -91,11 +91,40 @@
       ,(set-label end-label))))
 
 (defun @n-loop (body)
-  (let ((start-label (next-label)))
-    `(,body)))
+  (let ((start-label (next-label))
+        (end-label (next-label)))
+    `(,($ :d.dup)
+      ,($ :r.>)
+      
+      ,(int 0) ; limit i  [r] limit i
+      ,($ :d.dup)
+      ,($ :r.>)
+      
+      ,(set-label start-label)
+      ,($ :i.>=)
+      ,(int end-label)
+      ,($ :jump-if)
+      
+      ,body
+
+      ,($ :r.<) ,(int 1) ,($ :i.add)
+      ,($ :r.copy) 
+      ,($ :d.swap)
+      ,($ :d.dup) ,($ :r.>)
+      
+      ,(int start-label)
+      ,($ :jump)
+      ,(set-label end-label)
+      ,($ :r.<) ,($ :r.<)
+      ,($ :d.drop) ,($ :d.drop)
+      )))
+
+(defun debug.print-a ()
+  `(,(int 97) ,($ :c.print)
+    ,(int 10) ,($ :c.print)))
 
 (defun str.ref ()
-  `(,($ :d.swap) ,($ :m.get)))
+  `(,($ :d.swap) ,($ :m.ref)))
 
 (defun str.=.impl (&aux (end-label (next-label)))
   `(,($ :d.dup) ,(str.len) ; s2 s1 length
@@ -111,11 +140,14 @@
         ,(get-field2 (int 1))
         ,(@if '() `(,(from-boolean nil) ,(int end-label) ,($ :jump)))))
     ,(from-boolean t)
-    ,(set-label end-label)))
+    ,(set-label end-label)
+    ,($ :r.<) ,($ :d.drop)
+    ))
 
 (defun str.= ()
   `(,(2dup) ; s2 s1 s2 s1
     ,(str.len) ,($ :d.swap) ,(str.len) ,($ :i.=) ; s2 s1 native.bool
+    ,($ :dstack.print)
     ,(@if (str.=.impl) (from-boolean nil))))
 
 (defun str.len ()

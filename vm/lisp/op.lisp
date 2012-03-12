@@ -53,6 +53,8 @@
         (op :setval 702)
         
         (op :c.print 800)
+        (op :dstack.print 801) ; for debug
+        (op :rstack.print 802) ; for debug
         ))
 
 (defun code=>op (code)
@@ -148,3 +150,9 @@
 ;; [組み込み関数系]
 (defun __c.print (env)
   (write-byte @pop *standard-output*))
+
+(defun __dstack.print (env)
+  (format t "~&~a~%" (env-stack env)))
+
+(defun __rstack.print (env)
+  (format t "~&~a~%" (env-rstack env)))

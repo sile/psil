@@ -53,6 +53,8 @@
         (op :setval 702)
         
         (op :c.print 800)
+        (op :dstack.print 801) ; for debug
+        (op :rstack.print 802) ; for debug
         ))
 
 (defun name=>op (name)
