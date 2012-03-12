@@ -1,5 +1,4 @@
 (in-package :pvm)
-
   
 (defun execute (bytecode-stream)
   (exec.execute (empty-env bytecode-stream)))
@@ -15,3 +14,11 @@
 (defun execute-from-file (path)
   (with-open-file (in path :element-type '(unsigned-byte 8))
     (execute in)))
+
+(defmain main (file)
+  "Usage: ~a BYTECODE_FILEPATH"
+  (print (execute-from-file file))
+  (terpri))
+
+(defun make-command ()
+  (sb-ext:save-lisp-and-die "pvm" :executable t :toplevel #'main))
