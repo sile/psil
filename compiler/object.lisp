@@ -261,7 +261,7 @@
   `(,(obj 1 +BOOL_TAG+)
     ,(set-field (int 1) (int (if obj 1 0)))))
 
-(defun from-symbol (obj)
+(defun from-sym-intern (obj)
   (let ((name (symbol-name obj)))
     `(,(obj 1 +SYM_TAG+)
       ,(from-string name) ; obj str
@@ -270,12 +270,15 @@
       ,(set-field2 (int 1)) ; obj
       )))
 
+(defun from-symbol (obj)
+  `(,(from-sym-intern obj)
+    ,(sym.val)))
+
 (defun @fun (body)
   (let ((start (next-label))
         (end (next-label)))
     `(,(obj 1 +FUN_TAG+)
       ,(set-field (int 1) (int start))
-      
       ,(int end)
       ,($ :jump)
       ,(set-label start)
@@ -307,9 +310,11 @@
       (6 `(vec ,(map 'vector (lambda (x) (@debug x env)) (subseq val 2 (+ 2 (aref val 1))))))
       (7 `(bool ,(aref val 1)))
       (8 `(sym ,(aref val 1)))
+      (9 `(fun ,(aref val 1)))
       )))
 
 (defparameter *quote?* nil)
+(defparameter *arg-bindings* '())
 
 (defun @funcall ()
   `(,($ :r.>-n) ; fun num [r] ... 
@@ -328,11 +333,6 @@
 (defun lvar (index)
   `(,(int (+ index 2)) ,($ :r.ref)))
 
-(defun fun_add ()
-  (@fun `(,(lvar 0) ,(int.val)
-          ,(lvar 1) ,(int.val)
-          ,($ :i.add) ,(to-int))))
-
 (defun eval-args (args &aux (len (length args)))
   `(,(int len)
     ,(loop FOR x IN args COLLECT (from-object x))
@@ -341,9 +341,29 @@
 ;; XXX: 簡易 (car部の評価なし)
 (defun from-exp (obj)
   (destructuring-bind (fun-name . args) obj
-    `(,(from-symbol fun-name) ,(sym.val) ; fun (assumed)
+    `(,(from-object fun-name)
       ,(eval-args args)                  ; args
       ,(@funcall))))
+
+;; TODO: closure
+(defun from-lambda (obj)
+  (destructuring-bind (_ args &body body) obj
+    (declare (ignore _))
+    (let ((*arg-bindings* 
+           (append (loop FOR a IN args
+                         FOR i FROM 0
+                         COLLECT (cons a (lvar i)))
+                   *arg-bindings*)))
+      (@fun (from-object `(progn 
+                            ,@body)))
+    )))
+
+(defun from-progn (exps)
+  (loop WITH last = (1- (length exps))
+        FOR e IN exps
+        FOR i FROM 0
+    COLLECT `(,(from-object e)
+              ,(if (< i last) ($ :d.drop) ()))))
 
 (defun from-object (obj)
   (etypecase obj
@@ -355,17 +375,28 @@
               (from-list (second obj))))
            (*quote?*
             (from-list obj))
+           ((eq (car obj) 'progn)
+            (from-progn (cdr obj)))
+           ((eq (car obj) 'lambda)
+            (from-lambda obj))
            (t
             (from-exp obj))))
     (character (from-char obj))
     (string (from-string obj))
     (vector (from-vector obj))
-    (symbol (from-symbol obj))
+    (symbol (a.if (assoc obj *arg-bindings*)
+                  (cdr it)
+              (from-symbol obj)))
     ))
+
+(defun fun_add ()
+  (@fun `(,(lvar 0) ,(int.val)
+          ,(lvar 1) ,(int.val)
+          ,($ :i.add) ,(to-int))))
 
 (defun init-built-in-fun ()
   `(
-    ,(@reg-fun (from-symbol 'add) (fun_add))
+    ,(@reg-fun (from-sym-intern 'add) (fun_add))
     ))
 #|
 整数
