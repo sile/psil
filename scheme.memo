@@ -1,0 +1,207 @@
+[仕様]
+- <変数>: => 値
+
+- (quote <データ>) 
+- (quasiquote <qq テンプレート>)
+  = ,
+  = ,@
+
+- (lambda <仮引数部> <本体>)
+  = lambda
+  = closure
+  - <仮引数部>: => (<var>) | <var> | (<var1> . <varN>)
+- (if <テスト> <帰結部> <代替部>) | (if <テスト> <帰結部>)
+- (set! <変数> <式>) 
+
+- (let <束縛部> <本体>)
+  - <束縛部>: ((<変数> <初期値>) ...)
+
+- (letrec <束縛部> <本体>)
+  - 相互再帰的な定義が可能
+  - 束縛中に各変数の値を参照することはできない (lambdaを渡すのが典型的)
+
+- (begin <式> ...)
+  - 左から右に評価されることが保証される
+
+- (do ((<変数> <初期値> <ステップ>) ...)
+      (<テスト> <式> ...)
+      <コマンド> ...)
+
+- (delay <式>)
+
+;; - (lambda-macro <仮引数部> <データ>)
+
+- (let-syntax <束縛部> <本体>)
+   - <束縛部>: ((<キーワード> <変換子仕様>) ...)
+   - <変換子仕様>: (syntax-rules <リテラル部> <構文規則> ...)
+     - <構文規則>: (<パターン> <テンプレート>)
+
+- (letrec-syntax <束縛部> <本体>)
+
+- (define <変数> <式>)
+- (define (<変数> <仮引数部>) <本体>)
+- (define (<変数> . <仮引数部>) <本体>)
+  - トップレベルと<本体>の先頭でのみ有効
+
+- (define-syntax <キーワード> <変換子仕様>)
+  - トップレベルでのみ有効
+
+[標準手続き]
+- (eqv? obj1 obj2)
+  = 詳細は要確認
+- (eq? obj1 obj2)
+- (equal? obj1 obj2)
+
+- (number? obj), (complex? obj), (real? obj), (rational? obj), (integer? obj)
+- (exact? obj), (inexact? obj)
+- (= z1 z2 ...), (< x1 x2 ...), (> x1 x2 ...), (<= x1 x2 ...), (>= x1 x2 ...)
+- (zero? z), (positive? x), (negative? x), (odd? n), (even? n)
+- (max x1 ...), (min x1 ...)
+- (+ z1 ..), (* z1 ...), (- z1 ...), (/ z1 ...)
+- (abs x)
+- (quotient n1 n2), (remainder n1 n2), (modulo n1 n2)
+- (gcd n1 ...), (lcm n1 ...)
+- (numerator q), (denominator q)
+- (floor x), (ceiling x), (truncate x), (round x)
+- (rationalize x y)
+- (exp z), (log z), (sin z), (cos z), (tan z), (asin z), (acons z), (atan z), (atan y x)
+- (sqrt z), (expt z1 z2)
+- (make-rectangular x1 x2), (make-polar x3 x4), (real-part z), (imag-part z), (magnitude z), (angle z)
+- (exact->inexact z), (inexact->exact z)
+- (number->string z), (number->string z radix)
+- (string->number s), (string->number s radix)
+
+- (not obj)
+- (boolean? obj)
+
+- (pair? obj)
+- (cons obj1 obj2)
+- (car pair)
+- (cdr pair)
+- (set-car! pair obj)
+- (set-cdr! pair obj)
+- (caar pair), (cadr pair), ..., (cdddar pair), (cddddr pair)
+- (null? obj)
+- (list? obj)
+- (list obj ...)
+- (length list)
+- (append list ...)
+- (reverse list)
+- (list-tail list k)
+- (list-ref list k)
+- (memq obj list), (memv obj list), (member obj list)
+- (assq obj list), (assv obj list), (assoc obj list)
+
+- (symbol? obj)
+- (symbol->string symbol)
+- (string->symbol string)
+
+- (char? obj)
+- (char=? c1 c2), (char<? c1 c2), (char>? c1 c2), (char<=? c1 c2), (char>=? c1 c2)
+- (char-ci=? c1 c2), (char-ci<? c1 c2), (char-ci>? c1 c2), (char-ci<=? c1 c2), (char-ci>=? c1 c2)
+- (char-alphabetic? c), (char-numeric? c), (char-whitespace? c), (char-upper-case? c), (char-lower-case? c)
+- (char->integer c), (integer->char n)
+- (char-upcase c), (char-downcase c)
+
+- (string? obj)
+- (make-string k), (make-string k char)
+- (string c ...)
+- (string-length s k)
+- (string-ref s k)
+- (string-set! s k c)
+- (string=? s1 s2), (string-ci=? s1 s2)
+- stirng<?, string>?, string<=?, string>=?, string-ci<?, string-ci>?, string-ci<=?, string-ci>=?
+- (substring s start end)
+- (string-append s ...)
+- (string->list s)
+- (lits->string l)
+- (string-copy s)
+- (string-fill! s c)
+
+- (vector? obj)
+- (make-vector k)
+- (make-vector k fill)
+- (vector obj ...)
+- (vector-length vector)
+- (vector-ref vector k)
+- (vector-set! vector k obj)
+- (vector->list vector)
+- (list->vector list)
+- (vector-fill! vector fill)
+
+- (procedure? obj)
+- (apply proc arg ... args)
+- (map proc list ...)
+- (for-each proc list ...)
+- (force promise)
+
+- (call-with-current-continuation proc)
+- (values obj ...)
+- (call-with-values producer consumer)
+- (dynamic-wind before thunk after)
+
+- (eval expression environment-specifier)
+- (scheme-report-environment version)
+- (null-environment version)
+- (interaction-environment)
+
+- (call-with-input-file string proc)
+- (call-with-output-file string proc)
+- (input-port? obj)
+- (output-port? obj)
+- (current-input-port)
+- (current-output-port)
+- (with-input-from-file string thunk)
+- (with-output-to-file string thunk)
+- (open-input-file filename)
+- (open-output-file filename)
+- (close-input-port port)
+- (close-output-port port)
+
+- (read), (read port)
+- (read-char), (read-char port)
+- (peek-char), (peek-char port)
+- (eof-object? obj)
+- (char-ready?), (char-ready? port)
+- (write obj), (write obj port)
+- (display obj), (display obj port)
+- (newline), (newline port)
+- (write-char char), (write-char char port)
+
+- (load filename)
+- (transcript-on filename), (transcript-off)
+
+[型]
+- 真偽値: #t, #f
+- 数値:
+   - number
+    - complex
+     - real 
+      - rational
+       - integer
+- ペア(コンス)
+- ニル
+- シンボル
+- 文字: #\<文字名>, #\<文字>
+- 文字列
+- ベクタ
+- 関数
+- ポート
+
+[派生]
+- (cond <節1> <節2> ...)
+  - <節>: => (<テスト> <式> ...) | (else <式> ...)
+
+- (case <キー> <節1> <節2> ...)
+  - <節>: ((<データ> ...) <式> ...) | (else <式> ...)
+  - eqv?で判定
+
+- (and <テスト> ...)
+- (or <テスト> ...)
+
+- (let* <束縛部> <本体>)
+- (let <変数> <束縛部> <本体>)
+    
+
+[memo]
+・lambdaやclosureの仕組みはVM側に組み込んでしまった方が良いかもしれない
