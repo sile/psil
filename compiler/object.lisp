@@ -7,6 +7,7 @@
 (defconstant +CHAR_TAG+ 5)
 (defconstant +VEC_TAG+ 6)
 (defconstant +BOOL_TAG+ 7)
+(defconstant +SYM_TAG+ 8)
 
 (defun int (n)
   `(,($ :int) ,(int-to-bytes n)))
@@ -14,6 +15,13 @@
 (defun set-field (field value)
   `(,($ :d.dup) ,value ,field ,($ :d.rot) ,($ :m.set)))
 
+;; value obj
+(defun set-field2 (field)
+  `(,($ :d.dup) ,($ :r.>)
+    ,field ,($ :d.swap) ; value field obj
+    ,($ :m.set)
+    ,($ :r.<)))
+       
 (defun get-field (field)
   `(,($ :d.dup) ,field ,($ :d.rot) ,($ :m.ref)))
 
@@ -36,12 +44,80 @@
   ;; TODO: symbol
   (obj 0 +NIL_TAG+))
 
+;; car cdr
+(defun @cons ()
+  `(,(obj 2 +CONS_TAG+)
+    ,(set-field2 (int 2))
+    ,(set-field2 (int 1))))
+
+(defun bool.val ()
+  (get-field2 (int 1)))
+
+(defun cons.car ()
+  (get-field2 (int 1)))
+
+(defun cons.cdr ()
+  (get-field2 (int 2)))
+
+(defun @nil? ()
+  `(,(get-field2 (int 0))
+    ,(int +NIL_TAG+)
+    ,($ :i.=)))
+    
+(defun @list-loop-clean ()
+  `(,($ :r.<) ,($ :r.<) ,($ :d.drop) ,($ :d.drop)))
+
+(defun @list-loop (body)
+  (let ((start-label (next-label))
+        (end-label (next-label)))
+    `(,(set-label start-label)
+      ,($ :d.dup) ; list list
+      ,(@nil?) ; list native.bool
+      ,(int end-label)
+      ,($ :jump-if)
+      
+      ,($ :d.dup) ; list list
+      ,($ :r.>)   ; list  [r] list
+      ,(cons.car) ; car   [r] list
+      ,($ :r.>)   ; [r] list car
+      
+      ,body
+
+      ,($ :r.<) ,($ :d.drop) ,($ :r.<) ; list
+      ,(cons.cdr)  ; list
+      ,(int start-label)
+      ,($ :jump)
+      
+      ,(set-label end-label)
+      ,($ :d.drop))))
+
+;; key:string list
+(defun @assoc (&aux (end-label (next-label)))
+  `(,(@list-loop 
+      `(,($ :d.dup)  ; key key
+        ,($ :r.copy) ; key key cons
+        ,(cons.car)  ; key key car
+        ,(str.=)     ; key bool
+        ,(bool.val)  ; key native.bool
+        ,(@if `(,($ :r.copy) ,(@list-loop-clean) ,(int end-label) ,($ :jump))
+              '())))
+    ,(from-nil)
+    ,(set-label end-label)
+    ,($ :d.swap) ,($ :d.drop)))
+
+;; car cdr list => cons list
+(defun @acons ()
+  `(,($ :d.rot) ,($ :d.rot) ; list car cdr
+    ,(@cons) ; list cons
+    ,($ :d.dup) ,($ :d.rot) ; cons cons list
+    ,(@cons))) ; cons list
+
 (defun from-list (list)
   (if (null list)
       (from-nil)
-    `(,(obj 2 +CONS_TAG+)
-      ,(set-field (int 1) (from-object (car list)))
-      ,(set-field (int 2) (from-object (cdr list))))))
+    `(,(from-object (car list))
+      ,(if (null (cdr list)) (from-nil) (from-object (cdr list)))
+      ,(@cons))))
 
 (defun from-string (str &aux (len (length str)))
   `(,(obj (1+ len) +STR_TAG+)
@@ -54,17 +130,21 @@
   `(,($ :i.=) 
     ,(int 1)
     ,(obj 1 +BOOL_TAG+)
-    ,($ :m.set)))
+    ,($ :d.dup)
+    ,($ :r.>)
+    ,($ :m.set)
+    ,($ :r.<)))
     
 (defun char.= ()
-  `(,(get-field2 1) ; c2 c1.value 
+  `(,(get-field2 (int 1)) ; c2 c1.value 
     ,($ :d.swap)    ; c1.value c2
-    ,(get-field2 1) ; c1.value c2.value
+    ,(get-field2 (int 1)) ; c1.value c2.value
+
     ,(int=)         ; bool
     ))
 
 (defun 2dup ()
-  `(,($ :d.dup) ,($ :d.rot) ,($ :d.dup)))
+  `(,($ :d.dup) ,($ :d.rot) ,($ :d.dup) ,($ :d.rot)))
 
 (let ((label 0))
   (defun next-label ()
@@ -90,6 +170,9 @@
       
       ,(set-label end-label))))
 
+(defun loop-clean ()
+  `(,($ :r.<) ,($ :r.<) ,($ :d.drop) ,($ :d.drop)))
+
 (defun @n-loop (body)
   (let ((start-label (next-label))
         (end-label (next-label)))
@@ -104,9 +187,7 @@
       ,($ :i.>=)
       ,(int end-label)
       ,($ :jump-if)
-      
       ,body
-
       ,($ :r.<) ,(int 1) ,($ :i.add)
       ,($ :r.copy) 
       ,($ :d.swap)
@@ -115,8 +196,7 @@
       ,(int start-label)
       ,($ :jump)
       ,(set-label end-label)
-      ,($ :r.<) ,($ :r.<)
-      ,($ :d.drop) ,($ :d.drop)
+      ,(loop-clean)
       )))
 
 (defun debug.print-a ()
@@ -124,7 +204,7 @@
     ,(int 10) ,($ :c.print)))
 
 (defun str.ref ()
-  `(,($ :d.swap) ,($ :m.ref)))
+  `(,(int 2) ,($ :i.add) ,($ :d.swap) ,($ :m.ref)))
 
 (defun str.=.impl (&aux (end-label (next-label)))
   `(,($ :d.dup) ,(str.len) ; s2 s1 length
@@ -136,19 +216,20 @@
         ,($ :r.copy) ; s2 s1 s1[i] s2 i
         ,(str.ref)   ; s2 s1 s1[i] s2[i]
         ,(char.=)    ; s2 s1 bool
-        
         ,(get-field2 (int 1))
-        ,(@if '() `(,(from-boolean nil) ,(int end-label) ,($ :jump)))))
+
+        ,(@if '() 
+              `(,(loop-clean) ,(from-boolean nil) ,(int end-label) ,($ :jump)))))
     ,(from-boolean t)
     ,(set-label end-label)
-    ,($ :r.<) ,($ :d.drop)
     ))
 
 (defun str.= ()
   `(,(2dup) ; s2 s1 s2 s1
     ,(str.len) ,($ :d.swap) ,(str.len) ,($ :i.=) ; s2 s1 native.bool
-    ,($ :dstack.print)
-    ,(@if (str.=.impl) (from-boolean nil))))
+    ,(@if (str.=.impl) 
+          (from-boolean nil))
+    ,($ :d.rot) ,($ :d.rot) ,($ :d.drop) ,($ :d.drop)))
 
 (defun str.len ()
   (get-field2 (int 1)))
@@ -165,7 +246,26 @@
     ,(set-field (int 1) (int (if obj 1 0)))))
 
 (defun from-symbol (obj)
-  )
+  (let ((name (symbol-name obj)))
+    `(,(obj 1 +SYM_TAG+)
+      ,(from-string name) ; obj str
+      ,(sym.intern)   ; obj sym
+      ,($ :d.swap)    ; sym obj
+      ,(set-field2 (int 1)) ; obj
+      )))
+
+(defun @debug (var env)
+  (let ((val (gethash var (pvm::env-heap env))))
+    (ecase (aref val 0)
+      (1 `(int ,(aref val 1)))
+      (2 (cons (@debug (aref val 1) env) (@debug (aref val 2) env)))
+      (3 nil)
+      (4 `(str ,(map 'vector (lambda (x) (@debug x env)) (subseq val 2 (+ 2 (aref val 1))))))
+      (5 `(char ,(aref val 1)))
+      (6 `(vec ,(map 'vector (lambda (x) (@debug x env)) (subseq val 2 (+ 2 (aref val 1))))))
+      (7 `(bool ,(aref val 1)))
+      (8 `(sym ,(aref val 1)))
+      )))
 
 (defparameter *quote* nil)
 
@@ -177,6 +277,8 @@
     (boolean (from-boolean obj))
     (number (from-int obj))
     (list 
+     (from-list obj)
+     #+C
      (if (or *quote* (eq (car obj) 'quote))
          (let ((*quote* t))
            (from-list obj))
@@ -186,7 +288,7 @@
     (vector (from-vector obj))
     (symbol (from-symbol obj))
     ))
-  
+
 #|
 整数
 コンス

@@ -9,8 +9,19 @@
 (defun get-val (var)
   `(,(int var) ,($ :getval)))
 
-(defun set-val (var value)
-  `(,value ,(int var) ,($ :setval)))
+;; value
+(defun set-val (var)
+  `(,(int var) ,($ :setval)))
 
-(defun sym.intern (name)
-  )
+;; name
+(defun sym.intern ()
+  `(,($ :d.dup) ,(get-val +VAR_SYMTABLE+)  ; name name list
+    ,(@assoc) ; name cons|nil
+    ,($ :d.dup) ; name cons|nil cons|nil
+    ,(@nil?)    ; name cons|nil native.bool
+    ,(@if `(,($ :d.drop) ; name 
+            ,(from-nil)  ; name value
+            ,(get-val +VAR_SYMTABLE+) ; name value list
+            ,(@acons)   ; cons list
+            ,(set-val +VAR_SYMTABLE+)) ; cons
+          `(,($ :d.swap) ,($ :d.drop)))))
