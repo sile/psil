@@ -8,6 +8,7 @@
 (defconstant +VEC_TAG+ 6)
 (defconstant +BOOL_TAG+ 7)
 (defconstant +SYM_TAG+ 8)
+(defconstant +FUN_TAG+ 9)
 
 (defun int (n)
   `(,($ :int) ,(int-to-bytes n)))
@@ -267,9 +268,12 @@
       (8 `(sym ,(aref val 1)))
       )))
 
-(defparameter *quote* nil)
+(defparameter *quote?* nil)
 
+;; XXX: 簡易 (car部の評価なし)
 (defun from-exp (obj)
+  (destructuring-bind (fun-name . args) obj
+    )
   )
 
 (defun from-object (obj)
@@ -277,12 +281,13 @@
     (boolean (from-boolean obj))
     (number (from-int obj))
     (list 
-     (from-list obj)
-     #+C
-     (if (or *quote* (eq (car obj) 'quote))
-         (let ((*quote* t))
-           (from-list obj))
-       (from-exp obj)))
+     (cond ((eq (car obj) 'quote)
+            (let ((*quote?* t))            
+              (from-list (second obj))))
+           (*quote?*
+            (from-list obj))
+           (t
+            (from-exp obj))))
     (character (from-char obj))
     (string (from-string obj))
     (vector (from-vector obj))
@@ -297,7 +302,6 @@
 文字
 配列
 真偽値
-
 シンボル
 
 ; ストリーム

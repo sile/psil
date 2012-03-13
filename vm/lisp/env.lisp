@@ -79,6 +79,14 @@
   (first (env-rstack env)))
 (define-symbol-macro @r.head ($r.head env))
 
+(defun $r.ref (env i)
+  (nth i (env-rstack env)))
+(defmacro @r.ref (i) `($r.ref env ,i))
+
+(defun $r.set (env i val)
+  (setf (nth i (env-rstack env)) val))
+(defmacro @r.set (i val) `($r.set env ,i ,val))
+
 (defun $h.register (env x)
   (with-slots (heap heap-index) env
     (setf (gethash (incf heap-index) heap) x)

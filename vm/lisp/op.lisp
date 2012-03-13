@@ -38,10 +38,15 @@
         (op :d.over 302)
         (op :d.rot 303)
         (op :d.drop 304)
-        
+
         (op :r.> 400)
         (op :r.< 401)
         (op :r.copy 402)
+        (op :r.>-n 403)
+        (op :r.drop-n 404)
+        (op :r.ref 405)
+        (op :r.set 406)
+        (op :r.reserve 407)
         
         (op :m.alloc 500)
         (op :m.free 501)
@@ -105,6 +110,11 @@
 (defun __r.> (env) (@r.push @pop))
 (defun __r.< (env) (@push @r.pop))
 (defun __r.copy (env) (@push @r.head))
+(defun __r.>-n (env)  (loop REPEAT @pop DO (__r.> env)))
+(defun __r.drop-n (env) (loop REPEAT @pop DO (locally @r.pop)))
+(defun __r.ref (env) (@push (@r.ref @pop)))
+(defun __r.set (env) (@r.set @pop @pop)) ; value index
+(defun __r.reserve (env) (loop REPEAT @pop DO (@r.push 0)))
 
 ;; [ヒープ系]
 (defun __m.alloc (env) 

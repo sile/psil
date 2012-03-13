@@ -42,6 +42,11 @@
         (op :r.> 400)
         (op :r.< 401)
         (op :r.copy 402)
+        (op :r.>-n 403)
+        (op :r.drop-n 404)
+        (op :r.ref 405)
+        (op :r.set 406)
+        (op :r.reserve 407)
         
         (op :m.alloc 500)
         (op :m.free 501)
