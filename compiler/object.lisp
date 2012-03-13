@@ -17,10 +17,14 @@
   `(,($ :d.dup) ,value ,field ,($ :d.rot) ,($ :m.set)))
 
 ;; value obj
+(defun set-field3 (field)
+  `(,field ,($ :d.swap) ; value field obj
+    ,($ :m.set)))
+
+;; value obj
 (defun set-field2 (field)
   `(,($ :d.dup) ,($ :r.>)
-    ,field ,($ :d.swap) ; value field obj
-    ,($ :m.set)
+    ,(set-field3 field)
     ,($ :r.<)))
        
 (defun get-field (field)
@@ -32,6 +36,13 @@
 (defun obj (size tag)
   `(,(int (1+ size)) ,($ :m.alloc)    ; allocate
     ,(set-field (int 0) (int tag))))  ; set tag
+
+(defun int.val ()
+  (get-field2 (int 1)))
+
+(defun to-int ()
+  `(,(obj 1 +INT_TAG+)
+    ,(set-field2 (int 1))))
 
 (defun from-int (n)
   `(,(obj 1 +INT_TAG+)
@@ -59,6 +70,10 @@
 
 (defun cons.cdr ()
   (get-field2 (int 2)))
+
+;; val cons
+(defun cons.cdr.set ()
+  (set-field3 (int 2)))
 
 (defun @nil? ()
   `(,(get-field2 (int 0))
@@ -255,6 +270,32 @@
       ,(set-field2 (int 1)) ; obj
       )))
 
+(defun @fun (body)
+  (let ((start (next-label))
+        (end (next-label)))
+    `(,(obj 1 +FUN_TAG+)
+      ,(set-field (int 1) (int start))
+      
+      ,(int end)
+      ,($ :jump)
+      ,(set-label start)
+      ,body
+      ,($ :return)
+      ,(set-label end))))
+
+;; fun
+(defun fun.label ()
+  (get-field2 (int 1)))
+
+(defun sym.val ()
+  `(,(get-field2 (int 1)) ; cons
+    ,(cons.cdr)))
+
+;; val sym
+(defun sym.val.set ()
+  `(,(get-field2 (int 1)) ; val con
+    ,(cons.cdr.set)))     ; 
+
 (defun @debug (var env)
   (let ((val (gethash var (pvm::env-heap env))))
     (ecase (aref val 0)
@@ -270,11 +311,39 @@
 
 (defparameter *quote?* nil)
 
+(defun @funcall ()
+  `(,($ :r.>-n) ; fun num [r] ... 
+    ,($ :r.>)
+    ,(fun.label) ; label [r] num ...
+    ,($ :call)
+    ,($ :r.<)   ; num 
+    ,($ :r.drop-n)
+    ))
+
+(defun @reg-fun (sym fun)
+  `(,fun
+    ,sym
+    ,(sym.val.set)))
+
+(defun lvar (index)
+  `(,(int (+ index 2)) ,($ :r.ref)))
+
+(defun fun_add ()
+  (@fun `(,(lvar 0) ,(int.val)
+          ,(lvar 1) ,(int.val)
+          ,($ :i.add) ,(to-int))))
+
+(defun eval-args (args &aux (len (length args)))
+  `(,(int len)
+    ,(loop FOR x IN args COLLECT (from-object x))
+    ,(int len)))
+  
 ;; XXX: 簡易 (car部の評価なし)
 (defun from-exp (obj)
   (destructuring-bind (fun-name . args) obj
-    )
-  )
+    `(,(from-symbol fun-name) ,(sym.val) ; fun (assumed)
+      ,(eval-args args)                  ; args
+      ,(@funcall))))
 
 (defun from-object (obj)
   (etypecase obj
@@ -294,6 +363,10 @@
     (symbol (from-symbol obj))
     ))
 
+(defun init-built-in-fun ()
+  `(
+    ,(@reg-fun (from-symbol 'add) (fun_add))
+    ))
 #|
 整数
 コンス

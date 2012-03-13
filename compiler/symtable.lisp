@@ -6,8 +6,10 @@
   `(,($ :variable) ,(int-to-bytes +VAR_SYMTABLE+)
     ,(from-nil) ,(int +VAR_SYMTABLE+) ,($ :setval)
 
-    ;;
-    ,(_sym.intern)))
+    ;; built-in function
+    ,(_sym.intern)
+    ;; ,(_sym.val)
+    ))
 
 (defun get-val (var)
   `(,(int var) ,($ :getval)))
@@ -39,3 +41,25 @@
            `(,($ :d.swap) ,($ :d.drop)))
       ,($ :return)
       ,(set-label sym-end-label))))
+
+#+C
+(let ((start (next-label))
+      (end (next-label)))
+  (defun sym.val ()
+    `(,(int start) ,($ :call)))
+
+  ;; name
+  (defun _sym.val ()
+    `(,(int end)
+      ,($ :jump)
+      ,(set-label start)
+
+      ,(get-val +VAR_SYMTABLE+) ; name list
+      ,(@assoc) ; cons|nil
+      ,($ :d.dup) ; cons|nil cons|nil
+      ,(@nil?) ; cons|nil native.bool
+      ,(@if '() ; TODO: error
+             (cons.cdr))
+
+      ,($ :return)
+      ,(set-label end))))
