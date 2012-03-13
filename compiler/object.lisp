@@ -347,6 +347,7 @@
 
 ;; TODO: closure
 (defun from-lambda (obj)
+  (print *arg-bindings*)
   (destructuring-bind (_ args &body body) obj
     (declare (ignore _))
     (let ((*arg-bindings* 
