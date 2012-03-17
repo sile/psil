@@ -206,3 +206,9 @@
 [memo]
 ・lambdaやclosureの仕組みはVM側に組み込んでしまった方が良いかもしれない
 ・継続も？
+
+[vm]
+- 『Three Implementation Models for Scheme』
+  - halt, refer-local, refer-free, indirect, constant, close, box
+  - test, assign-local, assign-free, conti, nuate, frame, argument, shift
+  - apply, return
