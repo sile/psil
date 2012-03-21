@@ -19,7 +19,7 @@ label:
 symbol-table:
  [name][value]
 constant:
- [type][id][value]
+ [type][id][value] // TODO: 各タイプのエンコード形式を考える
 code:
 
 |#
