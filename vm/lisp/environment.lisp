@@ -7,10 +7,13 @@
 (defstruct bcobj
   version
   id
-  (label-table 0 :type fixnum)
-  (symbol-table 0 :type fixnum)
-  (constant-table 0 :type fixnum)
+  label-table
+  symbol-table
+  constant-table
   (code-stream t :type byte-stream))
 
+(defstruct label-info
+  (id 0 :type fixnum :read-only t)
+  (pos -1 :type fixnum)) ; 実際のアドレスは読み込み時に解決される
 
 

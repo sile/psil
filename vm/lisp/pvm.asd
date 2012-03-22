@@ -10,5 +10,6 @@
                (:file "util")
                (:file "ins")
                (:file "environment")
+               (:file "bc-exec")
                (:file "bc-read")
                (:file "pvm")))
