@@ -1,9 +1,0 @@
-- Reader
-- Object
- - Integer
- - Real
- - String
- - Symbol
- - List (Cons)
- - Array
-- Evaluator

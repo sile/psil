@@ -1,1 +1,0 @@
-../vm/lisp/pvm.asd
