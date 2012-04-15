@@ -23,6 +23,8 @@
 
    ;; 20x
    (ins 201 '_lambda)
+   (ins 202 '_localref)
+   (ins 203 '_localset)
    ))
 
 (defun find-ins (code)
@@ -97,3 +99,10 @@
     (set-pc +in+ (+ (get-pc +in+) body-size))
     (spush +stack+ fun)))
 
+(defun _localref ()
+  (let ((i (read-ubyte +in+)))
+    (spush +stack+ (local-ref +stack+ i))))
+
+(defun _localset ()
+  (let ((i (read-ubyte +in+)))
+    (spush +stack+ (local-set +stack+ i (spop +stack+)))))

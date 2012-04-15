@@ -53,11 +53,11 @@ stackの全コピー
 |#
 (defun local-ref (stack i)
   (with-slots (base data) (the stack stack)
-    (aref data (- i 1))))
+    (aref data (- base i 1))))
 
 (defun local-set (stack i value)
   (with-slots (base data) (the stack stack)
-    (setf (aref data (- i 1)) value)))
+    (setf (aref data (- base i 1)) value)))
 
 (defun sreserve (stack n)
   (incf (stack-top stack) n)
