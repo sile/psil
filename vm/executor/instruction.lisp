@@ -16,6 +16,10 @@
    (ins 004 '_char)
    (ins 005 '_symbol)
 
+   ;; 05x
+   (ins 050 '_symref)
+   (ins 051 '_symset)
+
    ;; 10x
    (ins 101 '_apply)
    (ins 102 '_tail-apply) ; TODO
@@ -70,6 +74,17 @@
          (sym (intern  name :keyword)))
     (set-symbol-value +symbols+ sym nil)
     (spush +stack+ sym)))
+
+;; 05x
+(defun _symref ()
+  (spush +stack+ (get-symbol-value +symbols+ (spop +stack+))))
+
+;; value symbol SYMSET
+(defun _symset ()
+  (let ((sym (spop +stack+))
+        (val (spop +stack+)))
+    (set-symbol-value +symbols+ sym val)
+    (spush +stack+ val)))
 
 ;; 10x
 (defun _apply ()
