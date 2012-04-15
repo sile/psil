@@ -16,4 +16,6 @@
                (:file "executor/stack")
                (:file "executor/symbol-table")
                (:file "executor/environment")
+               (:file "executor/instruction")
+               (:file "executor/executor")
                (:file "pvm")))

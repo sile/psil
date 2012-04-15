@@ -21,6 +21,9 @@
   (header t :type header)
   (codes  t :type octets))
 
+(defmethod print-object ((o bc) stream)
+  (print-unreadable-object (o stream :type t :identity t)))
+
 (defparameter *magic-string* "psil")
 (defun check-magic (in)
   (assert (every (lambda (c) (= (char-code c) (read-byte in nil nil))) *magic-string*)

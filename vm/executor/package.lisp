@@ -1,4 +1,6 @@
 (defpackage pvme
   (:use :common-lisp :pvmi)
-  (:export ))
+  (:export init
+           load-bc
+           ))
 (in-package :pvme)
