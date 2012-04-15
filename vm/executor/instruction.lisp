@@ -15,7 +15,14 @@
    (ins 003 '_array)
    (ins 004 '_char)
    (ins 005 '_symbol)
-   
+
+   ;; 10x
+   (ins 101 '_apply)
+   (ins 102 '_tail-apply) ; TODO
+   (ins 103 '_return)
+
+   ;; 20x
+   (ins 201 '_lambda)
    ))
 
 (defun find-ins (code)
@@ -28,6 +35,12 @@
 
 (defun execute-one (in)
   (execute-op (read-op in)))
+
+(defstruct fun
+  (closed-vals nil :type list)
+  (arity 0 :type fixnum)
+  (local-var-count 0 :type fixnum)
+  (body 0 :type fixnum))
 
 (define-symbol-macro +in+ (env-code-stream *env*))
 (define-symbol-macro +stack+ (env-stack *env*))
@@ -55,3 +68,24 @@
          (sym (intern  name :keyword)))
     (set-symbol-value +symbols+ sym nil)
     (spush +stack+ sym)))
+
+;; 10x
+(defun _apply ()
+  )
+
+(defun _return ()
+  )
+
+;; 20x
+;; CLOSE-VALUE* lambda CLOSE-VAL-COUNT:byte ARITY:byte LOCAL-VAR-COUNT:byte BODY-LENGTH BODY-BEGIN
+(defun _lambda ()
+  (let* ((closed-count (read-ubyte +in+))
+         (arity (read-ubyte +in+))
+         (local-var-count (read-ubyte +in+))
+         (body-size (read-int +in+))
+         (fun (make-fun :closed-vals (loop REPEAT closed-count COLLECT (spop +stack+))
+                        :arity arity
+                        :local-var-count local-var-count
+                        :body (get-pc +in+))))
+    (set-pc +in+ (+ (get-pc +in+) body-size))
+    (spush +stack+ fun)))

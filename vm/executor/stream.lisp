@@ -41,3 +41,12 @@
 (defun eos? (stream)
   (with-slots (pos octets) (the octets-stream stream)
     (>= pos (length octets))))
+
+(defun get-pc (stream)
+  (octets-stream-pos stream))
+
+(defun set-pc (stream pc)
+  (setf (octets-stream-pos stream) pc)
+  stream)
+
+
