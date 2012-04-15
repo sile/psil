@@ -27,7 +27,7 @@ stackの全コピー
 (defmethod print-object ((o stack) stream)
   (print-unreadable-object (o stream)
     (with-slots (top base data) o
-      (format stream "~a ~a" (subseq data 0 base) (subseq data base top)))))
+      (format stream "~s ~s" (subseq data 0 base) (subseq data base top)))))
 
 (defun spush (stack x)
   (with-slots (top data) (the stack stack)

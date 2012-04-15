@@ -21,12 +21,22 @@
 
 (defun read-uint (stream)
   (read-unsigned stream 4))
+(defun read-int (stream)
+  (let ((n (read-uint stream)))
+    (if (< n #x80000000)
+        n
+      (- n #x100000000))))
 
 (defun read-ulong (stream)
   (read-unsigned stream 8))
 
 (defun read-op (stream)
   (read-ushort stream))
+
+(defun read-string (stream length)
+  (with-slots (pos octets) stream
+    (prog1 (sb-ext:octets-to-string (subseq octets pos (+ pos length)))
+      (incf pos length))))
 
 (defun eos? (stream)
   (with-slots (pos octets) (the octets-stream stream)
