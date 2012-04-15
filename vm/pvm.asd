@@ -8,5 +8,7 @@
                (:file "internal/package")
                (:file "internal/pvmi")
                (:file "bytecode/package")
+               (:file "bytecode/util")
                (:file "bytecode/reader")
+               (:file "bytecode/writer")
                (:file "pvm")))
