@@ -25,6 +25,10 @@
    (ins 102 '_tail-apply) ; TODO
    (ins 103 '_return)
 
+   ;; 15x
+   (ins 150 '_jump)
+   (ins 151 '_jump-if)
+
    ;; 20x
    (ins 201 '_lambda)
    (ins 202 '_localref)
@@ -99,6 +103,13 @@
   (multiple-value-bind (address value) (destroy-frame +stack+)
     (set-pc +in+ address)
     (spush +stack+ value)))
+
+;; 15x
+(defun _jump ()
+  :todo)
+
+(defun _jump-if ()
+  :todo)
 
 ;; 20x
 ;; CLOSE-VALUE* lambda CLOSE-VAL-COUNT:byte ARITY:byte LOCAL-VAR-COUNT:byte BODY-LENGTH BODY-BEGIN
