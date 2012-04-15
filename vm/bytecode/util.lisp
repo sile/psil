@@ -7,6 +7,11 @@
         n
       (- n #x100000000))))
 
+(defun read-octets (in size)
+  (let ((buf (make-array size :element-type 'octet)))
+    (read-sequence buf in)
+    buf))
+
 (defun write-string-as-octets (out str)
   (declare (simple-string str)) 
   (write-sequence (sb-ext:string-to-octets str) out)

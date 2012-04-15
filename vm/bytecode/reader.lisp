@@ -34,7 +34,8 @@
 
 (defun read-from-stream (in)
   (let ((header (read-header in)))
-    header))
+    (make-bc :header header
+             :codes (read-octets in (header-code-size header)))))
 
 (defun read-from-file (path)
   (with-open-file (in path :element-type 'octet)
