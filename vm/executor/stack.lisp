@@ -39,6 +39,18 @@ stackの全コピー
   (with-slots (top data) (the stack stack)
     (aref data (decf top))))
 
+#|
+-- [base]
+ local-1
+ local-2
+ local-n
+ close-1
+ close-2
+ close-n
+ arg-n
+ arg-2
+ arg-1
+|#
 (defun local-ref (stack i)
   (with-slots (base data) (the stack stack)
     (aref data (- i 1))))
@@ -51,10 +63,13 @@ stackの全コピー
   (incf (stack-top stack) n)
   stack)
 
-(defun create-frame (stack return-address)
+(defun create-frame (stack closed-vals local-var-count return-address)
   (with-slots (top base data) (the stack stack)
     (let ((prev-top top)
           (prev-base base))
+      (loop FOR v IN closed-vals DO (spush +stack+ v))
+      (sreserve +stack+ local-var-count)
+      
       (setf base top)
       (spush stack return-address)
       (spush stack prev-base)
@@ -65,8 +80,8 @@ stackの全コピー
 (defun destroy-frame (stack)
   (with-slots (top base data) (the stack stack)
     (let ((return-address (aref data base))
-          (prev-top (aref data (+ base 1)))
-          (prev-base (aref data (+ base 2)))
+          (prev-base (aref data (+ base 1)))
+          (prev-top (aref data (+ base 2)))
           (return-value (aref data (+ base 3))))
       (setf top prev-top
             base prev-base)

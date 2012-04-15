@@ -40,7 +40,7 @@
   (closed-vals nil :type list)
   (arity 0 :type fixnum)
   (local-var-count 0 :type fixnum)
-  (body 0 :type fixnum))
+  (body 0 :type (or fixnum function)))
 
 (define-symbol-macro +in+ (env-code-stream *env*))
 (define-symbol-macro +stack+ (env-stack *env*))
@@ -71,10 +71,17 @@
 
 ;; 10x
 (defun _apply ()
-  )
+  (with-slots (closed-vals arity local-var-count body)
+              (the fun (spop +stack+))
+    (create-frame +stack+ closed-vals local-var-count (get-pc +in+))
+    (etypecase body
+      (fixnum (set-pc +in+ body))
+      (function (spush +stack+ (funcall body *env*))))))
 
 (defun _return ()
-  )
+  (multiple-value-bind (address value) (destroy-frame +stack+)
+    (set-pc +in+ address)
+    (spush +stack+ value)))
 
 ;; 20x
 ;; CLOSE-VALUE* lambda CLOSE-VAL-COUNT:byte ARITY:byte LOCAL-VAR-COUNT:byte BODY-LENGTH BODY-BEGIN
@@ -89,3 +96,4 @@
                         :body (get-pc +in+))))
     (set-pc +in+ (+ (get-pc +in+) body-size))
     (spush +stack+ fun)))
+
