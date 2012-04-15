@@ -13,6 +13,10 @@
   (version   0 :type fixnum)
   (code-size 0 :type fixnum))
 
+(defun header (&key (version 1) code-size)
+  (make-header :version version 
+               :code-size code-size))
+
 (defstruct bc
   (header t :type header)
   (codes  t :type octets))
