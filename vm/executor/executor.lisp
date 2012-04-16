@@ -14,11 +14,16 @@
     (push (list filepath bc) *loaded-bc-list*)
     (execute (make-code-stream (pvm-bc:bc-codes bc)))))
 
+(defun init-natives ()
+  (loop FOR (sym val) IN *natives*
+        DO (set-symbol-value +symbols+ sym val)))
+
 (defun init ()
   (setf *env* (make-env :stack (create-stack)
                         :symbols (create-symbol-table)
                         :code-stream (make-code-stream (make-array 0 :element-type 'octet)))
         *loaded-bc-list* '())
+  (init-natives)
   #+C
   (load-bc "/tmp/core.bc")
   t)

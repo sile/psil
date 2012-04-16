@@ -63,9 +63,9 @@ stackの全コピー
   (incf (stack-top stack) n)
   stack)
 
-(defun create-frame (stack closed-vals local-var-count return-address)
+(defun create-frame (stack arity closed-vals local-var-count return-address)
   (with-slots (top base data) (the stack stack)
-    (let ((prev-top top)
+    (let ((prev-top (- top arity))
           (prev-base base))
       (loop FOR v IN closed-vals DO (spush stack v))
       (sreserve stack local-var-count)

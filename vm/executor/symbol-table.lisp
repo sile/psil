@@ -17,6 +17,11 @@ key:string => value:t
       (assert exists? () "The key ~s does not exist in symbol-table" key)
       value)))
 
+(defun symbol-interned? (symbol-table key)
+  (declare (symbol key))
+  (with-slots (table) (the symbol-table symbol-table)
+    (nth-value 1 (gethash key table))))
+
 (defun set-symbol-value (symbol-table key value)
   (declare (symbol key))
   (with-slots (table) (the symbol-table symbol-table)

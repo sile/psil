@@ -22,3 +22,6 @@
                        :if-exists :supersede
                        :element-type 'octet)
     (write-bc out codes)))
+
+(defun w (codes)
+  (write-bc-to-file "/tmp/test.bc" codes))

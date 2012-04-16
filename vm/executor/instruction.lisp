@@ -76,7 +76,8 @@
 (defun _symbol ()
   (let* ((name (progn (execute-one +in+) (spop +stack+)))
          (sym (intern  name :keyword)))
-    (set-symbol-value +symbols+ sym nil)
+    (unless (symbol-interned? +symbols+ sym)
+      (set-symbol-value +symbols+ sym nil))
     (spush +stack+ sym)))
 
 ;; 05x
@@ -94,10 +95,10 @@
 (defun _apply ()
   (with-slots (closed-vals arity local-var-count body)
               (the fun (spop +stack+))
-    (create-frame +stack+ closed-vals local-var-count (get-pc +in+))
+    (create-frame +stack+ arity closed-vals local-var-count (get-pc +in+))
     (etypecase body
       (fixnum (set-pc +in+ body))
-      (function (spush +stack+ (funcall body *env*))))))
+      (function (funcall body) (_return)))))
 
 (defun _return ()
   (multiple-value-bind (address value) (destroy-frame +stack+)

@@ -17,5 +17,6 @@
                (:file "executor/symbol-table")
                (:file "executor/environment")
                (:file "executor/instruction")
+               (:file "executor/native-function")
                (:file "executor/executor")
                (:file "pvm")))
