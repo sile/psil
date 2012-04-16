@@ -67,8 +67,8 @@ stackの全コピー
   (with-slots (top base data) (the stack stack)
     (let ((prev-top top)
           (prev-base base))
-      (loop FOR v IN closed-vals DO (spush +stack+ v))
-      (sreserve +stack+ local-var-count)
+      (loop FOR v IN closed-vals DO (spush stack v))
+      (sreserve stack local-var-count)
       
       (setf base top)
       (spush stack return-address)
