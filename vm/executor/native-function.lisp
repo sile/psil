@@ -9,10 +9,17 @@
                                    COLLECT `(,a (local-ref +stack+ ,i)))
                          (spush +stack+ (locally ,@body)))))))
 
-(defnative $add (x y)
-  (+ x y))
+(defnative $add (x y) (+ x y))
+(defnative $sub (x y) (- x y))
+(defnative $mul (x y) (* x y))
+(defnative $div (x y) (/ x y))
+(defnative $mod (x y) (mod x y))
 
 (defparameter *natives*
   `(
     (:+ ,$add)
+    (:- ,$sub)
+    (:* ,$mul)
+    (:/ ,$div)
+    (:mod ,$mod)
     ))
