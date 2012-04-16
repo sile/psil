@@ -107,10 +107,14 @@
 
 ;; 15x
 (defun _jump ()
-  :todo)
+  (let ((offset (spop +stack+)))
+    (set-pc +in+ (+ (get-pc +in+) offset))))
 
 (defun _jump-if ()
-  :todo)
+  (let ((offset (spop +stack+))
+        (condition (spop +stack+)))
+    (unless (zerop condition)
+      (set-pc +in+ (+ (get-pc +in+) offset)))))
 
 ;; 20x
 ;; CLOSE-VALUE* lambda CLOSE-VAL-COUNT:byte ARITY:byte LOCAL-VAR-COUNT:byte BODY-LENGTH BODY-BEGIN
