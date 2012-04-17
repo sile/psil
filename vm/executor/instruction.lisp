@@ -11,14 +11,12 @@
   (list 
    ;; 00x 
    (ins 001 '_int)
-   (ins 002 '_string) ; => 普通の関数で良いかも
-   (ins 003 '_array) ; => 普通の関数で良いかも
-   (ins 004 '_char) 
-   (ins 005 '_symbol)  
-   ;; (ins 006 '_cons)
-   (ins 007 '_nil)
-   (ins 008 '_true)
-   (ins 009 '_false)
+   (ins 002 '_string)
+   (ins 003 '_char) 
+   (ins 004 '_symbol)  
+   (ins 005 '_nil)
+   (ins 006 '_true)
+   (ins 007 '_false)
 
    ;; 05x
    (ins 050 '_symref)
@@ -70,22 +68,16 @@
   (let ((len (read-int +in+)))
     (spush +stack+ (read-string +in+ len))))
 
-(defun _array ()
-  (let ((len (read-int +in+)))
-    (spush +stack+
-           (coerce (loop REPEAT len COLLECT (progn (execute-one +in+) (spop +stack+))) 
-                   'vector))))
-
 (defun _char ()
   (spush +stack+ (code-char (read-uint +in+))))
 
 (defun _symbol ()
-  (let* ((name (progn (execute-one +in+) (spop +stack+)))
-         (sym (intern  name :keyword)))
+  (let* ((len (read-ushort +in+))
+         (name (read-string +in+ len))
+         (sym (intern name :keyword)))
     (unless (symbol-interned? +symbols+ sym)
       (set-symbol-value +symbols+ sym nil))
     (spush +stack+ sym)))
-
 
 (defparameter *nil* (gensym "NIL"))
 (defun _nil ()
