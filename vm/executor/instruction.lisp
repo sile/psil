@@ -116,17 +116,23 @@
     (spush +stack+ value)))
 
 (defstruct conti 
+  (in    t :type octets-stream)
   (stack t :type stack))
 
 (defun _conti ()
   (let* ((s (make-stack :top (stack-top +stack+)
                         :base (stack-base +stack+)
                         :data (copy-seq (stack-data +stack+))))
-         (c (make-conti :stack s)))
+         (c (make-conti :in (copy-octets-stream +in+)
+                        :stack s)))
     (spush +stack+ c)))
 
 (defun _nuate ()
-  (setf +stack+ (conti-stack (spop +stack+))))
+  (let ((c (spop +stack+))
+        (val (spop +stack+)))
+    (setf +stack+ (conti-stack c)
+          +in+ (conti-in c))
+    (spush +stack+ val)))
 
 ;; 15x
 (defun _jump ()
