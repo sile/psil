@@ -39,6 +39,17 @@
 ($cdr cons)
 --
 ($load-bytecode-file path)
+--
+($open path flags mode)
+($close fd)
+($read-byte fd)
+($write-byte fd byte)
+($read-chunk fd buffer start length)
+($write-chunk fd buffer start length)
+$O_RDONLY
+$O_WRONLY
+$O_RDWR
+$O_CREAT
 
 
 [directory]
