@@ -14,6 +14,9 @@
 (defnative $mul (x y) (* x y))
 (defnative $div (x y) (/ x y))
 (defnative $mod (x y) (mod x y))
+(defnative $logior (x y) (logior x y))
+(defnative $logand (x y) (logand x y))
+(defnative $logxor (x y) (logxor x y))
 
 (defnative $make-array (size) (make-array size))
 (defnative $ary-ref (ary i) (aref ary i))
@@ -28,7 +31,7 @@
 
 (defmacro unix-call (name &rest args)
   `(multiple-value-bind (fd err) (,(find-symbol (symbol-name name) :sb-unix) ,@args)
-     (when err
+     (unless (zerop err)
        (format *error-output* "~&; ~a) err[~a]: ~a~%" ',name err (sb-int:strerror err)))
      fd))
 
@@ -51,6 +54,9 @@
     (:$* ,$mul)
     (:$/ ,$div)
     (:$mod ,$mod)
+    (:$logior ,$logior)
+    (:$logand ,$logand)
+    (:$logxor ,$logxor)
 
     (:$make-array ,$make-array)
     (:$ary-ref ,$ary-ref)

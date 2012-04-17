@@ -28,6 +28,9 @@
 ($mul x y)
 ($div x y)
 ($mod x y)
+($logior x y)
+($logand x y)
+($logxor x y)
 --
 ($make-array size)
 ($ary-ref ary i)
