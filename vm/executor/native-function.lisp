@@ -24,6 +24,8 @@
 (defnative $car (cons) (car cons))
 (defnative $cdr (cons) (cdr cons))
 
+(defnative $load-bytecode-file (path) (load-bc path))
+
 (defparameter *natives*
   `(
     (:+ ,$add)
@@ -40,6 +42,8 @@
     (:cons ,$cons)
     (:car ,$car)
     (:cdr ,$cdr)
+
+    (:load-bytecode-file ,$load-bytecode-file)
     ))
 
 ;;;;;

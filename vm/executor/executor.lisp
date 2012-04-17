@@ -2,13 +2,6 @@
 
 (defparameter *loaded-bc-list* '())
 
-(defun execute (in)
-  (with-new-env (in) 
-    (loop UNTIL (eos? in)
-          FOR op = (read-op in)
-          DO (execute-op op))
-    (env-stack *env*)))
-
 (defun load-bc (filepath)
   (let ((bc (pvm-bc:read-from-file filepath)))
     (push (list filepath bc) *loaded-bc-list*)
@@ -24,6 +17,20 @@
                         :code-stream (make-code-stream (make-array 0 :element-type 'octet)))
         *loaded-bc-list* '())
   (init-natives)
-  #+C
-  (load-bc "/tmp/core.bc")
   t)
+
+(defun execute (in)
+  (init)
+  (with-new-env (in) 
+    (loop UNTIL (eos? in)
+          FOR op = (read-op in)
+          DO (execute-op op))
+    (env-stack *env*)))
+
+(defun execute-from-stream (in)
+  (execute (make-code-stream (pvm-bc:bc-codes (pvm-bc:read-from-stream in)))))
+
+(defun execute-from-file (path)
+  (execute (make-code-stream (pvm-bc:bc-codes (pvm-bc:read-from-file path)))))
+
+

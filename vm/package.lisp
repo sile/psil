@@ -1,6 +1,8 @@
 (defpackage pvm
   (:use :common-lisp)
   (:export octet octets
+
+           execute execute-from-file
            ))
 (in-package :pvm)
 
