@@ -22,6 +22,25 @@
 202# LOCALREF index:byte
 203# value LOCALSET index:byte
 
+[BIF]
+($add x y)
+($sub x y)
+($mul x y)
+($div x y)
+($mod x y)
+--
+($make-array size)
+($ary-ref ary i)
+($ary-set ary i value)
+($ary-len ary)
+--
+($cons car cdr)
+($car cons)
+($cdr cons)
+--
+($load-bytecode-file path)
+
+
 [directory]
 vm/ => VirtualMachine
 core/ => ブートストラップとなるミニマムなパーサなどが定義されたバイトコードを生成する

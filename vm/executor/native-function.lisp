@@ -28,22 +28,22 @@
 
 (defparameter *natives*
   `(
-    (:+ ,$add)
-    (:- ,$sub)
-    (:* ,$mul)
-    (:/ ,$div)
-    (:mod ,$mod)
+    (:$+ ,$add)
+    (:$- ,$sub)
+    (:$* ,$mul)
+    (:$/ ,$div)
+    (:$mod ,$mod)
 
-    (:make-array ,$make-array)
-    (:ary-ref ,$ary-ref)
-    (:ary-set ,$ary-set)
-    (:ary-len ,$ary-len)
+    (:$make-array ,$make-array)
+    (:$ary-ref ,$ary-ref)
+    (:$ary-set ,$ary-set)
+    (:$ary-len ,$ary-len)
 
-    (:cons ,$cons)
-    (:car ,$car)
-    (:cdr ,$cdr)
+    (:$cons ,$cons)
+    (:$car ,$car)
+    (:$cdr ,$cdr)
 
-    (:load-bytecode-file ,$load-bytecode-file)
+    (:$load-bytecode-file ,$load-bytecode-file)
     ))
 
 ;;;;;
