@@ -18,6 +18,9 @@
 150# rel-pos JUMP
 151# condition:boolean rel-pos JUMP-IF
 --
+180# x DROP
+181# x* DROPN n:byte
+--
 201# close-val* LAMBDA close-val-count:byte arity:byte local-var-count:byte body-len:int body*
 202# LOCALREF index:byte
 203# value LOCALSET index:byte
@@ -47,6 +50,7 @@
 ($close fd)
 ($read-byte fd)
 ($write-byte fd byte)
+($eof-p fd)
 ($read-chunk fd buffer start length)
 ($write-chunk fd buffer start length)
 $O_RDONLY

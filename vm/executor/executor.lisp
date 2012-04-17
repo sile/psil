@@ -19,18 +19,19 @@
   (init-natives)
   t)
 
-(defun execute (in)
-  (init)
+(defun execute (in &key (initialize t))
+  (when initialize
+    (init))
   (with-new-env (in) 
-    (loop UNTIL (eos? in)
-          FOR op = (read-op in)
+    (loop UNTIL (eos? +in+)
+          FOR op = (read-op +in+)
           DO (execute-op op))
     (env-stack *env*)))
 
-(defun execute-from-stream (in)
-  (execute (make-code-stream (pvm-bc:bc-codes (pvm-bc:read-from-stream in)))))
+(defun execute-from-stream (in &key (initialize t))
+  (execute (make-code-stream (pvm-bc:bc-codes (pvm-bc:read-from-stream in)))
+           :initialize initialize))
 
-(defun execute-from-file (path)
-  (execute (make-code-stream (pvm-bc:bc-codes (pvm-bc:read-from-file path)))))
-
-
+(defun execute-from-file (path &key (initialize t))
+  (execute (make-code-stream (pvm-bc:bc-codes (pvm-bc:read-from-file path)))
+           :initialize initialize))

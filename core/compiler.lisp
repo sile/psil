@@ -48,13 +48,77 @@
 (defun @true () ($ 6))
 (defun @false () ($ 7))
 
-;; (defmacro @symval (sym)
-;;  (symbol-name sym)
-;;(defun %call (name &rest args)
+(defun val (sym)
+  ($ (@symbol sym) 50))
+  
+(defun call (sym &rest args)
+  ($ args (@symbol sym) 50 101))
 
-;;(defmacro @defun (name args body)
-;;  `())
-#|
-(compile-bytecode 
- '(defun 
-|#
+(declaim (ftype (function (t) t) compile-bc))
+(defun @list (list)
+  (if (null list)
+      (@nil)
+    (call :$cons (compile-bc (car list)) (@list (cdr list)))))
+
+(defun @if (condition then else)
+  (let* ((then-bc (flatten (compile-bc then)))
+         (else-bc (flatten ($ (compile-bc else) (@int (length then-bc)) 150))))
+    ($ (compile-bc condition) (@int (length else-bc)) 151 else-bc then-bc)))
+
+;; とりあえずマクロなしと、ローカル変数無しを仮定する
+(defparameter *bindings* nil)
+(defun make-fun-body (args body)
+  (let ((*bindings* (loop FOR a IN args 
+                          FOR i FROM 0
+                          COLLECT (cons a i))))
+    ;; returnがimplicit-prognを兼ねているかも
+    (list 0 ($ (compile-bc (cons 'progn body)) 103))))
+
+(defun @defun (name args body)
+  (destructuring-bind (local-var-count body-bc) (make-fun-body args body)
+    (let ((fn ($ 201 0 (length args) local-var-count (int-to-bytes (length body-bc)) body-bc)))
+      ($ fn (@symbol name) 51))))
+
+(defparameter *quote?* nil)
+
+(defun compile-bc (exp)
+  (etypecase exp
+    (null   (@nil))
+    (fixnum (@int exp))
+    (string (@string exp))
+    (character (@char exp))
+    (symbol (if (assoc exp *bindings*)
+                ($ 202 (cdr (assoc exp *bindings*)))
+              (case exp
+                (:true (@true))
+                (:false (@false))
+                (otherwise (if *quote?*
+                               (@symbol exp)
+                             ($ (@symbol exp) 50))))))
+    (list 
+     (if *quote?*
+         (@list exp)
+     (destructuring-bind (car . cdr) exp
+       (case car
+         (quote (let ((*quote?* t))
+                  (assert (= (length cdr) 1) () "TODO")
+                  (compile-bc (car cdr))))
+         (if (destructuring-bind (condition then &optional else) cdr
+               (@if condition then else)))
+
+         ;; TODO:
+         ;; let
+         
+         (progn (let ((last (car (last cdr)))
+                      (butlast (butlast cdr)))
+                  ($ (mapcar #'compile-bc butlast) 181 (length butlast) (compile-bc last))))
+
+         ;; TODO: lambdaに一般化
+         ;;       closureとかを除いて単純化するためにdefun
+         (defun (destructuring-bind (name args &rest body) cdr
+                  (@defun name args body)))
+         (otherwise
+          (apply #'call car (mapcar #'compile-bc cdr)))))))))
+
+(defun compile-bytecode (exp &optional *quote?*)
+  (flatten (compile-bc exp)))

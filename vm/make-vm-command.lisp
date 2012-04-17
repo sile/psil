@@ -46,7 +46,10 @@
 (sb-ext:save-lisp-and-die
  "pvm"
  :executable t
- :toplevel (main-lambda (&optional bytecode-file)
-             "~A: [bytecode-file]"
-             (format t "~&=> ~s~2%"
-                     (pvm:execute-from-file (or bytecode-file "/dev/stdin")))))
+ :toplevel (main-lambda (&rest bytecode-files)
+             "~A: bytecode-file*"
+             (loop FOR file IN bytecode-files
+                   FOR first = t THEN nil
+                   DO
+                   (format t "~&~a~% => ~s~2%"
+                           file (pvm:execute-from-file file :initialize first)))))

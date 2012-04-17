@@ -33,6 +33,10 @@
    (ins 150 '_jump)
    (ins 151 '_jump-if)
 
+   ;; 18x
+   (ins 180 '_drop)
+   (ins 181 '_drop-n)
+
    ;; 20x
    (ins 201 '_lambda)
    (ins 202 '_localref)
@@ -51,7 +55,9 @@
   (closed-vals nil :type list)
   (arity 0 :type fixnum)
   (local-var-count 0 :type fixnum)
-  (body 0 :type (or fixnum function)))
+  (body t :type (or octets-stream function))) ;(or fixnum function)))
+(defmethod print-object ((o fun) stream)
+  (print-unreadable-object (o stream :type t :identity t)))
 
 (define-symbol-macro +in+ (env-code-stream *env*))
 (define-symbol-macro +stack+ (env-stack *env*))
@@ -102,14 +108,14 @@
 (defun _apply ()
   (with-slots (closed-vals arity local-var-count body)
               (the fun (spop +stack+))
-    (create-frame +stack+ arity closed-vals local-var-count (get-pc +in+))
+    (create-frame +stack+ arity closed-vals local-var-count +in+) ;(get-pc +in+))
     (etypecase body
-      (fixnum (set-pc +in+ body))
+      (octets-stream (setf +in+ (copy-octets-stream body))) ;(fixnum (set-pc +in+ body))
       (function (funcall body) (_return)))))
 
 (defun _return ()
   (multiple-value-bind (address value) (destroy-frame +stack+)
-    (set-pc +in+ address)
+    (setf +in+ address);; (set-pc +in+ address)
     (spush +stack+ value)))
 
 (defstruct conti 
@@ -128,7 +134,7 @@
   (let ((c (spop +stack+))
         (val (spop +stack+)))
     (setf +stack+ (conti-stack c)
-          +in+ (conti-in c))
+          +in+ (copy-octets-stream (conti-in c)))
     (spush +stack+ val)))
 
 ;; 15x
@@ -139,8 +145,14 @@
 (defun _jump-if ()
   (let ((offset (spop +stack+))
         (condition (spop +stack+)))
-    (unless (zerop condition)
+    (unless (eql condition *false*)
       (set-pc +in+ (+ (get-pc +in+) offset)))))
+
+;; 18x
+(defun _drop ()
+  (spop +stack+))
+(defun _drop-n ()
+  (loop REPEAT (read-ubyte +in+) DO (spop +stack+)))
 
 ;; 20x
 ;; CLOSE-VALUE* lambda CLOSE-VAL-COUNT:byte ARITY:byte LOCAL-VAR-COUNT:byte BODY-LENGTH BODY-BEGIN
@@ -152,7 +164,7 @@
          (fun (make-fun :closed-vals (loop REPEAT closed-count COLLECT (spop +stack+))
                         :arity arity
                         :local-var-count local-var-count
-                        :body (get-pc +in+))))
+                        :body (copy-octets-stream +in+)))) ;(get-pc +in+))))
     (set-pc +in+ (+ (get-pc +in+) body-size))
     (spush +stack+ fun)))
 

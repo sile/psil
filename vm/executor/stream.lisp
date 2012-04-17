@@ -3,6 +3,8 @@
 (defstruct octets-stream
   (pos    0 :type fixnum)
   (octets t :type octets))
+(defmethod print-object ((o octets-stream) stream)
+  (print-unreadable-object (o stream :type t :identity t)))
 
 (defun make-code-stream (codes)
   (make-octets-stream :octets codes))
