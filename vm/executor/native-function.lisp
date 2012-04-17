@@ -20,6 +20,10 @@
 (defnative $ary-set (ary i value) (setf (aref ary i) value))
 (defnative $ary-len (ary) (length ary))
 
+(defnative $cons (car cdr) (cons car cdr))
+(defnative $car (cons) (car cons))
+(defnative $cdr (cons) (cdr cons))
+
 (defparameter *natives*
   `(
     (:+ ,$add)
@@ -32,6 +36,10 @@
     (:ary-ref ,$ary-ref)
     (:ary-set ,$ary-set)
     (:ary-len ,$ary-len)
+
+    (:cons ,$cons)
+    (:car ,$car)
+    (:cdr ,$cdr)
     ))
 
 ;;;;;

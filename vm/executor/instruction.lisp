@@ -79,9 +79,8 @@
       (set-symbol-value +symbols+ sym nil))
     (spush +stack+ sym)))
 
-(defparameter *nil* (gensym "NIL"))
 (defun _nil ()
-  (spush +stack+ *nil*))
+  (spush +stack+ nil))
 
 (defparameter *true* (gensym "TRUE"))
 (defun _true ()
