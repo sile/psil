@@ -15,6 +15,11 @@
 (defnative $div (x y) (/ x y))
 (defnative $mod (x y) (mod x y))
 
+(defnative $make-array (size) (make-array size))
+(defnative $ary-ref (ary i) (aref ary i))
+(defnative $ary-set (ary i value) (setf (aref ary i) value))
+(defnative $ary-len (ary) (length ary))
+
 (defparameter *natives*
   `(
     (:+ ,$add)
@@ -22,4 +27,17 @@
     (:* ,$mul)
     (:/ ,$div)
     (:mod ,$mod)
+
+    (:make-array ,$make-array)
+    (:ary-ref ,$ary-ref)
+    (:ary-set ,$ary-set)
+    (:ary-len ,$ary-len)
     ))
+
+;;;;;
+(defun sym (sym)
+  (let ((name (symbol-name sym)))
+    `(0 4 0 ,(length name) ,@(map 'list #'char-code name))))
+
+(defun call (sym)
+  `(,@(sym sym) 0 50 0 101))
