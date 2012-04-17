@@ -47,9 +47,6 @@
 (defun execute-op (opcode)
   (funcall (ins-fun (find-ins opcode))))
 
-(defun execute-one (in)
-  (execute-op (read-op in)))
-
 (defstruct fun
   (closed-vals nil :type list)
   (arity 0 :type fixnum)
