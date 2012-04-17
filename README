@@ -21,3 +21,8 @@
 201# close-val* LAMBDA close-val-count:byte arity:byte local-var-count:byte body-len:int body*
 202# LOCALREF index:byte
 203# value LOCALSET index:byte
+
+[directory]
+vm/ => VirtualMachine
+core/ => ブートストラップとなるミニマムなパーサなどが定義されたバイトコードを生成する
+???/ => coreで生成されたバイトコードの上に構築されたscheme処理系
