@@ -15,6 +15,10 @@
    (ins 003 '_array)
    (ins 004 '_char)
    (ins 005 '_symbol)
+   (ins 006 '_cons)
+   (ins 007 '_nil)
+   (ins 008 '_true)
+   (ins 009 '_false)
 
    ;; 05x
    (ins 050 '_symref)
@@ -24,6 +28,8 @@
    (ins 101 '_apply)
    (ins 102 '_tail-apply) ; TODO
    (ins 103 '_return)
+   (ins 104 '_conti)
+   (ins 105 '_nuate)
 
    ;; 15x
    (ins 150 '_jump)
@@ -80,6 +86,18 @@
       (set-symbol-value +symbols+ sym nil))
     (spush +stack+ sym)))
 
+(defun _cons ()
+  :todo)
+
+(defun _nil ()
+  :todo)
+
+(defun _true ()
+  :todo)
+
+(defun _false ()
+  :todo)
+
 ;; 05x
 (defun _symref ()
   (spush +stack+ (get-symbol-value +symbols+ (spop +stack+))))
@@ -104,6 +122,19 @@
   (multiple-value-bind (address value) (destroy-frame +stack+)
     (set-pc +in+ address)
     (spush +stack+ value)))
+
+(defstruct conti 
+  (stack t :type stack))
+
+(defun _conti ()
+  (let* ((s (make-stack :top (stack-top +stack+)
+                        :base (stack-base +stack+)
+                        :data (copy-seq (stack-data +stack+))))
+         (c (make-conti :stack s)))
+    (spush +stack+ c)))
+
+(defun _nuate ()
+  (setf +stack+ (conti-stack (spop +stack+))))
 
 ;; 15x
 (defun _jump ()
