@@ -68,7 +68,7 @@
 ;; とりあえずマクロなしと、ローカル変数無しを仮定する
 (defparameter *bindings* nil)
 (defun make-fun-body (args body)
-  (let ((*bindings* (loop FOR a IN args 
+  (let ((*bindings* (loop FOR a IN (reverse args)
                           FOR i FROM 0
                           COLLECT (cons a i))))
     ;; returnがimplicit-prognを兼ねているかも
