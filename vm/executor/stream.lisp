@@ -31,7 +31,7 @@
   (read-unsigned stream 8))
 
 (defun read-op (stream)
-  (read-ushort stream))
+  (read-ubyte stream))
 
 (defun read-string (stream length)
   (with-slots (pos octets) stream
@@ -48,5 +48,3 @@
 (defun set-pc (stream pc)
   (setf (octets-stream-pos stream) pc)
   stream)
-
-
