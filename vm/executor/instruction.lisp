@@ -11,11 +11,11 @@
   (list 
    ;; 00x 
    (ins 001 '_int)
-   (ins 002 '_string)
-   (ins 003 '_array)
-   (ins 004 '_char)
-   (ins 005 '_symbol)
-   (ins 006 '_cons)
+   (ins 002 '_string) ; => 普通の関数で良いかも
+   (ins 003 '_array) ; => 普通の関数で良いかも
+   (ins 004 '_char) 
+   (ins 005 '_symbol)  
+   ;; (ins 006 '_cons)
    (ins 007 '_nil)
    (ins 008 '_true)
    (ins 009 '_false)
@@ -86,17 +86,18 @@
       (set-symbol-value +symbols+ sym nil))
     (spush +stack+ sym)))
 
-(defun _cons ()
-  :todo)
 
+(defparameter *nil* (gensym "NIL"))
 (defun _nil ()
-  :todo)
+  (spush +stack+ *nil*))
 
+(defparameter *true* (gensym "TRUE"))
 (defun _true ()
-  :todo)
+  (spush +stack+ *true*))
 
+(defparameter *false* (gensym "FALSE"))
 (defun _false ()
-  :todo)
+  (spush +stack+ *false*))
 
 ;; 05x
 (defun _symref ()
