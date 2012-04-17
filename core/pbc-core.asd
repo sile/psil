@@ -6,4 +6,5 @@
   :description "Core bytecode generator for psil"
   :serial t
   :components ((:file "package")
+               (:file "compiler")
                (:file "pbc-core")))
