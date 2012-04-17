@@ -3,6 +3,7 @@
   (:export octet octets
 
            execute execute-from-file
+           write-bytecodes-to-file
            ))
 (in-package :pvm)
 
