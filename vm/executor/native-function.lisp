@@ -57,6 +57,9 @@
 (defnative $write-chunk (stream buffer start length)
   (write-sequence buffer stream :start start :end (+ start length)))
 
+(defnative $char-code (char) (char-code char))
+(defnative $code-char (code) (code-char code))
+
 (defparameter *natives*
   `(
     (:$+ ,$add)
@@ -82,6 +85,9 @@
     (:$cons ,$cons)
     (:$car ,$car)
     (:$cdr ,$cdr)
+
+    (:$char-code ,$char-code)
+    (:$code-char ,$code-char)
 
     (:$load-bytecode-file ,$load-bytecode-file)
 

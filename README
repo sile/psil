@@ -46,6 +46,9 @@
 ($ary-set ary i value)
 ($ary-len ary)
 --
+($char-code char)
+($code-char code)
+--
 ($cons car cdr)
 ($car cons)
 ($cdr cons)
