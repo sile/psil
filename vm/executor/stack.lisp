@@ -1,8 +1,8 @@
 (in-package :pvme)
 
 (defstruct stack
-  (top  0 :type fixnum)
-  (base 0 :type fixnum)
+  (top  4 :type fixnum)
+  (base 4 :type fixnum)
   (data t :type simple-vector))
 
 #|

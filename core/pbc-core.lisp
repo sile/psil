@@ -21,6 +21,23 @@
         ($eof-p port))
       )))
 
+(defun gen-parse-bc ()
+  (compile-bytecode
+   '(progn
+      (defun parse-from-file (path)
+        (parse-from-stream (open-input-file path)))
+
+      (defun skip-whitespace (in)
+        )
+
+      (defun parse-from-stream (in)
+        (skip-whitespace in)
+        )
+      
+      (parse-from-file "/tmp/s.lisp")
+      )))
+
+
 
 ;; for dev
 (defun w (name bc)
