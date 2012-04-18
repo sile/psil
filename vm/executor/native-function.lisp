@@ -27,6 +27,11 @@
 (defnative $logand (x y) (logand x y))
 (defnative $logxor (x y) (logxor x y))
 
+(defnative $not (x) (to-bool (eq x *false*)))
+(defnative $char= (x y) (to-bool (char= x y)))
+(defnative $char< (x y) (to-bool (char< x y)))
+(defnative $char<= (x y) (to-bool (char<= x y)))
+
 (defnative $make-array (size) (make-array size))
 (defnative $ary-ref (ary i) (aref ary i))
 (defnative $ary-set (ary i value) (setf (aref ary i) value))
@@ -37,6 +42,8 @@
 (defnative $cdr (cons) (cdr cons))
 
 (defnative $load-bytecode-file (path) (load-bc path))
+
+(defnative $p.stack () (print +stack+)) ; for debug
 
 (defmacro unix-call (name &rest args)
   `(multiple-value-bind (fd err) (,(find-symbol (symbol-name name) :sb-unix) ,@args)
@@ -62,6 +69,8 @@
 
 (defparameter *natives*
   `(
+    (:$p.stack ,$p.stack)
+
     (:$+ ,$add)
     (:$- ,$sub)
     (:$* ,$mul)
@@ -76,6 +85,12 @@
     (:$logior ,$logior)
     (:$logand ,$logand)
     (:$logxor ,$logxor)
+
+    (:$not ,$not)
+
+    (:$char= ,$char=)
+    (:$char< ,$char<)
+    (:$char<= ,$char<=)
 
     (:$make-array ,$make-array)
     (:$ary-ref ,$ary-ref)

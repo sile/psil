@@ -66,22 +66,51 @@
     ($ (compile-bc condition) (@int (length else-bc)) 151 else-bc then-bc)))
 
 (defun count-local-var (body)
+  (let ((*quote?* nil)
+        (*bindings* nil)
+        (*local-var-start* 0))
+    (compile-bc body)
+    *local-var-start*))
+
+#+C
+(defun count-local-var (body)
   (if (atom body)
       0
     (destructuring-bind (car . cdr) body
-      (if (eq car 'let)
-          (destructuring-bind ((&rest bindings) &body body) cdr
-            (+ (length bindings) (loop FOR x IN body SUM (count-local-var x))))
-        (loop FOR x IN cdr SUM (count-local-var x))))))
+      (case car
+        (let (destructuring-bind ((&rest bindings) &body body) cdr
+               (+ (length bindings) (loop FOR x IN body SUM (count-local-var x)))))
+        
+        ;; XXX:
+        (or (loop FOR x IN cdr SUM (1+ (count-local-var x))))
+        
+        (otherwise
+         (loop FOR x IN cdr SUM (count-local-var x)))))))
+
+(defun ^or (&rest exps &aux (x (gensym)))
+  (if (null exps)
+      :false
+    `(let ((,x ,(car exps)))
+       (if ,x ,x (! ^or ,@(cdr exps))))))
+
+(defun ^cond (&rest clauses)
+  (if (null clauses)
+      nil
+    (destructuring-bind (clause . rest) clauses
+      (destructuring-bind (condition . body) clause
+        `(if ,condition
+             (progn ,@body)
+           (! ^cond ,@rest))))))
 
 (defparameter *bindings* nil)
 (defparameter *local-var-start* 0)
 (defun make-fun-body (args body)
-  (let* ((local-var-count (count-local-var body))
+  (let* ((local-var-count (count-local-var (cons 'progn body)))
          (*bindings* (loop FOR a IN (reverse args)
                            FOR i FROM local-var-count
                            COLLECT (cons a i)))
          (*local-var-start* 0))
+
     ;; returnがimplicit-prognを兼ねているかも
     (list local-var-count ($ (compile-bc (cons 'progn body)) 103))))
 
@@ -116,6 +145,10 @@
                   (compile-bc (car cdr))))
          (if (destructuring-bind (condition then &optional else) cdr
                (@if condition then else)))
+
+         ;; macro
+         (! (destructuring-bind (name . args) cdr
+              (compile-bc (apply name args))))
 
          (let (destructuring-bind ((&rest bindings) &body body) cdr
                 (let ((*bindings* (append (loop FOR (var) IN bindings
