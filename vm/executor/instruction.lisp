@@ -42,6 +42,9 @@
    (ins 201 '_lambda)
    (ins 202 '_localref)
    (ins 203 '_localset)
+   (ins 204 '_mkref)
+   (ins 205 '_refref)
+   (ins 206 '_refset)
    ))
 
 (defun find-ins (code)
@@ -179,3 +182,24 @@
 (defun _localset ()
   (let ((i (read-ubyte +in+)))
     (spush +stack+ (local-set +stack+ i (spop +stack+)))))
+
+(defstruct ref 
+  val)
+
+;; set系はpush不要?
+(defun _mkref ()
+  (let ((i (read-ubyte +in+)))
+    (spush +stack+ (local-set +stack+ i (make-ref :val (spop +stack+))))))
+
+(defun _refref ()
+  (let ((i (read-ubyte +in+)))
+    (spush +stack+ (ref-val (local-ref +stack+ i)))))
+
+(defun _refset ()
+  (let* ((i (read-ubyte +in+))
+         (v (spop +stack+))
+         (r (local-ref +stack+ i)))
+    (setf (ref-val r) v)
+    (spush +stack+ (local-set +stack+ i r))))
+
+

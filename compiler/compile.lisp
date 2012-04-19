@@ -39,12 +39,14 @@
 (defstruct local-bind
   scope
   name
-  index)
+  index
+  read-only)
 
-(defun local-bind (name index)
+(defun local-bind (name index read-only)
   (make-local-bind :scope *scope*
                    :name name
-                   :index index))
+                   :index index
+                   :read-only read-only))
 
 (defun find-local-bind (var)
   (find var *bindings* :key #'local-bind-name))
@@ -66,14 +68,20 @@
     (otherwise
      (if *quote?*
          (@symbol sym)
-       (if (find-local-bind sym)
-           ($ :localref (local-index sym))
-         ($ (@symbol sym) :symref))))))
+       (let ((v (find-local-bind sym)))
+         (if v
+             (if (local-bind-read-only v)
+                 ($ :localref (local-index sym))
+               ($ :refref (local-index sym)))
+           ($ (@symbol sym) :symref)))))))
 
 (defun @compile-setval (var val)
-  (if (find-local-bind var)
-      ($ (compile-impl val) :localset (local-index var))
-    ($ (compile-impl val) (@symbol var) :symset)))
+  (let ((v (find-local-bind var)))
+    (if v
+        (if (local-bind-read-only v) ; XXX: 名前が不適切
+            ($ (compile-impl val) :localset (local-index var))
+          ($ (compile-impl val) :refset (local-index var)))
+      ($ (compile-impl val) (@symbol var) :symset))))
 
 (defun @if (cnd then else)
   (let* ((then^ (flatten (compile-impl then)))
@@ -81,11 +89,15 @@
     ($ (compile-impl cnd) (@int (length else^)) :jump-if else^ then^)))
 
 (defun @compile-let (bindings body)
-  (let ((*bindings* (append (loop FOR (var) IN bindings
-                                  COLLECT (local-bind var (1- (incf *local-var-index*))))
-                            *bindings*)))
+  (let* ((vars (mapcar #'car bindings))
+         (w-closed-vars (inspect2 vars `(progn ,@body)))
+         (*bindings* (append (loop FOR (var) IN bindings
+                                   COLLECT (local-bind var (1- (incf *local-var-index*))
+                                                       (not (find var w-closed-vars))))
+                             *bindings*)))
     ($ (loop FOR (var val) IN bindings
-             COLLECT ($ (compile-impl val) :localset (local-index var) :drop))
+             COLLECT ($ (adjust-args (list var)) ; XXX
+                        (@compile-setval var val) :drop))
        (compile-impl `(progn ,@body)))))
 
 (defun @compile-funcall (fun args)
@@ -96,7 +108,7 @@
 - 内側のスコープの引数/ローカル変数一覧  
 - 内側で参照している変数一覧
 |#
-(defun inspect-var-info (bindings exp) ;; bindings = ((var rd-count wr-count))
+(defun inspect-var-info (bindings exp)
   (let ((local-vars '()))
     (let ((bindings bindings))
     (labels ((rd-refer (var)
@@ -124,7 +136,7 @@
                          (setf bindings (append (loop FOR (v) IN binds
                                                       COLLECT (list v 0 0))
                                                 bindings))
-                         (mapcar #'recur (mapcar #'cdr binds))
+                         (mapcar #'recur (mapcar #'second binds))
                          (mapcar #'recur body)))
                  (:progn (mapcar #'recur cdr))
                  (:lambda (destructuring-bind ((&rest args) &body body) cdr
@@ -142,24 +154,33 @@
                   COLLECT (list var (if (zerop wr) :read :write)))
             (length local-vars))))
 
-(defun @symval (sym) ; XXX: name
-  ($ :localref (local-index sym)))
+(defun inspect2 (vars body)
+  ;; TODO: 今は暫定的に一つでも書き込みがあるものは、参照にしてしまっている
+  ;;  => closeされている & どこかで書き込みがある、もののみに限定する
+  (let ((closed-vars (inspect-var-info (loop FOR v IN vars COLLECT (list v 0 0)) body)))
+    (loop FOR (name type) IN closed-vars WHEN (eq type :write) COLLECT name)))
 
-;; TODO: 参照を導入する (closed-varの書き込み共有のため)
-;; TODO: local-bindに参照タイプも追加する。read-only or writable
-(defun @compile-lambda (args body)
+(defun adjust-args (args)
+  (loop FOR a IN args
+        FOR v = (find-local-bind a)
+        WHEN (not (local-bind-read-only v))
+        COLLECT ($ :localref (local-index a) :mkref (local-index a) :drop)))
+
+(defun @compile-lambda (args body &aux (w-closed-args (inspect2 args body)))
   (multiple-value-bind (closed-vars local-var-count)
                        (inspect-var-info (loop FOR b IN *bindings* 
                                                COLLECT (list (local-bind-name b) 0 0))
-                                         `(progn ,@body))
+                                         body)
     (with-env (:bindings (append (loop FOR a IN args
                                        FOR i FROM (+ (length closed-vars) local-var-count)
-                                       COLLECT (local-bind a i))
+                                       COLLECT (local-bind a i (not (find a w-closed-args))))
                                  *bindings*)
                :local-var-offset (length closed-vars))
-      (let ((closes (loop FOR (name) IN closed-vars COLLECT name))
-            (body^ (flatten (compile-impl `(progn ,@body)))))
-        ($ (mapcar #'@symval closes) :lambda (length closes) (length args)
+      (let* ((closes (loop FOR (name) IN closed-vars COLLECT name))
+             (pre (adjust-args args))
+             (body^ (flatten ($ pre (compile-impl body)))))
+        ($ (mapcar (lambda (c) ($ :localref (local-index c))) closes)
+           :lambda (length closes) (length args)
            local-var-count (int-to-bytes (1+ (length body^))) body^ :return)))))
 
 (defun @compile-list (exp)
@@ -177,7 +198,7 @@
                       (butlast (butlast cdr)))
                  ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
         (:lambda (destructuring-bind ((&rest args) &body body) cdr
-                   (@compile-lambda args body)))
+                   (@compile-lambda args `(progn ,@body))))
         ;;  (:macro-lambda ) => コンパイラとランタイムを分離している限りマクロは難しいので保留
         (:setval (destructuring-bind (var val) cdr
                    (@compile-setval var val)))

@@ -27,7 +27,10 @@
 
                (:lambda 201)
                (:localref 202)
-               (:localset 203))))
+               (:localset 203)
+               (:mkref 204)
+               (:refref 205)
+               (:refset 206))))
     (loop FOR (name code) IN ins
           DO (setf (gethash name table) code))
     table))
