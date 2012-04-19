@@ -166,22 +166,26 @@
         WHEN (not (local-bind-read-only v))
         COLLECT ($ :localref (local-index a) :mkref (local-index a) :drop)))
 
-(defun @compile-lambda (args body &aux (w-closed-args (inspect2 args body)))
+(defun @compile-lambda (args body &aux (args (reverse args)) (w-closed-args (inspect2 args body)))
   (multiple-value-bind (closed-vars local-var-count)
                        (inspect-var-info (loop FOR b IN *bindings* 
                                                COLLECT (list (local-bind-name b) 0 0))
                                          body)
-    (with-env (:bindings (append (loop FOR a IN args
+    (let ((close-indices (mapcar #'local-index (mapcar #'car closed-vars))))
+     (with-env (:bindings (append (loop FOR a IN args
                                        FOR i FROM (+ (length closed-vars) local-var-count)
                                        COLLECT (local-bind a i (not (find a w-closed-args))))
+                                  (loop FOR (name) IN closed-vars
+                                        FOR v = (find-local-bind name)
+                                        FOR i FROM local-var-count
+                                        COLLECT (local-bind name i (local-bind-read-only v)))
                                  *bindings*)
                :local-var-offset (length closed-vars))
-      (let* ((closes (loop FOR (name) IN closed-vars COLLECT name))
-             (pre (adjust-args args))
+      (let* ((pre (adjust-args args))
              (body^ (flatten ($ pre (compile-impl body)))))
-        ($ (mapcar (lambda (c) ($ :localref (local-index c))) closes)
-           :lambda (length closes) (length args)
-           local-var-count (int-to-bytes (1+ (length body^))) body^ :return)))))
+        ($ (mapcar (lambda (i) ($ :localref i)) close-indices)
+           :lambda (length closed-vars) (length args)
+           local-var-count (int-to-bytes (1+ (length body^))) body^ :return))))))
 
 (defun @compile-list (exp)
   (if *quote?*

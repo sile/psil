@@ -30,7 +30,9 @@
                (:localset 203)
                (:mkref 204)
                (:refref 205)
-               (:refset 206))))
+               (:refset 206)
+
+               (:print 250))))
     (loop FOR (name code) IN ins
           DO (setf (gethash name table) code))
     table))

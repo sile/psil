@@ -45,6 +45,9 @@
    (ins 204 '_mkref)
    (ins 205 '_refref)
    (ins 206 '_refset)
+
+   ;; 25x
+   (ins 250 '_print)
    ))
 
 (defun find-ins (code)
@@ -202,4 +205,7 @@
     (setf (ref-val r) v)
     (spush +stack+ (local-set +stack+ i r))))
 
-
+;; 25x
+(defun _print ()
+  (spush +stack+ (print (spop +stack+)))
+  (force-output))
