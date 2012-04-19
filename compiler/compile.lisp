@@ -35,6 +35,12 @@
 (defvar *bindings*)
 (defvar *local-var-index*)
 
+(defmacro with-env ((&key (local-var-offset 0)) &body body)
+  `(let ((*quote?* nil)
+         (*bindings* '())
+         (*local-var-index* ,local-var-offset))
+     ,@body))
+
 (defun @compile-symbol (sym)
   (case sym
     (:true @true)
@@ -64,6 +70,9 @@
              COLLECT ($ (compile-impl val) :localset (cdr (assoc var *bindings*)) :drop))
        (compile-impl `(progn ,@body)))))
 
+(defun @compile-funcall (fun args)
+  ($ (mapcar #'compile-impl args) (compile-impl fun) :apply))
+
 (defun @compile-list (exp)
   (if *quote?*
       (@list (mapcar #'compile-impl exp))
@@ -81,7 +90,7 @@
         (:macro-lambda )
         (:setval (destructuring-bind (var val) cdr
                    (@compile-setval var val)))
-        (otherwise )))))
+        (otherwise (@compile-funcall car cdr))))))
 
 (defun compile-impl (exp)
   (etypecase exp
