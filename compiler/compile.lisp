@@ -91,8 +91,60 @@
 (defun @compile-funcall (fun args)
   ($ (mapcar #'compile-impl args) (compile-impl fun) :apply))
 
+#|
+- 外側のスコープの引数/ローカル変数一覧
+- 内側のスコープの引数/ローカル変数一覧  
+- 内側で参照している変数一覧
+|#
+(defun inspect-var-info (bindings exp) ;; bindings = ((var rd-count wr-count))
+  (let ((local-vars '()))
+    (let ((bindings bindings))
+    (labels ((rd-refer (var)
+               (let ((pair (assoc var bindings)))
+                 (when pair (incf (second pair)))))
+             (wr-refer (var)
+               (let ((pair (assoc var bindings)))
+                 (when pair 
+                   (incf (second pair))
+                   (incf (third pair)))))
+             
+             (recur (exp)
+               (typecase exp
+                 (null)
+                 (symbol (rd-refer exp))
+                 (list (recur-list (car exp) (cdr exp)))))
+                 
+             (recur-list (car cdr)
+               (case (intern (symbol-name car) :keyword)
+                 (:quote)
+                 (:if (destructuring-bind (cnd then &optional else) cdr
+                        (recur cnd) (recur then) (recur else)))
+                 (:let (destructuring-bind ((&rest binds) &body body) cdr
+                         (setf local-vars (append (mapcar #'car binds) local-vars))
+                         (setf bindings (append (loop FOR (v) IN binds
+                                                      COLLECT (list v 0 0))
+                                                bindings))
+                         (mapcar #'recur (mapcar #'cdr binds))
+                         (mapcar #'recur body)))
+                 (:progn (mapcar #'recur cdr))
+                 (:lambda (destructuring-bind ((&rest args) &body body) cdr
+                            (inspect-var-info (append (loop FOR a IN args COLLECT (list a 0 0))
+                                                      bindings)
+                                              `(progn ,@body))))
+                 (:setval (destructuring-bind (var val) cdr
+                            (wr-refer var);;(recur var) 
+                            (recur val)))
+                 (otherwise 
+                  (mapcar #'recur cdr))))
+             )
+      (recur exp)))
+    (values (loop FOR (var rd wr) IN bindings WHEN (plusp rd) 
+                  COLLECT (list var (if (zerop wr) :read :write)))
+            (length local-vars))))
+
 (defun @compile-lambda (args body)
   (declare (ignore args body))
+  
   )
 #|
 (defun make-fun-body (args body)
@@ -115,6 +167,7 @@
   (if *quote?*
       (@list (mapcar #'compile-impl exp))
     (destructuring-bind (car . cdr) exp
+      ;; XXX: schemeの場合は、car部がシンボルではない可能性がある => 保留
       (case (intern (symbol-name car) :keyword)
         (:quote (let ((*quote?* t)) (compile-impl (car cdr))))
         (:if (destructuring-bind (cnd then &optional else) cdr
@@ -122,11 +175,11 @@
         (:let (destructuring-bind ((&rest bindings) &body body) cdr
                 (@compile-let bindings body)))
         (:progn (let ((last (car (last cdr)))
-                     (butlast (butlast cdr)))
+                      (butlast (butlast cdr)))
                  ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
         (:lambda (destructuring-bind ((&rest args) &body body) cdr
                    (@compile-lambda args body)))
-        (:macro-lambda )
+        ;;  (:macro-lambda ) => コンパイラとランタイムを分離している限りマクロは難しいので保留
         (:setval (destructuring-bind (var val) cdr
                    (@compile-setval var val)))
         (otherwise (@compile-funcall car cdr))))))
