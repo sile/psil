@@ -52,10 +52,10 @@
 (defun local-index (var)
   (local-bind-index (find-local-bind var)))
 
-(defmacro with-env ((&key (local-var-offset 0)) &body body)
+(defmacro with-env ((&key (local-var-offset 0) (bindings '())) &body body)
   `(let ((*scope* (gensym))
          (*quote?* nil)
-         (*bindings* '())
+         (*bindings* ,bindings)
          (*local-var-index* ,local-var-offset))
      ,@body))
 
@@ -142,29 +142,25 @@
                   COLLECT (list var (if (zerop wr) :read :write)))
             (length local-vars))))
 
+(defun @symval (sym) ; XXX: name
+  ($ :localref (local-index sym)))
+
+;; TODO: 参照を導入する (closed-varの書き込み共有のため)
+;; TODO: local-bindに参照タイプも追加する。read-only or writable
 (defun @compile-lambda (args body)
   (multiple-value-bind (closed-vars local-var-count)
-                       (inspect-var-info (loop FOR a IN args COLLECT (list a 0 0))
-                                         body)
-    (declare (ignore closed-vars local-var-count))
-    
-    ))
-#|
-(defun make-fun-body (args body)
-  (let* ((local-var-count (count-local-var (cons 'progn body)))
-         (*bindings* (loop FOR a IN (reverse args)
-                           FOR i FROM local-var-count
-                           COLLECT (cons a i)))
-         (*local-var-start* 0))
-
-    ;; returnがimplicit-prognを兼ねているかも
-    (list local-var-count ($ (compile-bc (cons 'progn body)) 103))))
-
-(defun @defun (name args body)
-  (destructuring-bind (local-var-count body-bc) (make-fun-body args body)
-    (let ((fn ($ 201 0 (length args) local-var-count (int-to-bytes (length body-bc)) body-bc)))
-      ($ fn (@symbol name) 51))))
-|#
+                       (inspect-var-info (loop FOR b IN *bindings* 
+                                               COLLECT (list (local-bind-name b) 0 0))
+                                         `(progn ,@body))
+    (with-env (:bindings (append (loop FOR a IN args
+                                       FOR i FROM (+ (length closed-vars) local-var-count)
+                                       COLLECT (local-bind a i))
+                                 *bindings*)
+               :local-var-offset (length closed-vars))
+      (let ((closes (loop FOR (name) IN closed-vars COLLECT name))
+            (body^ (flatten (compile-impl `(progn ,@body)))))
+        ($ (mapcar #'@symval closes) :lambda (length closes) (length args)
+           local-var-count (int-to-bytes (1+ (length body^))) body^ :return)))))
 
 (defun @compile-list (exp)
   (if *quote?*
