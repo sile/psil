@@ -60,7 +60,9 @@
         (if (destructuring-bind (cnd then &optional else) cdr
               (@if cnd then else)))
         (let )
-        (progn )
+        (progn (let ((last (car (last cdr)))
+                     (butlast (butlast cdr)))
+                 ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
         (lambda )
         (macro-lambda )
         (setq )
