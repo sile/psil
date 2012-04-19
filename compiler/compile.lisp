@@ -1,13 +1,13 @@
 (in-package :plc)
 
-(defun blf-call (sym)
-  ($ (@symbol sym) 50 101))
+;;(defun blf-call (sym)
+;;  ($ (@symbol sym) 50 101))
 
 (defmacro $ (&rest exps)
   `(list ,@(loop FOR e IN exps
                  COLLECT (typecase e
                            (keyword `(i ,e))
-                           (symbol `(blf-call ,e))
+;;                           (symbol `(blf-call ,e))
                            (t e)))))
 (defun @int (n)
   ($ :int (int-to-bytes n)))
@@ -25,7 +25,7 @@
     ($ :symbol (length o) (coerce o 'list))))
 
 (defun @list (elems)
-  ($ elems :list (length elems))) 
+  ($ elems :list (int-to-bytes (length elems))))
 
 (defparameter @nil ($ :nil))
 (defparameter @true ($ :true))
@@ -51,7 +51,7 @@
       (@list (mapcar #'compile-impl exp))
     (destructuring-bind (car . cdr) exp
       (case car
-        (quote (let ((*quote?* t)) (compile-impl cdr)))
+        (quote (let ((*quote?* t)) (compile-impl (car cdr))))
         (if )
         (let )
         (progn )
