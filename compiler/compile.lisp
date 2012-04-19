@@ -143,9 +143,12 @@
             (length local-vars))))
 
 (defun @compile-lambda (args body)
-  (declare (ignore args body))
-  
-  )
+  (multiple-value-bind (closed-vars local-var-count)
+                       (inspect-var-info (loop FOR a IN args COLLECT (list a 0 0))
+                                         body)
+    (declare (ignore closed-vars local-var-count))
+    
+    ))
 #|
 (defun make-fun-body (args body)
   (let* ((local-var-count (count-local-var (cons 'progn body)))
