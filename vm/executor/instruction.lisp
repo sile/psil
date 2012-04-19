@@ -17,6 +17,7 @@
    (ins 005 '_nil)
    (ins 006 '_true)
    (ins 007 '_false)
+   (ins 008 '_list)
 
    ;; 05x
    (ins 050 '_symref)
@@ -92,6 +93,9 @@
 (defparameter *false* (gensym "FALSE"))
 (defun _false ()
   (spush +stack+ *false*))
+
+(defun _list ()
+  (spush +stack+ (nreverse (loop REPEAT (read-int +in+) COLLECT (spop +stack+)))))
 
 ;; 05x
 (defun _symref ()

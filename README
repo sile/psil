@@ -6,6 +6,7 @@
 005# NIL
 006# TRUE
 007# FALSE
+008# element* LIST len:int
 --
 050# symbol SYMREF
 051# value symbol SYMSET

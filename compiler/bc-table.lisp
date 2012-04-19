@@ -9,6 +9,7 @@
                (:nil 5)
                (:true 6)
                (:false 7)
+               (:list 8)
 
                (:symref 50)
                (:symset 51)
