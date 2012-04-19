@@ -22,7 +22,7 @@
 (defun @symbol (symbol)
   (let* ((name (symbol-name symbol))
          (o (sb-ext:string-to-octets name)))
-    ($ :symbol (length o) (coerce o 'list))))
+    ($ :symbol (short-to-bytes (length o)) (coerce o 'list))))
 
 (defun @list (elems)
   ($ elems :list (int-to-bytes (length elems))))
@@ -46,6 +46,11 @@
            ($ :localref (cdr (assoc sym *bindings*)))
          ($ (@symbol sym) :symref))))))
 
+(defun @compile-setval (var val)
+  (if (assoc var *bindings*)
+      ($ (compile-impl val) :localset (cdr (assoc var *bindings*)))
+    ($ (compile-impl val) (@symbol var) :symset)))
+
 (defun @if (cnd then else)
   (let* ((then^ (flatten (compile-impl then)))
          (else^ (flatten ($ (compile-impl else) (@int (length then^)) :jump))))
@@ -55,18 +60,19 @@
   (if *quote?*
       (@list (mapcar #'compile-impl exp))
     (destructuring-bind (car . cdr) exp
-      (case car
-        (quote (let ((*quote?* t)) (compile-impl (car cdr))))
-        (if (destructuring-bind (cnd then &optional else) cdr
-              (@if cnd then else)))
-        (let )
-        (progn (let ((last (car (last cdr)))
+      (case (intern (symbol-name car) :keyword)
+        (:quote (let ((*quote?* t)) (compile-impl (car cdr))))
+        (:if (destructuring-bind (cnd then &optional else) cdr
+               (@if cnd then else)))
+        (:let )
+        (:progn (let ((last (car (last cdr)))
                      (butlast (butlast cdr)))
                  ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
-        (lambda )
-        (macro-lambda )
-        (setq )
-        (otherwise )))))
+        (:lambda )
+        (:macro-lambda )
+        (:setval (destructuring-bind (var val) cdr
+                   (@compile-setval var val)))
+        (:otherwise )))))
 
 (defun compile-impl (exp)
   (etypecase exp
