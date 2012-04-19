@@ -46,13 +46,19 @@
            ($ :localref (cdr (assoc sym *bindings*)))
          ($ (@symbol sym) :symref))))))
 
+(defun @if (cnd then else)
+  (let* ((then^ (flatten (compile-impl then)))
+         (else^ (flatten ($ (compile-impl else) (@int (length then^)) :jump))))
+    ($ (compile-impl cnd) (@int (length else^)) :jump-if else^ then^)))
+
 (defun @compile-list (exp)
   (if *quote?*
       (@list (mapcar #'compile-impl exp))
     (destructuring-bind (car . cdr) exp
       (case car
         (quote (let ((*quote?* t)) (compile-impl (car cdr))))
-        (if )
+        (if (destructuring-bind (cnd then &optional else) cdr
+              (@if cnd then else)))
         (let )
         (progn )
         (lambda )
