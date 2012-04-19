@@ -34,9 +34,27 @@
 (defvar *quote?*)
 (defvar *bindings*)
 (defvar *local-var-index*)
+(defvar *scope*)
+
+(defstruct local-bind
+  scope
+  name
+  index)
+
+(defun local-bind (name index)
+  (make-local-bind :scope *scope*
+                   :name name
+                   :index index))
+
+(defun find-local-bind (var)
+  (find var *bindings* :key #'local-bind-name))
+
+(defun local-index (var)
+  (local-bind-index (find-local-bind var)))
 
 (defmacro with-env ((&key (local-var-offset 0)) &body body)
-  `(let ((*quote?* nil)
+  `(let ((*scope* (gensym))
+         (*quote?* nil)
          (*bindings* '())
          (*local-var-index* ,local-var-offset))
      ,@body))
@@ -48,13 +66,13 @@
     (otherwise
      (if *quote?*
          (@symbol sym)
-       (if (assoc sym *bindings*)
-           ($ :localref (cdr (assoc sym *bindings*)))
+       (if (find-local-bind sym)
+           ($ :localref (local-index sym))
          ($ (@symbol sym) :symref))))))
 
 (defun @compile-setval (var val)
-  (if (assoc var *bindings*)
-      ($ (compile-impl val) :localset (cdr (assoc var *bindings*)))
+  (if (find-local-bind var)
+      ($ (compile-impl val) :localset (local-index var))
     ($ (compile-impl val) (@symbol var) :symset)))
 
 (defun @if (cnd then else)
@@ -64,14 +82,34 @@
 
 (defun @compile-let (bindings body)
   (let ((*bindings* (append (loop FOR (var) IN bindings
-                                  COLLECT (cons var (1- (incf *local-var-index*))))
+                                  COLLECT (local-bind var (1- (incf *local-var-index*))))
                             *bindings*)))
     ($ (loop FOR (var val) IN bindings
-             COLLECT ($ (compile-impl val) :localset (cdr (assoc var *bindings*)) :drop))
+             COLLECT ($ (compile-impl val) :localset (local-index var) :drop))
        (compile-impl `(progn ,@body)))))
 
 (defun @compile-funcall (fun args)
   ($ (mapcar #'compile-impl args) (compile-impl fun) :apply))
+
+(defun @compile-lambda (args body)
+  (declare (ignore args body))
+  )
+#|
+(defun make-fun-body (args body)
+  (let* ((local-var-count (count-local-var (cons 'progn body)))
+         (*bindings* (loop FOR a IN (reverse args)
+                           FOR i FROM local-var-count
+                           COLLECT (cons a i)))
+         (*local-var-start* 0))
+
+    ;; returnがimplicit-prognを兼ねているかも
+    (list local-var-count ($ (compile-bc (cons 'progn body)) 103))))
+
+(defun @defun (name args body)
+  (destructuring-bind (local-var-count body-bc) (make-fun-body args body)
+    (let ((fn ($ 201 0 (length args) local-var-count (int-to-bytes (length body-bc)) body-bc)))
+      ($ fn (@symbol name) 51))))
+|#
 
 (defun @compile-list (exp)
   (if *quote?*
@@ -86,7 +124,8 @@
         (:progn (let ((last (car (last cdr)))
                      (butlast (butlast cdr)))
                  ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
-        (:lambda )
+        (:lambda (destructuring-bind ((&rest args) &body body) cdr
+                   (@compile-lambda args body)))
         (:macro-lambda )
         (:setval (destructuring-bind (var val) cdr
                    (@compile-setval var val)))
