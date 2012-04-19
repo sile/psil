@@ -56,6 +56,14 @@
          (else^ (flatten ($ (compile-impl else) (@int (length then^)) :jump))))
     ($ (compile-impl cnd) (@int (length else^)) :jump-if else^ then^)))
 
+(defun @compile-let (bindings body)
+  (let ((*bindings* (append (loop FOR (var) IN bindings
+                                  COLLECT (cons var (1- (incf *local-var-index*))))
+                            *bindings*)))
+    ($ (loop FOR (var val) IN bindings
+             COLLECT ($ (compile-impl val) :localset (cdr (assoc var *bindings*)) :drop))
+       (compile-impl `(progn ,@body)))))
+
 (defun @compile-list (exp)
   (if *quote?*
       (@list (mapcar #'compile-impl exp))
@@ -64,7 +72,8 @@
         (:quote (let ((*quote?* t)) (compile-impl (car cdr))))
         (:if (destructuring-bind (cnd then &optional else) cdr
                (@if cnd then else)))
-        (:let )
+        (:let (destructuring-bind ((&rest bindings) &body body) cdr
+                (@compile-let bindings body)))
         (:progn (let ((last (car (last cdr)))
                      (butlast (butlast cdr)))
                  ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
@@ -72,7 +81,7 @@
         (:macro-lambda )
         (:setval (destructuring-bind (var val) cdr
                    (@compile-setval var val)))
-        (:otherwise )))))
+        (otherwise )))))
 
 (defun compile-impl (exp)
   (etypecase exp
