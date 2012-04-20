@@ -7,6 +7,13 @@
         n
       (- n #x100000000))))
 
+(defun read-short (in)
+  (let ((n (loop FOR i FROM 1 DOWNTO 0 
+                 SUM (ash (read-byte in nil nil) (* i 8)))))
+    (if (< n #x8000)
+        n
+      (- n #x10000))))
+
 (defun read-octets (in size)
   (let ((buf (make-array size :element-type 'octet)))
     (read-sequence buf in)
@@ -19,5 +26,10 @@
 
 (defun write-int (out n)
   (loop FOR i FROM 3 DOWNTO 0
+        DO (write-byte (ldb (byte 8 (* i 8)) n) out))
+  t)
+
+(defun write-short (out n)
+  (loop FOR i FROM 1 DOWNTO 0
         DO (write-byte (ldb (byte 8 (* i 8)) n) out))
   t)

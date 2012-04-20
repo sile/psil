@@ -20,9 +20,7 @@
   ($ :char (int-to-bytes (char-code ch))))
 
 (defun @symbol (symbol)
-  (let* ((name (symbol-name symbol))
-         (o (sb-ext:string-to-octets name)))
-    ($ :symbol (short-to-bytes (length o)) (coerce o 'list))))
+  ($ :constref (short-to-bytes (constant-index symbol))))
 
 (defun @list (elems)
   ($ elems :list (int-to-bytes (length elems))))
@@ -35,6 +33,13 @@
 (defvar *bindings*)
 (defvar *local-var-index*)
 (defvar *scope*)
+
+(defvar *constant-table* nil)
+
+(defun constant-index (value)
+  (if #1=(gethash value *constant-table*)
+      #1#
+    (setf #1# (hash-table-count *constant-table*))))
 
 (defstruct local-bind
   scope
@@ -58,6 +63,7 @@
   `(let ((*scope* (gensym))
          (*quote?* nil)
          (*bindings* ,bindings)
+         (*constant-table* (or *constant-table* (make-hash-table)))
          (*local-var-index* ,local-var-offset))
      ,@body))
 

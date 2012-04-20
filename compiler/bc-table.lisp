@@ -13,6 +13,7 @@
 
                (:symref 50)
                (:symset 51)
+               (:constref 52)
                
                (:apply 101)
                (:return 103)

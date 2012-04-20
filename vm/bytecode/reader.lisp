@@ -44,7 +44,7 @@
 (defun read-symbol-table (in count)
   (loop REPEAT count
         COLLECT (let* ((ins (read-byte in)) ; discard
-                       (len (read-int in))
+                       (len (read-short in))
                        (oct (read-octets in len))
                        (sym (intern (sb-ext:octets-to-string oct) :keyword)))
                   (declare (ignore ins))

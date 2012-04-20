@@ -18,10 +18,11 @@
                (push (cons index symbol) acc))
              symbol-table)
     (loop FOR (index . symbol) IN (sort acc #'< :key #'car)
+          FOR s = (sb-ext:string-to-octets (symbol-name symbol))
           DO 
-          (write-byte 2 out) ; string
-          (write-int out index)
-          (write-sequence (sb-ext:string-to-octets (symbol-name symbol)) out))))
+          (write-byte 4 out) ; symbol
+          (write-short out (length s))
+          (write-sequence s out))))
 
 (defun write-bc (out codes &key (symbol-table (make-hash-table)))
   (write-header out (header :symbol-count (hash-table-count symbol-table)

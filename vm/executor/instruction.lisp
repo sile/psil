@@ -70,7 +70,7 @@
 (define-symbol-macro +in+ (env-code-stream *env*))
 (define-symbol-macro +stack+ (env-stack *env*))
 (define-symbol-macro +symbols+ (env-symbols *env*))
-(define-symbol-macro +consts+ (env-constant-table *env*))
+(define-symbol-macro +consts+ (env-consts *env*))
 
 ;; 00x
 (defun _int ()
@@ -118,7 +118,7 @@
 
 ;; CONSTREF constant-table-index:short
 (defun _constref ()
-  (spush +stack+ (aref +consts+ (read-short +in+))))
+  (spush +stack+ (aref +consts+ (read-ushort +in+))))
 
 ;; 10x
 (defun _apply ()
