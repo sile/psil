@@ -124,9 +124,18 @@
 (defun _apply ()
   (with-slots (closed-vals arity local-var-count body)
               (the fun (spop +stack+))
-    (create-frame +stack+ arity closed-vals local-var-count +in+) ;(get-pc +in+))
+    (create-frame +stack+ arity closed-vals local-var-count +in+)
     (etypecase body
-      (octets-stream (setf +in+ (copy-octets-stream body))) ;(fixnum (set-pc +in+ body))
+      (octets-stream (setf +in+ (copy-octets-stream body)))
+      (function (funcall body) (_return)))))
+
+;; XXX: 現状簡易的なごく簡単な最適化のみ
+(defun _tail-apply ()
+  (with-slots (closed-vals arity local-var-count body)
+              (the fun (spop +stack+))
+    (create-tail-frame +stack+ arity closed-vals local-var-count +in+)
+    (etypecase body
+      (octets-stream (setf +in+ (copy-octets-stream body)))
       (function (funcall body) (_return)))))
 
 (defun _return ()

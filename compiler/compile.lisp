@@ -33,6 +33,7 @@
 (defvar *bindings*)
 (defvar *local-var-index*)
 (defvar *scope*)
+(defvar *in-root-scope*)
 
 (defvar *constant-table* nil)
 
@@ -63,9 +64,13 @@
   `(let ((*scope* (gensym))
          (*quote?* nil)
          (*bindings* ,bindings)
+         (*in-root-scope* t)
          (*constant-table* (or *constant-table* (make-hash-table)))
          (*local-var-index* ,local-var-offset))
      ,@body))
+
+(defmacro no-root-scope (&body body)
+  `(let ((*in-root-scope* nil)) ,@body))
 
 (defun @compile-symbol (sym)
   (case sym
@@ -107,7 +112,9 @@
        (compile-impl `(progn ,@body)))))
 
 (defun @compile-funcall (fun args)
-  ($ (mapcar #'compile-impl args) (compile-impl fun) :apply))
+  (if *in-root-scope*
+      ($ (mapcar #'compile-impl args) (compile-impl fun) :tail-apply)
+    ($ (mapcar #'compile-impl args) (compile-impl fun) :apply)))
 
 #|
 - 外側のスコープの引数/ローカル変数一覧
@@ -222,3 +229,8 @@
     (character (@char exp))
     (symbol (@compile-symbol exp))
     (list (@compile-list exp))))
+
+
+;; TODO: 末尾になりえない箇所では、compile-implの代わりにこちらを使用する
+(defun no-root-compile-impl (exp)
+  (no-root-scope (compile-impl exp)))

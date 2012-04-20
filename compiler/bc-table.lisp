@@ -16,6 +16,7 @@
                (:constref 52)
                
                (:apply 101)
+               (:tail-apply 102)
                (:return 103)
                (:conti 104)
                (:nuate 105)

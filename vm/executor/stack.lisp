@@ -1,8 +1,10 @@
 (in-package :pvme)
 
+(defparameter *start-index* 4)
+
 (defstruct stack
-  (top  4 :type fixnum)
-  (base 4 :type fixnum)
+  (top  *start-index* :type fixnum)
+  (base *start-index* :type fixnum)
   (data t :type simple-vector))
 
 #|
@@ -74,6 +76,26 @@ stackの全コピー
       (spush stack return-address)
       (spush stack prev-base)
       (spush stack prev-top)))
+  stack)
+
+(defun create-tail-frame (stack arity closed-vals local-var-count return-address)
+  (with-slots (top base data) (the stack stack)
+    (when (= base *start-index*)
+      (return-from create-tail-frame (create-frame stack arity closed-vals 
+                                                   local-var-count return-address)))
+    (let ((prev-top (- top arity))
+          (prev-base base)
+          (return-address~ (aref data (+ base 0)))
+          (base~ (aref data (+ base 1)))
+          (top~ (aref data (+ base 2))))
+      (declare (ignore return-address prev-top prev-base))
+      (loop FOR v IN closed-vals DO (spush stack v))
+      (sreserve stack local-var-count)
+      
+      (setf base top)
+      (spush stack return-address~) ; 単に戻るだけのreturnをスキップする
+      (spush stack base~)
+      (spush stack top~)))
   stack)
 
 ;; => (values return-address return-value)
