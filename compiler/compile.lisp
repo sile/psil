@@ -90,14 +90,14 @@
   (let ((v (find-local-bind var)))
     (if v
         (if (local-bind-read-only v) ; XXX: 名前が不適切
-            ($ (compile-impl val) :localset (local-index var))
-          ($ (compile-impl val) :refset (local-index var)))
-      ($ (compile-impl val) (@symbol var) :symset))))
+            ($ (no-root-compile-impl val) :localset (local-index var))
+          ($ (no-root-compile-impl val) :refset (local-index var)))
+      ($ (no-root-compile-impl val) (@symbol var) :symset))))
 
 (defun @if (cnd then else)
   (let* ((then^ (flatten (compile-impl then)))
          (else^ (flatten ($ (compile-impl else) (@int (length then^)) :jump))))
-    ($ (compile-impl cnd) (@int (length else^)) :jump-if else^ then^)))
+    ($ (no-root-compile-impl cnd) (@int (length else^)) :jump-if else^ then^)))
 
 (defun @compile-let (bindings body)
   (let* ((vars (mapcar #'car bindings))
@@ -113,8 +113,8 @@
 
 (defun @compile-funcall (fun args)
   (if *in-root-scope*
-      ($ (mapcar #'compile-impl args) (compile-impl fun) :tail-apply)
-    ($ (mapcar #'compile-impl args) (compile-impl fun) :apply)))
+      ($ (mapcar #'no-root-compile-impl args) (compile-impl fun) :tail-apply)
+    ($ (mapcar #'no-root-compile-impl args) (compile-impl fun) :apply)))
 
 #|
 - 外側のスコープの引数/ローカル変数一覧
@@ -202,18 +202,18 @@
 
 (defun @compile-list (exp)
   (if *quote?*
-      (@list (mapcar #'compile-impl exp))
+      (@list (mapcar #'no-root-compile-impl exp))
     (destructuring-bind (car . cdr) exp
       ;; XXX: schemeの場合は、car部がシンボルではない可能性がある => 保留
       (case (intern (symbol-name car) :keyword)
-        (:quote (let ((*quote?* t)) (compile-impl (car cdr))))
+        (:quote (let ((*quote?* t)) (no-root-compile-impl (car cdr))))
         (:if (destructuring-bind (cnd then &optional else) cdr
                (@if cnd then else)))
         (:let (destructuring-bind ((&rest bindings) &body body) cdr
                 (@compile-let bindings body)))
         (:progn (let ((last (car (last cdr)))
                       (butlast (butlast cdr)))
-                 ($ (mapcar #'compile-impl butlast) :dropn (length butlast) (compile-impl last))))
+                 ($ (mapcar #'no-root-compile-impl butlast) :dropn (length butlast) (compile-impl last))))
         (:lambda (destructuring-bind ((&rest args) &body body) cdr
                    (@compile-lambda args `(progn ,@body))))
         ;;  (:macro-lambda ) => コンパイラとランタイムを分離している限りマクロは難しいので保留
