@@ -22,6 +22,7 @@
    ;; 05x
    (ins 050 '_symref)
    (ins 051 '_symset)
+   (ins 052 '_constref)
 
    ;; 10x
    (ins 101 '_apply)
@@ -69,6 +70,7 @@
 (define-symbol-macro +in+ (env-code-stream *env*))
 (define-symbol-macro +stack+ (env-stack *env*))
 (define-symbol-macro +symbols+ (env-symbols *env*))
+(define-symbol-macro +consts+ (env-constant-table *env*))
 
 ;; 00x
 (defun _int ()
@@ -113,6 +115,10 @@
         (val (spop +stack+)))
     (set-symbol-value +symbols+ sym val)
     (spush +stack+ val)))
+
+;; CONSTREF constant-table-index:short
+(defun _constref ()
+  (spush +stack+ (aref +consts+ (read-short +in+))))
 
 ;; 10x
 (defun _apply ()
