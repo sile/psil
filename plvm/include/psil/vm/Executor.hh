@@ -4,6 +4,8 @@
 #include "Environment.hh"
 #include "BytecodeObject.hh"
 
+// TODO: stackはデータとリターンで分ける
+
 namespace psil {
   namespace vm {
     class Executor {
@@ -11,7 +13,8 @@ namespace psil {
       Executor(Environment& env) : env(env) {
       }
 
-      void execute(const BytecodeObject& bcobj) {
+      bool execute(const BytecodeObject& bcobj) {
+        return true;
       }
 
       // for debug
