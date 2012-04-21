@@ -10,7 +10,7 @@ namespace psil {
     class Executor {
     public:
       Executor(Environment& env) : env(env) {}
-      bool execute(const BytecodeObject& bcobj);
+      bool execute(BytecodeObject& bcobj);
 
       std::string show() const;
 

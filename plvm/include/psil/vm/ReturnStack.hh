@@ -3,6 +3,7 @@
 
 #include "Object.hh"
 #include <vector>
+#include <string>
 
 /*
   [layout]
@@ -31,7 +32,9 @@ namespace psil {
         stack.pop_back();
         return e;
       }
-      
+
+      std::string show() const;
+
     private:
       std::vector<Entry> stack;
     };

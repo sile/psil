@@ -2,7 +2,8 @@
 
 using namespace psil::vm;
 
-bool Executor::execute(const BytecodeObject& bcobj) {
+bool Executor::execute(BytecodeObject& bcobj) {
+  env.ready(&bcobj);
   return true;
 }
 

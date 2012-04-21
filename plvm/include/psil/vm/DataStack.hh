@@ -3,6 +3,7 @@
 
 #include "Object.hh"
 #include <vector>
+#include <string>
 
 /*
   [stack-layout]
@@ -38,6 +39,9 @@ namespace psil {
       void arg_set(unsigned index, type::Object* value) { stack[base-index-1] = value; }
       type::Object* local_get(unsigned index) { return stack[base+index]; }
       void local_set(unsigned index, type::Object* value) { stack[base+index] = value; }
+
+      std::string show() const;
+
     private:
       unsigned base;
       std::vector<type::Object*> stack;

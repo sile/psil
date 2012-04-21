@@ -1,8 +1,11 @@
+src/psil/vm/ReturnStack.o: src/psil/vm/ReturnStack.cc \
+ include/psil/vm/ReturnStack.hh
 src/psil/vm/Executor.o: src/psil/vm/Executor.cc include/psil/vm/Executor.hh
 src/psil/vm/ConstantTable.o: src/psil/vm/ConstantTable.cc include/psil/vm/type.hh \
  include/psil/vm/ConstantTable.hh
 src/psil/vm/SymbolTable.o: src/psil/vm/SymbolTable.cc \
  include/psil/vm/SymbolTable.hh
+src/psil/vm/DataStack.o: src/psil/vm/DataStack.cc include/psil/vm/DataStack.hh
 src/psil/vm/Object.o: src/psil/vm/Object.cc include/psil/vm/Object.hh \
  include/psil/vm/SymbolTable.hh include/psil/vm/type.hh
 src/psil/vm/BytecodeObject.o: src/psil/vm/BytecodeObject.cc \
