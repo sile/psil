@@ -2,5 +2,6 @@
 *~
 *.o
 /bin/
+/plvm/bin/
 /cc/bin/
 /tmp/

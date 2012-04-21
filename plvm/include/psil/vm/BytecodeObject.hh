@@ -28,7 +28,17 @@ namespace psil {
     class BytecodeObject {
     public:
       struct Header {
-        const char magic[4];
+        Header(const Header* h) 
+          : version(aux::Endian::toBigInt(h->version)),
+            constant_start(aux::Endian::toBigInt(h->constant_start)),
+            constant_count(aux::Endian::toBigInt(h->constant_count)),
+            code_start(aux::Endian::toBigInt(h->code_start)),
+            code_size(aux::Endian::toBigInt(h->code_size))
+        {
+          strncpy(magic, h->magic, 4);
+        }
+
+        char magic[4];
         unsigned version;
         unsigned constant_start;
         unsigned constant_count;
@@ -40,12 +50,12 @@ namespace psil {
       BytecodeObject(const char* bytes, unsigned size)
         : h(reinterpret_cast<const Header*>(bytes)), 
           const_table(NULL), code_stream(NULL) {
-        assert(strcmp(MAGIC_CODE, h->magic) == 0);
+        assert(strcmp(MAGIC_CODE, h.magic) == 0);
         
-        const_table = ConstantTable::parse(bytes + h->constant_start, h->constant_count);
+        const_table = ConstantTable::parse(bytes + h.constant_start, h.constant_count);
         assert(const_table);
 
-        code_stream = new CodeStream(bytes + h->code_start, h->code_size);
+        code_stream = new CodeStream(bytes + h.code_start, h.code_size);
       }
 
     public:
@@ -55,7 +65,7 @@ namespace psil {
       }
 
     private:
-      const Header* h;
+      const Header h;
       const ConstantTable* const_table;
       const CodeStream* code_stream;
     };

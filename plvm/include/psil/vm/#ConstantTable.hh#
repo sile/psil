@@ -19,7 +19,7 @@ namespace psil {
       static ConstantTable* parse(const char* bytes, unsigned count) {
         ConstantTable* consts = new ConstantTable;
         for(unsigned i=0; i < count; i++) {
-          short length = aux::Endian::toBigShort(*reinterpret_cast<const unsigned*>(bytes));
+          short length = aux::Endian::toBigShort(*reinterpret_cast<const unsigned*>(bytes相互));
           std::string name(bytes+2, length);
           consts->table.push_back(type::Symbol::intern(name));
           bytes += length;
