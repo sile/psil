@@ -1,0 +1,3 @@
+src/psil/vm/Object.o: src/psil/vm/Object.cc include/psil/vm/Object.hh
+src/bin/plvm.o: src/bin/plvm.cc include/psil/vm/Environment.hh \
+ include/psil/vm/Executor.hh include/psil/vm/aux.hh

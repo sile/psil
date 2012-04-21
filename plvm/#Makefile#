@@ -1,7 +1,0 @@
-CXX = g++
-CXXFLAGS = -Wall
-OBJS = 
-
-plvm:
-	mkdir -p bin
-	${CC} ${CCFLAGS} -Iinclude -obin/plvm src/bin/plvm.cc
