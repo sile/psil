@@ -14,6 +14,10 @@ namespace psil {
       void execute(const BytecodeObject& bcobj) {
       }
 
+      // for debug
+      void printState() const {
+      }
+
     private:
       Environment& env;
     };
