@@ -1,5 +1,7 @@
 #include "psil/vm/Environment.hh"
 #include "psil/vm/Executor.hh"
+#include "psil/vm/FileContent.hh"
+#include "psil/vm/ByteStream.hh"
 #include "psil/vm/aux.hh"
 #include <iostream>
 
@@ -18,18 +20,25 @@ int main(int argc, char** argv) {
     const char* filepath = argv[i];
     std::cout << "# " << filepath << std::endl;
     
-    vm::aux::SmartPtr<vm::BytecodeObject> bcp(vm::FileBytecodeObject::parse(filepath));
-    if(bcp.isNull()) {
+    vm::FileContent fc(filepath);
+    if(! fc) {
+      std::cerr << "ERROR: can't open file" << std::endl;
+      return 1;
+    }
+    
+    vm::ByteStream bs(fc.bytes(), fc.size());
+    vm::BytecodeObject bo(bs);
+    if(! bo) {
       std::cerr << "ERROR: can't parse " << filepath << std::endl;
       return 1;
     }
 
-    if(exec.execute(bcp.getRef())) {
+    if(exec.execute(bo)) {
       std::cerr << "ERROR: can't execute " << filepath << std::endl;
       return 1;
     }
 
-    exec.printState();
+    std::cout << exec.showState();
     std::cout << std::endl;
   }
   

@@ -1,3 +1,12 @@
-src/psil/vm/Object.o: src/psil/vm/Object.cc include/psil/vm/Object.hh
+src/psil/vm/Executor.o: src/psil/vm/Executor.cc include/psil/vm/Executor.hh
+src/psil/vm/ConstantTable.o: src/psil/vm/ConstantTable.cc include/psil/vm/type.hh \
+ include/psil/vm/ConstantTable.hh
+src/psil/vm/SymbolTable.o: src/psil/vm/SymbolTable.cc \
+ include/psil/vm/SymbolTable.hh
+src/psil/vm/Object.o: src/psil/vm/Object.cc include/psil/vm/Object.hh \
+ include/psil/vm/SymbolTable.hh include/psil/vm/type.hh
+src/psil/vm/BytecodeObject.o: src/psil/vm/BytecodeObject.cc \
+ include/psil/vm/BytecodeObject.hh
 src/bin/plvm.o: src/bin/plvm.cc include/psil/vm/Environment.hh \
- include/psil/vm/Executor.hh include/psil/vm/aux.hh
+ include/psil/vm/Executor.hh include/psil/vm/FileContent.hh include/psil/vm/ByteStream.hh \
+ include/psil/vm/aux.hh

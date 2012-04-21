@@ -7,6 +7,7 @@ namespace psil {
   namespace vm {
     namespace type {
       enum OBJ_TYPE {
+        TYPE_UNDEF,
         TYPE_SYMBOL
       };
 
@@ -15,26 +16,33 @@ namespace psil {
         virtual OBJ_TYPE getType() const = 0;
         virtual std::string show() const = 0;
       };
+
+      class Undef : public Object {
+      public:
+        static Undef* make() { return &undef; }
+        OBJ_TYPE getType() const { return TYPE_UNDEF; }
+        std::string show() const { return std::string("<undef>"); }
+
+      private:
+        static Undef undef;
+      };
       
       class Symbol : public Object {
+      private:
+        Symbol(const std::string& name) : name(name), value(NULL) {} // XXX: NilObjとかをデフォルト
+
       public:
-        Symbol(const std::string& name) : name(name), value(NULL) {
-        }
-        
-        static Symbol* intern(const std::string& name) {
-          // TODO: シンボルテーブル検索
-          return new Symbol(name);
-        }
+        static Symbol* make(const std::string& name);
         
         OBJ_TYPE getType() const { return TYPE_SYMBOL; }
 
         std::string show() const { 
           return std::string("<SYMBOL ") + name + ">";
         }
-
-      private:
-        std::string name;
-        Object* value;
+        
+      public:
+        const std::string name;
+        Object const * value;
       };
     }
   }

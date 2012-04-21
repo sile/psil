@@ -3,23 +3,17 @@
 
 #include "Environment.hh"
 #include "BytecodeObject.hh"
-
-// TODO: stackはデータとリターンで分ける
+#include <string>
 
 namespace psil {
   namespace vm {
     class Executor {
     public:
-      Executor(Environment& env) : env(env) {
-      }
-
-      bool execute(const BytecodeObject& bcobj) {
-        return true;
-      }
+      Executor(Environment& env) : env(env) {}
+      bool execute(const BytecodeObject& bcobj);
 
       // for debug
-      void printState() const {
-      }
+      std::string showState() const;
 
     private:
       Environment& env;
