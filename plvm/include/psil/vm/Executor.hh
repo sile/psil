@@ -12,8 +12,7 @@ namespace psil {
       Executor(Environment& env) : env(env) {}
       bool execute(const BytecodeObject& bcobj);
 
-      // for debug
-      std::string showState() const;
+      std::string show() const;
 
     private:
       Environment& env;

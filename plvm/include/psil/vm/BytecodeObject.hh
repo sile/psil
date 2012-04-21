@@ -49,22 +49,19 @@ namespace psil {
       
     public:
       BytecodeObject(ByteStream& in) 
-        : header(Header::read(in)), const_table(in, header.constant_count), in(in) {}
+        : header(Header::read(in)), const_table(in, header.constant_count), 
+          codeStream(in.subStream(header.code_start, header.code_start + header.code_size)) {}
       
       operator bool () const { return true; } // XXX:
 
       const ConstantTable& constantTable() const { return const_table; }
-      
-      ByteStream getCodeStream() { 
-        return in.subStream(header.code_start, header.code_start + header.code_size);
-      }
 
       std::string show() const;
 
     private:
       const Header header;
       const ConstantTable const_table;
-      ByteStream in;
+      ByteStream codeStream;
     };
   }
 }

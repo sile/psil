@@ -6,7 +6,7 @@ bool Executor::execute(const BytecodeObject& bcobj) {
   return true;
 }
 
-std::string Executor::showState() const {
+std::string Executor::show() const {
   return "";
 }
 
