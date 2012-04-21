@@ -17,6 +17,8 @@ namespace psil {
       ConstantTable(ByteStream& in, unsigned count);
       std::string show() const;
 
+      type::Object* get(unsigned index) const { return table[index]; }
+      
     private:
       std::vector<type::Symbol*> table;
     };

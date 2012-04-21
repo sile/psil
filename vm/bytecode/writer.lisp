@@ -6,7 +6,9 @@
   
   ;; header
   (write-int out (header-version header))
+  (write-int out 0) ; constant-start: dummy
   (write-int out (header-symbol-count header))
+  (write-int out 0) ; code-start: dummy
   (write-int out (header-code-size header))
 
   t
@@ -20,16 +22,25 @@
     (loop FOR (index . symbol) IN (sort acc #'< :key #'car)
           FOR s = (sb-ext:string-to-octets (symbol-name symbol))
           DO 
-          (write-byte 4 out) ; symbol
+          ;; (write-byte 4 out) ; symbol
           (write-short out (length s))
           (write-sequence s out))))
 
 (defun write-bc (out codes &key (symbol-table (make-hash-table)))
   (write-header out (header :symbol-count (hash-table-count symbol-table)
                             :code-size (length codes)))
-  (write-symbol-table out symbol-table)
-  (write-sequence codes out)
+  (let ((constant-start (file-position out)))
+    (write-symbol-table out symbol-table)
+    (let ((code-start (file-position out)))
+      (write-sequence codes out)
+      
+      ;; constant-start, code-start
+      (file-position out (+ 4 4))
+      (write-int out constant-start)
+      (file-position out (+ 4 4 4 4))
+      (write-int out code-start)))
   t)
+
 
 (defun write-bc-to-file (filepath codes &key (symbol-table (make-hash-table)))
   (with-open-file (out filepath 

@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
       std::cerr << "ERROR: can't parse " << filepath << std::endl;
       return 1;
     }
+    std::cout << bo.show() << std::endl << std::endl;
 
     if(exec.execute(bo)) {
       std::cerr << "ERROR: can't execute " << filepath << std::endl;

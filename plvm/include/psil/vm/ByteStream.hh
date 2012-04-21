@@ -11,13 +11,12 @@ namespace psil {
     class ByteStream {
     public:
       ByteStream(const char* bytes, unsigned size) : bytes(bytes), size(size), cur(0) {}
-
       bool eos() const { return cur >= size; }
 
       // TODO: endian
       uint1 readUint1() { assert(! eos()); return (uint1)bytes[cur++]; }
-      uint2 readUint2() { return (uint2)(readUint1() << 8 || readUint1()); }
-      uint2 readUint4() { return (uint4)(readUint2() << 16 || readUint2()); }
+      uint2 readUint2() { return (uint2)(readUint1() << 8 | readUint1()); }
+      uint2 readUint4() { return (uint4)(readUint2() << 16 | readUint2()); }
       void readBytes(char* buffer, unsigned size) {
         assert(cur + size < this->size);
         memcpy(buffer, bytes, size);
@@ -34,6 +33,10 @@ namespace psil {
         assert(cur >= 0 && cur < size);
         cur = pos;
         return *this;
+      }
+
+      ByteStream subStream(unsigned start, unsigned end) const {
+        return ByteStream(bytes + start, end - start);
       }
       
     private:

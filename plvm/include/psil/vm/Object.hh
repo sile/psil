@@ -29,16 +29,12 @@ namespace psil {
       
       class Symbol : public Object {
       private:
-        Symbol(const std::string& name) : name(name), value(NULL) {} // XXX: NilObjとかをデフォルト
+        Symbol(const std::string& name) : name(name), value(Undef::make()) {} 
 
       public:
         static Symbol* make(const std::string& name);
-        
         OBJ_TYPE getType() const { return TYPE_SYMBOL; }
-
-        std::string show() const { 
-          return std::string("<SYMBOL ") + name + ">";
-        }
+        std::string show() const { return std::string("<SYMBOL ") + name + ">"; }
         
       public:
         const std::string name;

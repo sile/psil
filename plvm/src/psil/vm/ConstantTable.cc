@@ -9,7 +9,7 @@ ConstantTable::ConstantTable(ByteStream& in, unsigned count) {
     uint2 length = in.readUint2();
     std::string name;
     in.readString(name, length);
-    table.push_back(type::Symbol::intern(name));
+    table.push_back(type::Symbol::make(name));
   }
 }
 
