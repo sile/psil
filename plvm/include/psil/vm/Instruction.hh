@@ -60,8 +60,6 @@ namespace psil {
         case 204: _reference(); break;
         case 205: _refget(); break;
         case 206: _refset(); break;
-        case 207: _argget(); break;
-        case 208: _argset(); break;
           
         case 250: _print(); break;
           
@@ -197,7 +195,7 @@ namespace psil {
         ReturnStack::Entry e = rs.pop();
         Object* returnValue = pop();
 
-        ds.setTop(e.top);
+        ds.setTop(ds.getBase());
         ds.setBase(e.base);
         env.restoreContext(e.context, e.returnAddress);
         push(returnValue);
@@ -240,14 +238,6 @@ namespace psil {
         push(env.getDataStack().local_set(readUint1(), pop()));
       }
 
-      void _argget() {
-        push(env.getDataStack().arg_get(readUint1()));
-      }
-
-      void _argset() {
-        push(env.getDataStack().arg_set(readUint1(), pop()));
-      }
-
       void _reference() {
         push(Reference::make(pop()));
       }
@@ -267,18 +257,20 @@ namespace psil {
 
     private:
       void create_callframe(Lambda& lambda) {
+        DataStack& ds = env.getDataStack();
+        ReturnStack& rs = env.getReturnStack();
+        unsigned nextBase = ds.getTop() - lambda.getArity();
+
         for(uint1 i=0; i < lambda.getClosedValueCount(); i++) {
           push(lambda.getClosedValue(i));
         }
-        DataStack& ds = env.getDataStack();
-        ReturnStack& rs = env.getReturnStack();
-        ReturnStack::Entry e(ds.getTop() - lambda.getArity(), 
-                             ds.getBase(),
+        
+        ReturnStack::Entry e(ds.getBase(),
                              env.getCodeStream().getPosition(), // TODO: saveContextとか用意
                              env.getContext());
         rs.push(e);
         
-        ds.setBase(ds.getTop());
+        ds.setBase(nextBase);
         ds.reserve(lambda.getLocalVarCount());
       }
 

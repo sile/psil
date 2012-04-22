@@ -7,9 +7,9 @@
 
 /*
   [layout]
-  previous-top
   previous-base
   return-address
+  context
 */
 namespace psil {
   namespace vm {
@@ -19,9 +19,8 @@ namespace psil {
     class ReturnStack {
     public:
       struct Entry {
-        Entry(unsigned t, unsigned b, unsigned r, Context* cx)
-          : top(t), base(b), returnAddress(r), context(cx) {}
-        unsigned top;
+        Entry(unsigned b, unsigned r, Context* cx)
+          : base(b), returnAddress(r), context(cx) {}
         unsigned base;
         unsigned returnAddress;
         Context* context;

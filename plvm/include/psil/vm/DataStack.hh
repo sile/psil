@@ -12,11 +12,11 @@
   x1
   local-var2
   local-var1
-  -- base --
-  close1
   close2
-  arg1
+  close1
   arg2
+  arg1
+  -- base --
 
   [in heap]
   closed-var1
@@ -38,8 +38,6 @@ namespace psil {
         stack.resize(top);
       }
       
-      type::Object* arg_get(unsigned index) { return stack[base-index-1]; }
-      type::Object* arg_set(unsigned index, type::Object* value) { return stack[base-index-1] = value; }
       type::Object* local_get(unsigned index) { return stack[base+index]; }
       type::Object* local_set(unsigned index, type::Object* value) { return stack[base+index] = value; }
 

@@ -9,7 +9,7 @@ std::string ReturnStack::show() const {
   for(std::size_t i=0; i < stack.size(); i++) {
     std::size_t j = stack.size()-i;
     const Entry& e = stack[i];
-    out << " " << j << ": " << e.top << ", " << e.base << ", " << e.returnAddress << std::endl;
+    out << " " << j << ": " << e.base << ", " << e.returnAddress << std::endl;
   }
   return out.str();
 }
