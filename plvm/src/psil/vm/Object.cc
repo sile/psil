@@ -53,9 +53,9 @@ std::string Array::show() const {
 std::string Lambda::show() const {
   std::ostringstream out;
   out << "<LAMBDA " 
-      << closed.val_count << " " 
-      << arity << " "
-      << local_var_count
+      << (int)closed.val_count << " " 
+      << (int)arity << " "
+      << (int)local_var_count
       << ">";
   return out.str();
 }

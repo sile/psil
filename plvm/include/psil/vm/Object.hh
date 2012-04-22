@@ -47,17 +47,17 @@ namespace psil {
       // Int
       class Int : public Object {
       private:
-        Int(uint4 n) : value(n) {}
+        Int(int4 n) : value(n) {}
 
       public:
-        static Int* make(uint4 n) { return new Int(n); }
+        static Int* make(int4 n) { return new Int(n); }
         OBJ_TYPE getType() const { return TYPE_INT; }
         std::string show() const;
         
-        uint4 getValue() const { return value; }
+        int4 getValue() const { return value; }
         
       private:
-        uint4 value;
+        int4 value;
       };
       
       // String
@@ -136,6 +136,8 @@ namespace psil {
         OBJ_TYPE getType() const { return TYPE_BOOL; }
         std::string show() const { return this == &_true ? "<TRUE>" : "<FALSE>"; }
         
+        static bool isFalse(const Object* x) { return x == &_false; }
+
       private:
         static Boolean _true;
         static Boolean _false;

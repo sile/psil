@@ -43,6 +43,11 @@ namespace psil {
         case 104: _conti(); break;
         case 105: _nuate(); break;
 
+        case 150: _jump(); break;
+        case 151: _jump_if(); break;
+        case 152: _fix_jump(); break;
+        case 153: _fix_jump_if(); break;
+          
         case 201: _lambda(); break;
           
         default:
@@ -107,6 +112,30 @@ namespace psil {
         push(env.getConstantTable().get(readUint2()));
       }
 
+      //
+      void _jump() {
+        int4 offset = to<Int>(pop())->getValue();
+        env.getCodeStream().jump(offset);
+      }
+
+      void _jump_if() {
+        int4 offset = to<Int>(pop())->getValue();
+        if(! Boolean::isFalse(pop())) {
+          env.getCodeStream().jump(offset);          
+        }
+      }
+
+      void _fix_jump() {
+        env.getCodeStream().jump(readInt2());
+      }
+
+      void _fix_jump_if() {
+        int2 offset = readInt2();
+        if(! Boolean::isFalse(pop())) {
+          env.getCodeStream().jump(offset);
+        }
+      }
+      
       void _apply() {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
@@ -199,6 +228,10 @@ namespace psil {
 
       uint2 readUint2() {
         return env.getCodeStream().readUint2();
+      }
+
+      int2 readInt2() {
+        return (int2)env.getCodeStream().readUint2();
       }
 
       uint1 readUint1() {

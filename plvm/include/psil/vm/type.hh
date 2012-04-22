@@ -6,6 +6,9 @@ namespace psil {
     typedef unsigned char  uint1;
     typedef unsigned short uint2;
     typedef unsigned int   uint4;
+    
+    typedef short int2;
+    typedef int int4;
 
     typedef uint1 opcode_t;
   }
