@@ -38,9 +38,9 @@ namespace psil {
       }
       
       type::Object* arg_get(unsigned index) { return stack[base-index-1]; }
-      void arg_set(unsigned index, type::Object* value) { stack[base-index-1] = value; }
+      type::Object* arg_set(unsigned index, type::Object* value) { return stack[base-index-1] = value; }
       type::Object* local_get(unsigned index) { return stack[base+index]; }
-      void local_set(unsigned index, type::Object* value) { stack[base+index] = value; }
+      type::Object* local_set(unsigned index, type::Object* value) { return stack[base+index] = value; }
 
       std::string show() const;
 

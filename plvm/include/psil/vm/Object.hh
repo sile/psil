@@ -22,7 +22,8 @@ namespace psil {
         TYPE_CONS,
         TYPE_ARRAY,
         TYPE_LAMBDA,
-        TYPE_NATIVE_LAMBDA
+        TYPE_NATIVE_LAMBDA,
+        TYPE_REF
       };
 
       // Object
@@ -248,6 +249,23 @@ namespace psil {
       private:
         NATIVE_FUN_T body;
       };
+
+      // 
+      class Reference : public Object {
+      private:
+        Reference(Object* x) : value(x) {}
+        
+      public:
+        static Reference* make(Object* x) { return new Reference(x); }
+        OBJ_TYPE getType() const { return TYPE_REF; }
+        std::string show() const { return std::string("<REF ") + value->show() + ">"; }
+        
+        Object* getValue() const { return value; }
+        Object* setValue(Object* x) { return value=x; }
+
+      private:
+        Object* value;
+      };
       
       //
       namespace {
@@ -262,6 +280,7 @@ namespace psil {
         template<> OBJ_TYPE getType<Array>() { return TYPE_ARRAY; }
         template<> OBJ_TYPE getType<Lambda>() { return TYPE_LAMBDA; }
         template<> OBJ_TYPE getType<NativeLambda>() { return TYPE_NATIVE_LAMBDA; }
+        template<> OBJ_TYPE getType<Reference>() { return TYPE_REF; }
       }
       
       //

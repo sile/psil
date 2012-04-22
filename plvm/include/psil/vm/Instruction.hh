@@ -70,6 +70,8 @@ namespace psil {
       Environment& env;
       
     private:
+      // TODO: 全体的にpop => push系の命令は最適化できる
+
       void _int() {
         push(Int::make(readUint4()));
       }
@@ -227,28 +229,31 @@ namespace psil {
       }
 
       void _localget() {
-        env.getDataStack().local_get(readUint1());
+        push(env.getDataStack().local_get(readUint1()));
       }
 
       void _localset() {
-        env.getDataStack().local_set(readUint1(), pop());
+        push(env.getDataStack().local_set(readUint1(), pop()));
       }
 
       void _argget() {
-        env.getDataStack().arg_get(readUint1());
+        push(env.getDataStack().arg_get(readUint1()));
       }
 
       void _argset() {
-        env.getDataStack().arg_set(readUint1(), pop());
+        push(env.getDataStack().arg_set(readUint1(), pop()));
       }
 
       void _reference() {
+        push(Reference::make(pop()));
       }
 
       void _refget() {
+        push(to<Reference>(pop())->getValue());
       }
 
       void _refset() {
+        push(to<Reference>(pop())->setValue(pop()));        
       }
 
     private:
