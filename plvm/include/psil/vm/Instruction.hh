@@ -28,6 +28,10 @@ namespace psil {
         case   6: _true(); break;
         case   7: _false(); break;
         case   8: _list(); break;
+                                                
+        case  50: _symget(); break;
+        case  51: _symset(); break;
+        case  52: _constget(); break;
           
         default:
           assert(false);
@@ -79,6 +83,16 @@ namespace psil {
           head = type::Cons::make(pop(), head);
         }
         push(head);
+      }
+
+      void _symget() {
+        push(type::to<type::Symbol>(pop())->getValue());
+      }
+      void _symset() {
+        push(type::to<type::Symbol>(pop())->setValue(pop()));
+      }
+      void _constget() {
+        push(env.getConstantTable().get(readUint2()));
       }
       
     private:

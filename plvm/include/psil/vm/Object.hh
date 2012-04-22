@@ -99,6 +99,7 @@ namespace psil {
 
         const std::string& getName() const { return name; }
         Object* getValue() const { return value; }
+        Object* setValue(Object* o) { return value=o; }
 
       private:
         const std::string name;
@@ -158,7 +159,7 @@ namespace psil {
         Array(uint4 size) : ary(NULL), size(size) {
           ary = new Object*[size];
           for(uint4 i=0; i < size; i++) {
-            ary[i] = Nil::make();
+            ary[i] = Undef::make();
           }
         }
         ~Array() {
@@ -178,6 +179,26 @@ namespace psil {
         Object** ary;
         uint4 size;
       };
+
+      //
+      namespace {
+        template<class T> OBJ_TYPE getType() { return TYPE_UNDEF; }
+        template<> OBJ_TYPE getType<Int>() { return TYPE_INT; }
+        template<> OBJ_TYPE getType<String>() { return TYPE_STRING; }
+        template<> OBJ_TYPE getType<Char>() { return TYPE_CHAR; }
+        template<> OBJ_TYPE getType<Symbol>() { return TYPE_SYMBOL; }
+        template<> OBJ_TYPE getType<Nil>() { return TYPE_NIL; }
+        template<> OBJ_TYPE getType<Cons>() { return TYPE_CONS; }
+        template<> OBJ_TYPE getType<Boolean>() { return TYPE_BOOL; }
+        template<> OBJ_TYPE getType<Array>() { return TYPE_ARRAY; }
+      }
+      
+      //
+      template<class T>
+      T* to(Object* o) {
+        assert(o->getType() == getType<T>());
+        return reinterpret_cast<T*>(o);
+      }
     }
   }
 }
