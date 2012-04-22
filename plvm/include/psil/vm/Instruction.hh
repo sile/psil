@@ -47,6 +47,9 @@ namespace psil {
         case 151: _jump_if(); break;
         case 152: _fix_jump(); break;
         case 153: _fix_jump_if(); break;
+
+        case 180: _drop(); break;
+        case 181: _dropn(); break;
           
         case 201: _lambda(); break;
           
@@ -134,6 +137,15 @@ namespace psil {
         if(! Boolean::isFalse(pop())) {
           env.getCodeStream().jump(offset);
         }
+      }
+
+      //
+      void _drop() {
+        pop();
+      }
+
+      void _dropn() {
+        env.getDataStack().drop(readUint1());
       }
       
       void _apply() {
