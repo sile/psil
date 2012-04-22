@@ -24,7 +24,7 @@ namespace psil {
 
       DataStack& getDataStack() { return dataStack; }
       ReturnStack& getReturnStack() { return returnStack; }
-      BytecodeObject& getContext() { return *bcobj; }
+      BytecodeObject* getContext() { return bcobj; }
 
       void restoreContext(BytecodeObject* cxt, unsigned address) {
         bcobj = cxt;

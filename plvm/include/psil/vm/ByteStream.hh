@@ -30,13 +30,18 @@ namespace psil {
 
       unsigned getPosition() const { return cur; }
       ByteStream& setPosition(unsigned pos) { 
-        assert(cur >= 0 && cur < size);
+        assert(cur >= 0 && cur <= size);
         cur = pos;
         return *this;
       }
 
       ByteStream subStream(unsigned start, unsigned end) const {
         return ByteStream(bytes + start, end - start);
+      }
+
+      void jump(int offset) { 
+        cur += offset;
+        assert(cur >= 0 && cur <= size);
       }
       
     private:

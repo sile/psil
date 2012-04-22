@@ -42,6 +42,8 @@ namespace psil {
         case 103: _return(); break;
         case 104: _conti(); break;
         case 105: _nuate(); break;
+
+        case 201: _lambda(); break;
           
         default:
           assert(false);
@@ -110,7 +112,7 @@ namespace psil {
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(pop());
           create_callframe(lambda);
-          env.restoreContext(&lambda.getContext(), lambda.getBodyAddress());
+          env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
           NativeLambda& lambda = *to<NativeLambda>(pop());
           lambda.getBody()(env);
@@ -122,7 +124,7 @@ namespace psil {
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(pop());
           create_tail_callframe(lambda);
-          env.restoreContext(&lambda.getContext(), lambda.getBodyAddress());
+          env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
           NativeLambda& lambda = *to<NativeLambda>(pop());
           lambda.getBody()(env);
@@ -146,6 +148,26 @@ namespace psil {
       void _nuate() {
         // TODO:
       }
+
+      void _lambda() {
+        uint1 closed_val_count = readUint1();
+        uint1 arity = readUint1();
+        uint1 local_var_count = readUint1();
+        unsigned body_size = readUint4();
+        
+        Object** closed_vals = closed_val_count==0 ? NULL : new Object*[closed_val_count];
+        for(uint1 i=0; i < closed_val_count; i++) {
+          closed_vals[i] = pop();
+        }
+        
+        Lambda* lambda = 
+          Lambda::make(closed_vals, closed_val_count, arity, local_var_count, 
+                       env.getCodeStream().getPosition(),
+                       env.getContext());
+
+        env.getCodeStream().jump(body_size);
+        push(lambda);
+      }
       
     private:
       void create_callframe(Lambda& lambda) {
@@ -154,7 +176,7 @@ namespace psil {
         ReturnStack::Entry e(ds.getTop(), 
                              ds.getBase(),
                              env.getCodeStream().getPosition(), // TODO: saveContextとか用意
-                             &env.getContext());
+                             env.getContext());
         rs.push(e);
         
         ds.setBase(ds.getTop());
@@ -177,6 +199,10 @@ namespace psil {
 
       uint2 readUint2() {
         return env.getCodeStream().readUint2();
+      }
+
+      uint1 readUint1() {
+        return env.getCodeStream().readUint1();
       }
       
       void push(Object* x) {

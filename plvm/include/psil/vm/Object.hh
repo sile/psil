@@ -190,14 +190,14 @@ namespace psil {
       class Lambda : public Object {
       public:
         struct Closed {
-          Closed(Object** vals, unsigned count) : vals(vals), val_count(count) {}
+          Closed(Object** vals, uint1 count) : vals(vals), val_count(count) {}
           Object** vals;
-          unsigned val_count;
+          uint1 val_count;
         };
         
       private:
-        Lambda(Closed closed, unsigned arity, unsigned local_var_count, 
-               unsigned body_addr, Context& context) 
+        Lambda(Closed closed, uint1 arity, uint1 local_var_count, 
+               unsigned body_addr, Context* context) 
           : closed(closed), arity(arity), local_var_count(local_var_count), 
             body_addr(body_addr), context(context) {}
         
@@ -206,9 +206,9 @@ namespace psil {
         }
 
       public:
-        static Lambda* make(Object** closed_vals, unsigned closed_val_count,
-                            unsigned arity, unsigned local_var_count, 
-                            unsigned body_addr, Context& context) {
+        static Lambda* make(Object** closed_vals, uint1 closed_val_count,
+                            uint1 arity, uint1 local_var_count, 
+                            unsigned body_addr, Context* context) {
           return new Lambda(Closed(closed_vals, closed_val_count),
                             arity, local_var_count, body_addr, context);
         }
@@ -216,18 +216,18 @@ namespace psil {
         std::string show() const;
         
         Object** getClosedValues() const { return closed.vals; }
-        unsigned getClosedValueCount() const { return closed.val_count; }
-        unsigned getArity() const { return arity; }
-        unsigned getLocalVarCount() const { return local_var_count; }
+        uint1 getClosedValueCount() const { return closed.val_count; }
+        uint1 getArity() const { return arity; }
+        uint1 getLocalVarCount() const { return local_var_count; }
         unsigned getBodyAddress() const { return body_addr; }
-        Context& getContext() { return context; }
+        Context* getContext() { return context; }
         
       private:
         Closed closed;
-        unsigned arity;  // 不要かも
-        unsigned local_var_count; // TODO: コンパイラが賢ければ不要 (body内でのstackの使い方を追跡) 
+        uint1 arity;  // 不要かも
+        uint1 local_var_count; // TODO: コンパイラが賢ければ不要 (body内でのstackの使い方を追跡) 
         unsigned body_addr;
-        Context& context;
+        Context* context;
       };
 
       // NativeLambda
