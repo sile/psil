@@ -14,7 +14,8 @@ namespace psil {
         TYPE_CHAR,
         TYPE_SYMBOL,
         TYPE_NIL,
-        TYPE_BOOL
+        TYPE_BOOL,
+        TYPE_CONS
       };
 
       // Object
@@ -130,6 +131,24 @@ namespace psil {
       private:
         static Boolean _true;
         static Boolean _false;
+      };
+
+      // Cons
+      class Cons : public Object {
+      private:
+        Cons(Object* car, Object* cdr) : car(car), cdr(cdr) {}
+
+      public:
+        static Cons* make(Object* car, Object* cdr) { return new Cons(car, cdr); }
+        OBJ_TYPE getType() const { return TYPE_CONS; }
+        std::string show() const;
+        
+        Object* getCar() const { return car; }
+        Object* getCdr() const { return cdr; }
+        
+      private:
+        Object* car;
+        Object* cdr;
       };
     }
   }

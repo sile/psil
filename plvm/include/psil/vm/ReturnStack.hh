@@ -28,7 +28,7 @@ namespace psil {
       }
       
       Entry pop() {
-        const Entry& e = stack.front();
+        const Entry& e = stack.back();
         stack.pop_back();
         return e;
       }

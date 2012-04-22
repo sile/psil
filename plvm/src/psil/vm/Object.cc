@@ -33,3 +33,9 @@ Nil Nil::nil;
 
 Boolean Boolean::_true;
 Boolean Boolean::_false;
+
+std::string Cons::show() const {
+  std::ostringstream out;
+  out << "<CONS " << car->show() << " " << cdr->show() << ">";
+  return out.str();
+}

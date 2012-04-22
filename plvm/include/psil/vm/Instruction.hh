@@ -73,6 +73,12 @@ namespace psil {
       }
       
       void _list() {
+        uint4 length = readUint4();
+        type::Object* head = type::Nil::make();
+        for(uint4 i=0; i < length; i++) {
+          head = type::Cons::make(pop(), head);
+        }
+        push(head);
       }
       
     private:
@@ -90,6 +96,10 @@ namespace psil {
 
       void push(type::Object* x) {
         env.getDataStack().push(x);
+      }
+
+      type::Object* pop() {
+        return env.getDataStack().pop();
       }
     };
   }
