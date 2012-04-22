@@ -17,9 +17,9 @@ namespace psil {
       }
 
       static type::Symbol* intern(type::Symbol* symbol) {
-        type::Symbol* cur = find(symbol->name);
+        type::Symbol* cur = find(symbol->getName());
         if(cur == NULL) {
-          table[symbol->name] = symbol;
+          table[symbol->getName()] = symbol;
           cur = symbol;
         }
         return cur;

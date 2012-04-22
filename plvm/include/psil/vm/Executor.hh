@@ -13,6 +13,9 @@ namespace psil {
       bool execute(BytecodeObject& bcobj);
 
       std::string show() const;
+      
+    private:
+      void executeInstruction(opcode_t op);
 
     private:
       Environment& env;

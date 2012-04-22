@@ -2,7 +2,7 @@
 #include "psil/vm/Executor.hh"
 #include "psil/vm/FileContent.hh"
 #include "psil/vm/ByteStream.hh"
-#include "psil/vm/aux.hh"
+#include "psil/vm/BytecodeObject.hh"
 #include <iostream>
 
 using namespace psil;
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    std::cout << exec.show();
+    std::cout << env.show();
     std::cout << std::endl;
   }
   

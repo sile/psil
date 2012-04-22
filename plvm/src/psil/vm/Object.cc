@@ -16,3 +16,9 @@ Symbol* Symbol::make(const std::string& name) {
   }
   return SymbolTable::intern(new Symbol(name));
 }
+
+std::string Int::show() const {
+  std::ostringstream out;
+  out << "<INT " << value << ">";
+  return out.str();
+}
