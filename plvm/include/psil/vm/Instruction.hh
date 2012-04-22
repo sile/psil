@@ -42,6 +42,7 @@ namespace psil {
         case 103: _return(); break;
         case 104: _conti(); break;
         case 105: _nuate(); break;
+        case 106: _recur_tail_apply(); break;
 
         case 150: _jump(); break;
         case 151: _jump_if(); break;
@@ -52,6 +53,13 @@ namespace psil {
         case 181: _dropn(); break;
           
         case 201: _lambda(); break;
+        case 202: _localget(); break;
+        case 203: _localset(); break;
+        case 204: _reference(); break;
+        case 205: _refget(); break;
+        case 206: _refset(); break;
+        case 207: _argget(); break;
+        case 208: _argset(); break;
           
         default:
           assert(false);
@@ -171,15 +179,22 @@ namespace psil {
           lambda.getBody()(env);
         }
       }
+
+      void _recur_tail_apply() {
+        // TODO:
+        assert(false);
+      }
       
       void _return() {
         DataStack& ds = env.getDataStack();
         ReturnStack& rs = env.getReturnStack(); 
         ReturnStack::Entry e = rs.pop();
+        Object* returnValue = pop();
 
         ds.setTop(e.top);
         ds.setBase(e.base);
         env.restoreContext(e.context, e.returnAddress);
+        push(returnValue);
       }
 
       void _conti() {
@@ -190,6 +205,7 @@ namespace psil {
         // TODO:
       }
 
+      // 
       void _lambda() {
         uint1 closed_val_count = readUint1();
         uint1 arity = readUint1();
@@ -209,25 +225,56 @@ namespace psil {
         env.getCodeStream().jump(body_size);
         push(lambda);
       }
-      
+
+      void _localget() {
+        env.getDataStack().local_get(readUint1());
+      }
+
+      void _localset() {
+        env.getDataStack().local_set(readUint1(), pop());
+      }
+
+      void _argget() {
+        env.getDataStack().arg_get(readUint1());
+      }
+
+      void _argset() {
+        env.getDataStack().arg_set(readUint1(), pop());
+      }
+
+      void _reference() {
+      }
+
+      void _refget() {
+      }
+
+      void _refset() {
+      }
+
     private:
       void create_callframe(Lambda& lambda) {
+        for(uint1 i=0; i < lambda.getClosedValueCount(); i++) {
+          push(lambda.getClosedValue(i));
+        }
         DataStack& ds = env.getDataStack();
         ReturnStack& rs = env.getReturnStack();
-        ReturnStack::Entry e(ds.getTop(), 
+        ReturnStack::Entry e(ds.getTop() - lambda.getArity(), 
                              ds.getBase(),
                              env.getCodeStream().getPosition(), // TODO: saveContextとか用意
                              env.getContext());
         rs.push(e);
         
         ds.setBase(ds.getTop());
-        ds.reserve(lambda.getLocalVarCount()); // TODO: そのうち不要にする
+        ds.reserve(lambda.getLocalVarCount());
       }
 
       void create_tail_callframe(Lambda& lambda) {
+        for(uint1 i=0; i < lambda.getClosedValueCount(); i++) {
+          push(lambda.getClosedValue(i));
+        }
         DataStack& ds = env.getDataStack();
         ds.setBase(ds.getTop());
-        ds.reserve(lambda.getLocalVarCount()); // TODO: そのうち不要にする
+        ds.reserve(lambda.getLocalVarCount());
       }
 
       opcode_t readOp() {

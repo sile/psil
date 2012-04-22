@@ -217,7 +217,7 @@ namespace psil {
         OBJ_TYPE getType() const { return TYPE_LAMBDA; }
         std::string show() const;
         
-        Object** getClosedValues() const { return closed.vals; }
+        Object* getClosedValue(uint1 i) const { return closed.vals[i]; }
         uint1 getClosedValueCount() const { return closed.val_count; }
         uint1 getArity() const { return arity; }
         uint1 getLocalVarCount() const { return local_var_count; }

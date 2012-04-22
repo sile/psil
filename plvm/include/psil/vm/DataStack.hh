@@ -13,6 +13,8 @@
   local-var2
   local-var1
   -- base --
+  close1
+  close2
   arg1
   arg2
 
