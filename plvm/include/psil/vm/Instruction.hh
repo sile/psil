@@ -109,7 +109,7 @@ namespace psil {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(pop());
-          create_frame(lambda);
+          create_callframe(lambda);
           env.restoreContext(&lambda.getContext(), lambda.getBodyAddress());
         } else {
           NativeLambda& lambda = *to<NativeLambda>(pop());
@@ -118,6 +118,15 @@ namespace psil {
       }
 
       void _tail_apply() {
+        Object* o = pop();
+        if(o->getType() == TYPE_LAMBDA) {
+          Lambda& lambda = *to<Lambda>(pop());
+          create_tail_callframe(lambda);
+          env.restoreContext(&lambda.getContext(), lambda.getBodyAddress());
+        } else {
+          NativeLambda& lambda = *to<NativeLambda>(pop());
+          lambda.getBody()(env);
+        }
       }
       
       void _return() {
@@ -132,7 +141,7 @@ namespace psil {
       }
       
     private:
-      void create_frame(Lambda& lambda) {
+      void create_callframe(Lambda& lambda) {
         DataStack& ds = env.getDataStack();
         ReturnStack& rs = env.getReturnStack();
         ReturnStack::Entry e(ds.getTop(), 
@@ -141,6 +150,12 @@ namespace psil {
                              &env.getContext());
         rs.push(e);
         
+        ds.setBase(ds.getTop());
+        ds.reserve(lambda.getLocalVarCount()); // TODO: そのうち不要にする
+      }
+
+      void create_tail_callframe(Lambda& lambda) {
+        DataStack& ds = env.getDataStack();
         ds.setBase(ds.getTop());
         ds.reserve(lambda.getLocalVarCount()); // TODO: そのうち不要にする
       }
