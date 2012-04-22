@@ -7,6 +7,7 @@
 #include "DataStack.hh"
 #include "ReturnStack.hh"
 #include <cassert>
+#include <iostream>
 
 namespace psil {
   namespace vm {
@@ -24,7 +25,8 @@ namespace psil {
         opcode_t op =  env.getCodeStream().readUint1();
         
         switch (op) {
-        case   1: _int(); break; // => 最終的にはこの辺りは全部定数テーブルに移動した方が良いかも
+        // => 最終的にはこの辺りは全部定数テーブルに移動した方が良いかも
+        case   1: _int(); break;
         case   2: _string(); break;
         case   3: _char(); break;
         case   4: _symbol(); break;
@@ -60,6 +62,8 @@ namespace psil {
         case 206: _refset(); break;
         case 207: _argget(); break;
         case 208: _argset(); break;
+          
+        case 250: _print(); break;
           
         default:
           assert(false);
@@ -254,6 +258,11 @@ namespace psil {
 
       void _refset() {
         push(to<Reference>(pop())->setValue(pop()));        
+      }
+
+      // 
+      void _print() {
+        std::cerr << env.getDataStack().front()->show() << std::endl;
       }
 
     private:

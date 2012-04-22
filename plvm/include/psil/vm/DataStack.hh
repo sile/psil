@@ -30,6 +30,7 @@ namespace psil {
       
       void push(type::Object* o) { stack.push_back(o); }
       type::Object* pop() { type::Object* v=stack.back(); stack.pop_back(); return v; }
+      type::Object* front() { return stack.back(); };
       void reserve(unsigned count) { stack.resize(stack.size()+count); }
       void drop(unsigned count) { stack.resize(stack.size()-count); }
       void reset(unsigned base, unsigned top) { 
