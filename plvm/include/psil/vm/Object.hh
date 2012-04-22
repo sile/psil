@@ -106,7 +106,7 @@ namespace psil {
 
         const std::string& getName() const { return name; }
         Object* getValue() const { return value; }
-        Object* setValue(Object* o) { return value=o; }
+        void setValue(Object* o) { value=o; }
 
       private:
         const std::string name;
@@ -261,7 +261,7 @@ namespace psil {
         std::string show() const { return std::string("<REF ") + value->show() + ">"; }
         
         Object* getValue() const { return value; }
-        Object* setValue(Object* x) { return value=x; }
+        void setValue(Object* x) { value=x; }
 
       private:
         Object* value;

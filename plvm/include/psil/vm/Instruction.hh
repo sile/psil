@@ -57,9 +57,10 @@ namespace psil {
         case 201: _lambda(); break;
         case 202: _localget(); break;
         case 203: _localset(); break;
-        case 204: _reference(); break;
-        case 205: _refget(); break;
-        case 206: _refset(); break;
+        case 204: _local_mkref();  break;
+        case 205: _local_refget(); break;
+        case 206: _local_refset(); break;
+        case 207: _local_toref(); break;
           
         case 250: _print(); break;
           
@@ -121,7 +122,7 @@ namespace psil {
         push(to<Symbol>(pop())->getValue());
       }
       void _symset() {
-        push(to<Symbol>(pop())->setValue(pop()));
+        to<Symbol>(pop())->setValue(pop());
       }
       void _constget() {
         push(env.getConstantTable().get(readUint2()));
@@ -231,23 +232,29 @@ namespace psil {
       }
 
       void _localget() {
-        push(env.getDataStack().local_get(readUint1()));
+        push(env.getDataStack().localGet(readUint1()));
       }
 
       void _localset() {
-        push(env.getDataStack().local_set(readUint1(), pop()));
+        env.getDataStack().localSet(readUint1(), pop());
       }
 
-      void _reference() {
-        push(Reference::make(pop()));
+      void _local_mkref() {
+        env.getDataStack().localSet(readUint1(), Reference::make(pop()));
       }
 
-      void _refget() {
-        push(to<Reference>(pop())->getValue());
+      void _local_refget() {
+        push(to<Reference>(env.getDataStack().localGet(readUint1()))->getValue());
       }
 
-      void _refset() {
-        push(to<Reference>(pop())->setValue(pop()));        
+      void _local_refset() {
+        Reference* ref = to<Reference>(env.getDataStack().localGet(readUint1()));
+        ref->setValue(pop());
+      }
+
+      void _local_toref() {
+        Object* o = env.getDataStack().localGet(readUint1());
+        env.getDataStack().localSet(readUint1(), Reference::make(o));
       }
 
       // 
@@ -272,6 +279,11 @@ namespace psil {
         
         ds.setBase(nextBase);
         ds.reserve(lambda.getLocalVarCount());
+        /*
+        for(uint1 i=0; i < lambda.getLocalVarCount(); i++) {
+          push(Undef::make());
+        }
+        */
       }
 
       void create_tail_callframe(Lambda& lambda) {
@@ -281,6 +293,11 @@ namespace psil {
         DataStack& ds = env.getDataStack();
         ds.setBase(ds.getTop());
         ds.reserve(lambda.getLocalVarCount());
+        /*
+        for(uint1 i=0; i < lambda.getLocalVarCount(); i++) {
+          push(Undef::make());
+        }
+        */
       }
 
       opcode_t readOp() {

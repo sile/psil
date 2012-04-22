@@ -38,8 +38,8 @@ namespace psil {
         stack.resize(top);
       }
       
-      type::Object* local_get(unsigned index) { return stack[base+index]; }
-      type::Object* local_set(unsigned index, type::Object* value) { return stack[base+index] = value; }
+      type::Object* localGet(unsigned index) { return stack[base+index]; }
+      void localSet(unsigned index, type::Object* value) { stack[base+index] = value; }
 
       std::string show() const;
 
