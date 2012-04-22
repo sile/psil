@@ -25,6 +25,9 @@ namespace psil {
         case   3: _char(); break;
         case   4: _symbol(); break;
         case   5: _nil(); break;
+        case   6: _true(); break;
+        case   7: _false(); break;
+        case   8: _list(); break;
           
         default:
           assert(false);
@@ -59,6 +62,17 @@ namespace psil {
 
       void _nil() {
         push(type::Nil::make());
+      }
+
+      void _true() {
+        push(type::Boolean::make(true));
+      }
+      
+      void _false() {
+        push(type::Boolean::make(false));
+      }
+      
+      void _list() {
       }
       
     private:

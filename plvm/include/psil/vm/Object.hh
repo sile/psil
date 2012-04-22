@@ -13,7 +13,8 @@ namespace psil {
         TYPE_STRING,
         TYPE_CHAR,
         TYPE_SYMBOL,
-        TYPE_NIL
+        TYPE_NIL,
+        TYPE_BOOL
       };
 
       // Object
@@ -114,6 +115,21 @@ namespace psil {
         
       private:
         static Nil nil;
+      };
+
+      // Boolean
+      class Boolean : public Object {
+      private:
+        Boolean() {}
+        
+      public:
+        static Boolean* make(bool b) { return b ? &_true : &_false; }
+        OBJ_TYPE getType() const { return TYPE_BOOL; }
+        std::string show() const { return this == &_true ? "<TRUE>" : "<FALSE>"; }
+        
+      private:
+        static Boolean _true;
+        static Boolean _false;
       };
     }
   }

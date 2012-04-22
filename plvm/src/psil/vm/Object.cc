@@ -30,3 +30,6 @@ std::string Char::show() const {
 }
 
 Nil Nil::nil;
+
+Boolean Boolean::_true;
+Boolean Boolean::_false;
