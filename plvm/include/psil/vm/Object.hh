@@ -12,7 +12,8 @@ namespace psil {
         TYPE_INT,
         TYPE_STRING,
         TYPE_CHAR,
-        TYPE_SYMBOL
+        TYPE_SYMBOL,
+        TYPE_NIL
       };
 
       // Object
@@ -99,6 +100,20 @@ namespace psil {
       private:
         const std::string name;
         Object* value;
+      };
+
+      // Nil
+      class Nil : public Object {
+      private:
+        Nil() {}
+
+      public:
+        static Nil* make() { return &nil; }
+        OBJ_TYPE getType() const { return TYPE_NIL; }
+        std::string show() const { return "<NIL>";}
+        
+      private:
+        static Nil nil;
       };
     }
   }

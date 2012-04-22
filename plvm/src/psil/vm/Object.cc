@@ -28,3 +28,5 @@ std::string Char::show() const {
   out << "<CHAR " << code << ">";
   return out.str();
 }
+
+Nil Nil::nil;

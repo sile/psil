@@ -20,9 +20,11 @@ namespace psil {
         opcode_t op =  env.getCodeStream().readUint1();
         
         switch (op) {
-        case   1: _int(); break;
+        case   1: _int(); break; // => 最終的にはこの辺りは全部定数テーブルに移動した方が良いかも
         case   2: _string(); break;
         case   3: _char(); break;
+        case   4: _symbol(); break;
+        case   5: _nil(); break;
           
         default:
           assert(false);
@@ -47,6 +49,17 @@ namespace psil {
       void _char() {
         push(type::Char::make(readUint4()));
       }
+
+      void _symbol() {
+        uint2 length = readUint2();
+        std::string str;
+        env.getCodeStream().readString(str, length);
+        push(type::Symbol::make(str));
+      }
+
+      void _nil() {
+        push(type::Nil::make());
+      }
       
     private:
       opcode_t readOp() {
@@ -55,6 +68,10 @@ namespace psil {
       
       uint4 readUint4() {
         return env.getCodeStream().readUint4();
+      }
+
+      uint2 readUint2() {
+        return env.getCodeStream().readUint2();
       }
 
       void push(type::Object* x) {
