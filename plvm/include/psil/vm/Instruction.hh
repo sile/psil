@@ -10,24 +10,51 @@ namespace psil {
   namespace vm {
     class Instruction {
     public:
-      static void execute(opcode_t op, Environment& env) {
+      Instruction(Environment& env) : env(env) {};
+      
+      bool hasNextOp() const {
+        return env.getCodeStream().eos() == false;
+      }
+
+      void execute() {
+        opcode_t op =  env.getCodeStream().readUint1();
+        
         switch (op) {
-        case   1: _int(env); break;
-        case   2: _string(env); break;
+        case   1: _int(); break;
+        case   2: _string(); break;
           
         default:
           assert(false);
         }
       }
 
-      static void _int(Environment& env) {
-        uint4 n = env.getCodeStream().readUint4();
-        env.getDataStack().push(type::Int::make(n));
+    private:
+      Environment& env;
+      
+    private:
+      void _int() {
+        push(type::Int::make(readUint4()));
       }
 
-      static void _string(Environment& env) {
+      void _string() {
+        uint4 length = readUint4();
+        std::string str;
+        env.getCodeStream().readString(str, length);
+        push(type::String::make(str));
       }
       
+    private:
+      opcode_t readOp() {
+        return env.getCodeStream().readUint4();
+      }
+      
+      uint4 readUint4() {
+        return env.getCodeStream().readUint4();
+      }
+
+      void push(type::Object* x) {
+        env.getDataStack().push(x);
+      }
     };
   }
 }
