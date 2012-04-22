@@ -13,13 +13,18 @@
 */
 namespace psil {
   namespace vm {
+    class BytecodeObject;
+    typedef BytecodeObject Context;
+
     class ReturnStack {
     public:
       struct Entry {
-        Entry(unsigned t, unsigned b, unsigned r) : top(t), base(b), returnAddress(r) {}
+        Entry(unsigned t, unsigned b, unsigned r, Context* cx)
+          : top(t), base(b), returnAddress(r), context(cx) {}
         unsigned top;
         unsigned base;
         unsigned returnAddress;
+        Context* context;
       };
 
     public:

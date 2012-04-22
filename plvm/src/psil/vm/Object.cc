@@ -49,3 +49,13 @@ std::string Array::show() const {
   out << ">";
   return out.str();
 }
+
+std::string Lambda::show() const {
+  std::ostringstream out;
+  out << "<LAMBDA " 
+      << closed.val_count << " " 
+      << arity << " "
+      << local_var_count
+      << ">";
+  return out.str();
+}

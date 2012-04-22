@@ -42,6 +42,10 @@ namespace psil {
 
       std::string show() const;
 
+      unsigned getTop() const { return stack.size(); }
+      unsigned getBase() const { return base; }
+      void setTop(unsigned top) { stack.resize(top); }
+      void setBase(unsigned base) { this->base = base; }
     private:
       unsigned base;
       std::vector<type::Object*> stack;

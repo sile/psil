@@ -6,6 +6,10 @@
 
 namespace psil {
   namespace vm {
+    class Environment;
+    class BytecodeObject;
+    typedef BytecodeObject Context;
+
     namespace type {
       enum OBJ_TYPE {
         TYPE_UNDEF,
@@ -16,7 +20,9 @@ namespace psil {
         TYPE_NIL,
         TYPE_BOOL,
         TYPE_CONS,
-        TYPE_ARRAY
+        TYPE_ARRAY,
+        TYPE_LAMBDA,
+        TYPE_NATIVE_LAMBDA
       };
 
       // Object
@@ -180,6 +186,67 @@ namespace psil {
         uint4 size;
       };
 
+      // Lambda
+      class Lambda : public Object {
+      public:
+        struct Closed {
+          Closed(Object** vals, unsigned count) : vals(vals), val_count(count) {}
+          Object** vals;
+          unsigned val_count;
+        };
+        
+      private:
+        Lambda(Closed closed, unsigned arity, unsigned local_var_count, 
+               unsigned body_addr, Context& context) 
+          : closed(closed), arity(arity), local_var_count(local_var_count), 
+            body_addr(body_addr), context(context) {}
+        
+        ~Lambda() {
+          delete [] closed.vals;
+        }
+
+      public:
+        static Lambda* make(Object** closed_vals, unsigned closed_val_count,
+                            unsigned arity, unsigned local_var_count, 
+                            unsigned body_addr, Context& context) {
+          return new Lambda(Closed(closed_vals, closed_val_count),
+                            arity, local_var_count, body_addr, context);
+        }
+        OBJ_TYPE getType() const { return TYPE_LAMBDA; }
+        std::string show() const;
+        
+        Object** getClosedValues() const { return closed.vals; }
+        unsigned getClosedValueCount() const { return closed.val_count; }
+        unsigned getArity() const { return arity; }
+        unsigned getLocalVarCount() const { return local_var_count; }
+        unsigned getBodyAddress() const { return body_addr; }
+        Context& getContext() { return context; }
+        
+      private:
+        Closed closed;
+        unsigned arity;  // 不要かも
+        unsigned local_var_count; // TODO: コンパイラが賢ければ不要 (body内でのstackの使い方を追跡) 
+        unsigned body_addr;
+        Context& context;
+      };
+
+      // NativeLambda
+      typedef void (*NATIVE_FUN_T) (Environment&);
+      class NativeLambda : public Object {
+      private:
+        NativeLambda(NATIVE_FUN_T body) : body(body) {}
+        
+      public:
+        static NativeLambda* make(NATIVE_FUN_T body) { return new NativeLambda(body); }
+        OBJ_TYPE getType() const { return TYPE_NATIVE_LAMBDA; }
+        std::string show() const { return std::string("<NATIVE_LAMBDA>"); }
+        
+        NATIVE_FUN_T getBody() const { return body; };
+
+      private:
+        NATIVE_FUN_T body;
+      };
+      
       //
       namespace {
         template<class T> OBJ_TYPE getType() { return TYPE_UNDEF; }
@@ -191,6 +258,8 @@ namespace psil {
         template<> OBJ_TYPE getType<Cons>() { return TYPE_CONS; }
         template<> OBJ_TYPE getType<Boolean>() { return TYPE_BOOL; }
         template<> OBJ_TYPE getType<Array>() { return TYPE_ARRAY; }
+        template<> OBJ_TYPE getType<Lambda>() { return TYPE_LAMBDA; }
+        template<> OBJ_TYPE getType<NativeLambda>() { return TYPE_NATIVE_LAMBDA; }
       }
       
       //
