@@ -39,3 +39,13 @@ std::string Cons::show() const {
   out << "<CONS " << car->show() << " " << cdr->show() << ">";
   return out.str();
 }
+
+std::string Array::show() const {
+  std::ostringstream out;
+  out << "<ARRAY";
+  for(uint4 i=0; i < size; i++) {
+    out << " " << get(i)->show();
+  }
+  out << ">";
+  return out.str();
+}

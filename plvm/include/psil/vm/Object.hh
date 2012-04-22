@@ -15,7 +15,8 @@ namespace psil {
         TYPE_SYMBOL,
         TYPE_NIL,
         TYPE_BOOL,
-        TYPE_CONS
+        TYPE_CONS,
+        TYPE_ARRAY
       };
 
       // Object
@@ -149,6 +150,33 @@ namespace psil {
       private:
         Object* car;
         Object* cdr;
+      };
+
+      // Array
+      class Array : public Object {
+      private:
+        Array(uint4 size) : ary(NULL), size(size) {
+          ary = new Object*[size];
+          for(uint4 i=0; i < size; i++) {
+            ary[i] = Nil::make();
+          }
+        }
+        ~Array() {
+          delete [] ary;
+        }
+
+      public:
+        static Array* make(uint4 size) { return new Array(size); }
+        OBJ_TYPE getType() const { return TYPE_ARRAY; }
+        std::string show() const;
+        
+        Object* get(uint4 index) const { return ary[index]; }
+        void set(uint4 index, Object* value) { ary[index] = value; }
+        uint4 getSize() const { return size; }
+        
+      private:
+        Object** ary;
+        uint4 size;
       };
     }
   }
