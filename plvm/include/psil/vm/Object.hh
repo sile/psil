@@ -11,6 +11,7 @@ namespace psil {
         TYPE_UNDEF,
         TYPE_INT,
         TYPE_STRING,
+        TYPE_CHAR,
         TYPE_SYMBOL
       };
 
@@ -63,6 +64,23 @@ namespace psil {
         
       private:
         std::string value;
+      };
+
+      // Character
+      // # ユニコード。ただしStringとの相互連携が面倒なので、現状はascii範囲のみを想定
+      class Char : public Object {
+      private:
+        Char(uint4 code) : code(code) {}
+        
+      public:
+        static Char* make(uint4 code) { return new Char(code); }
+        OBJ_TYPE getType() const { return TYPE_CHAR; }
+        std::string show() const;
+        
+        uint4 getCode() const { return code; }
+
+      private:
+        uint4 code;
       };
 
       // Symbol

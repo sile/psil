@@ -22,6 +22,7 @@ namespace psil {
         switch (op) {
         case   1: _int(); break;
         case   2: _string(); break;
+        case   3: _char(); break;
           
         default:
           assert(false);
@@ -41,6 +42,10 @@ namespace psil {
         std::string str;
         env.getCodeStream().readString(str, length);
         push(type::String::make(str));
+      }
+
+      void _char() {
+        push(type::Char::make(readUint4()));
       }
       
     private:

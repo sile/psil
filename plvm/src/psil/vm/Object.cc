@@ -22,3 +22,9 @@ std::string Int::show() const {
   out << "<INT " << value << ">";
   return out.str();
 }
+
+std::string Char::show() const {
+  std::ostringstream out;
+  out << "<CHAR " << code << ">";
+  return out.str();
+}
