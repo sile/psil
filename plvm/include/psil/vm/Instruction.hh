@@ -130,6 +130,13 @@ namespace psil {
       }
       
       void _return() {
+        DataStack& ds = env.getDataStack();
+        ReturnStack& rs = env.getReturnStack(); 
+        ReturnStack::Entry e = rs.pop();
+
+        ds.setTop(e.top);
+        ds.setBase(e.base);
+        env.restoreContext(e.context, e.returnAddress);
       }
 
       void _conti() {
