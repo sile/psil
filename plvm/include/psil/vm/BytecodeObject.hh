@@ -30,7 +30,7 @@ namespace psil {
         static Header read(ByteStream& in) {
           char magic[4];
           in.readBytes(magic, 4);
-          assert(strcmp(MAGIC_CODE, magic) == 0);
+          assert(strncmp(MAGIC_CODE, magic, strlen(MAGIC_CODE)) == 0);
           
           Header h = {in.readUint4(),
                       in.readUint4(),
