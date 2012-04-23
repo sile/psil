@@ -14,6 +14,7 @@ clean:
 	rm `find . -name '*.o'`
 
 bin/plvm: $(OBJ)
+	mkdir -p bin
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)
 
 .cc.o:
