@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Iinclude
+CXXFLAGS = -O2 -Wall -Iinclude
 
 SRC = $(shell find src -name '*.cc')
 OBJ = $(SRC:.cc=.o)
