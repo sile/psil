@@ -11,4 +11,7 @@
                (:file "parser/util")
                (:file "parser/parse")
                (:file "compiler/package")
+               (:file "compiler/util")
+               (:file "compiler/compile")
+               (:file "compiler/plcc")
                (:file "plc")))

@@ -5,7 +5,6 @@
            parse-file
            parse-string
            compile
-           compile-file))
+           compile-file
+           compile-string))
 (in-package :plc)
-
-

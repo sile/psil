@@ -11,3 +11,9 @@
 (defun parse-string (str)
   (with-input-from-string (in str)
     (parse in)))
+
+(defun compile (exp)
+  (plcc:compile exp))
+
+(defun compile-file (in-file out-file)
+  (plcc:compile-file in-file out-file))
