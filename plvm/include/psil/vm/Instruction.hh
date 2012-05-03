@@ -164,11 +164,11 @@ namespace psil {
       void _apply() {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
-          Lambda& lambda = *to<Lambda>(pop());
+          Lambda& lambda = *to<Lambda>(o);
           create_callframe(lambda);
           env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
-          NativeLambda& lambda = *to<NativeLambda>(pop());
+          NativeLambda& lambda = *to<NativeLambda>(o);
           lambda.getBody()(env);
         }
       }
@@ -176,11 +176,11 @@ namespace psil {
       void _tail_apply() {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
-          Lambda& lambda = *to<Lambda>(pop());
+          Lambda& lambda = *to<Lambda>(o);
           create_tail_callframe(lambda);
           env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
-          NativeLambda& lambda = *to<NativeLambda>(pop());
+          NativeLambda& lambda = *to<NativeLambda>(o);
           lambda.getBody()(env);
         }
       }
@@ -188,10 +188,11 @@ namespace psil {
       void _recur_tail_apply() {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
-          Lambda& lambda = *to<Lambda>(pop());
+          Lambda& lambda = *to<Lambda>(o);
+          create_recur_tail_callframe(lambda);
           env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
-          NativeLambda& lambda = *to<NativeLambda>(pop());
+          NativeLambda& lambda = *to<NativeLambda>(o);
           lambda.getBody()(env);
         }
       }
@@ -304,6 +305,11 @@ namespace psil {
           push(Undef::make());
         }
         */
+      }
+
+      void create_recur_tail_callframe(Lambda& lambda) {
+        // TODO: 引数を上書き => topデクリメント
+        assert(false);
       }
 
       opcode_t readOp() {
