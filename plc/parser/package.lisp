@@ -1,5 +1,4 @@
 (defpackage plcp
   (:use :common-lisp)
-  (:export parse 
-           parse-file))
+  (:export parse)) 
 (in-package :plcp)
