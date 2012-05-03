@@ -25,7 +25,7 @@ namespace psil {
         opcode_t op =  env.getCodeStream().readUint1();
         
         switch (op) {
-        // => 最終的にはこの辺りは全部定数テーブルに移動した方が良いかも
+        // => 最終的にはこの辺り(定数生成系)は全部定数テーブルに移動した方が良いかも
         case   1: _int(); break;
         case   2: _string(); break;
         case   3: _char(); break;
@@ -186,8 +186,14 @@ namespace psil {
       }
 
       void _recur_tail_apply() {
-        // TODO:
-        assert(false);
+        Object* o = pop();
+        if(o->getType() == TYPE_LAMBDA) {
+          Lambda& lambda = *to<Lambda>(pop());
+          env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
+        } else {
+          NativeLambda& lambda = *to<NativeLambda>(pop());
+          lambda.getBody()(env);
+        }
       }
       
       void _return() {

@@ -8,8 +8,8 @@
 /*
   [stack-layout]
   -- top --
-  x2
-  x1
+  tmp-x2
+  tmp-x1
   local-var2
   local-var1
   close2
@@ -17,10 +17,6 @@
   arg2
   arg1
   -- base --
-
-  [in heap]
-  closed-var1
-  closed-var2
  */
 namespace psil {
   namespace vm {
