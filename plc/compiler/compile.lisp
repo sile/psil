@@ -101,7 +101,7 @@
       (let ((body~ (compile-impl body)))
         ($ (mapcar (lambda (i) ($ :localref i)) closing-var-indices)
            :lambda (length closed-vars) (length args)
-           local-var-count (int-to-bytes (1+ (length body~))) body~ :return)))))
+           local-var-count (int-to-bytes (+ 2 (length body~))) body~ :show-stack :return)))))
 
 (defun @let (exps)
   (destructuring-bind (bindings . body) exps

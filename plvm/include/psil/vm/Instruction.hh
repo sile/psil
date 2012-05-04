@@ -65,6 +65,7 @@ namespace psil {
         case 208: _reserve(); break;
           
         case 250: _print(); break;
+        case 251: _show_stack(); break;
           
         default:
           assert(false);
@@ -277,6 +278,15 @@ namespace psil {
       // 
       void _print() {
         std::cerr << env.getDataStack().front()->show() << std::endl;
+      }
+
+      void _show_stack() {
+        DataStack& ds = env.getDataStack();
+        ReturnStack& rs = env.getReturnStack(); 
+        std::cerr << "###################" << std::endl;
+        std::cerr << ds.show() << std::endl;
+        std::cerr << rs.show() << std::endl;
+        std::cerr << "###################" << std::endl;
       }
 
     private:

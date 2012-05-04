@@ -40,7 +40,8 @@
                (:local-toref 207)
                (:reserve 208)
 
-               (:print 250))))
+               (:print 250)
+               (:show-stack 251))))
     (loop FOR (name code) IN ins
           DO (setf (gethash name table) code))
     table))

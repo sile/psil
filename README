@@ -38,6 +38,7 @@
 208# RESERVE count:byte
 --
 250# value PRINT
+251# SHOW_STACK
 
 [BIF]
 ($add x y)
