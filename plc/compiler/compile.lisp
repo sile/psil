@@ -94,29 +94,38 @@
         UNLESS (bind-readonly v)
         COLLECT ($ :local-toref (bind-index v))))
 
+(defun normalize-args (args)
+  (labels ((recur (cons n acc)
+             (typecase cons
+               (null (values (nreverse acc) n))
+               (cons (recur (cdr cons) (1+ n) (cons (car cons) acc)))
+               (t    (values (nreverse `(,cons ,@acc)) n)))))
+    (recur args 0 '())))
+
 (defun @lambda (exps &optional toplevel &aux (binded-vars (mapcar #'bind-name *bindings*)))
   (destructuring-bind (args . body) exps
-    (multiple-value-bind (free-vars mutable-free-vars) (@inspect `(:begin ,@body))
-      (let* ((body `(:begin ,@body))
-             (closing-vars (intersection free-vars 
-                                         (set-difference binded-vars args)))
-             (closing-var-indices (mapcar (lambda (v) (bind-index (find-local-bind v)))
-                                          closing-vars))
-             (closed-args (intersection mutable-free-vars args)) ; XXX: name 
-             (*toplevel* toplevel)
-             (*tail* t)
-             (*local-var-index* 0)
-             (*bindings* (append (loop FOR var IN args
-                                       COLLECT (local-bind var (not (find var closed-args))))
-                                 (loop FOR var IN closing-vars
-                                       COLLECT (local-bind var (bind-readonly (find-local-bind var))))
-                                 *bindings*)))
-        (let ((body~ ($ (adjust-args args)
-                        (compile-impl body)))
-              (local-var-count (- *local-var-index* (length args) (length closing-vars))))
-          ($ (mapcar (lambda (i) ($ :localget i)) closing-var-indices)
-             :lambda (length closing-vars) (length args)
-             local-var-count (int-to-bytes (1+ (length body~))) body~ :return))))))
+    (multiple-value-bind (args arity) (normalize-args args)
+      (multiple-value-bind (free-vars mutable-free-vars) (@inspect `(:begin ,@body))
+        (let* ((body `(:begin ,@body))
+               (closing-vars (intersection free-vars 
+                                           (set-difference binded-vars args)))
+               (closing-var-indices (mapcar (lambda (v) (bind-index (find-local-bind v)))
+                                            closing-vars))
+               (closed-args (intersection mutable-free-vars args)) ; XXX: name 
+               (*toplevel* toplevel)
+               (*tail* t)
+               (*local-var-index* 0)
+               (*bindings* (append (loop FOR var IN args
+                                         COLLECT (local-bind var (not (find var closed-args))))
+                                   (loop FOR var IN closing-vars
+                                         COLLECT (local-bind var (bind-readonly (find-local-bind var))))
+                                   *bindings*)))
+          (let ((body~ ($ (adjust-args args)
+                          (compile-impl body)))
+                (local-var-count (- *local-var-index* (length args) (length closing-vars))))
+            ($ (mapcar (lambda (i) ($ :localget i)) closing-var-indices)
+               :lambda (length closing-vars) arity
+               local-var-count (int-to-bytes (1+ (length body~))) body~ :return)))))))
 
 (defun @let (exps)
   (destructuring-bind (bindings . body) exps
@@ -215,7 +224,7 @@
       (:quote)
       ((:if :begin) (mapcar #'@inspect-impl cdr))
       (:lambda (destructuring-bind (args . body) cdr
-                 (let ((*binded-vars* (append args *binded-vars*)))
+                 (let ((*binded-vars* (append (normalize-args args) *binded-vars*)))
                    (@inspect-impl `(:begin ,@body)))))
       (:define (destructuring-bind (var val) cdr
                  (@inspect-impl val)

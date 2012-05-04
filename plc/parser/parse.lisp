@@ -58,6 +58,23 @@
 (defun @parse-symbol (in)
   (read-symbol in))
 
+(defun @parse-list-impl (car in)
+  (if (eq car :|)|)
+      nil
+    (let ((cadr (parse in)))
+      (case cadr 
+        (:.   (prog1 (cons car (parse in))
+                (assert (eq (parse in) :|)|))))
+        (otherwise
+         (cons car (@parse-list-impl cadr in)))))))
+
+(defun @parse-list (in)
+  (read-ch in) ; eat #\(
+  (let ((car (parse in)))
+    (assert (not (eq car :.)))
+    (@parse-list-impl car in)))
+
+#+C
 (defun @parse-list (in)
   (read-ch in) ; eat #\(
   (loop FOR x = (parse in)
