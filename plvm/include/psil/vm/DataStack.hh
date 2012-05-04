@@ -33,6 +33,9 @@ namespace psil {
         this->base = base;
         stack.resize(top);
       }
+      void erase(unsigned start, unsigned end) {
+        stack.erase(stack.begin()+start, stack.begin()+end);
+      }
       
       type::Object* localGet(unsigned index) { return stack[base+index]; }
       void localSet(unsigned index, type::Object* value) { stack[base+index] = value; }

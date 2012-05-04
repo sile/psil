@@ -322,11 +322,10 @@ namespace psil {
 
       void create_tail_callframe(Lambda& lambda) {
         DataStack& ds = env.getDataStack();
-        unsigned nextBase = ds.getTop() - lambda.getArity();
+        ds.erase(ds.getBase(), ds.getTop() - lambda.getArity());
         for(uint1 i=0; i < lambda.getClosedValueCount(); i++) {
           push(lambda.getClosedValue(i));
         }
-        ds.setBase(nextBase);
         ds.reserve(lambda.getLocalVarCount());
       }
 
