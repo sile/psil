@@ -50,10 +50,6 @@
           (butlast (butlast exps)))
       ($ (mapcar #'compile-no-tail butlast) :dropn (length butlast) (compile-impl last)))))
 
-(defun inspect-write-closed-vars (a b)
-  (declare (ignore a b))
-  '())
-
 (defstruct bind 
   name
   index
@@ -118,11 +114,10 @@
   (destructuring-bind (bindings . body) exps
     (let* ((body `(:begin ,@body))
            (vars (mapcar #'car bindings))
-           (closed-vars (inspect-write-closed-vars vars body))
+           (closed-vars (intersection (nth-value 1 (@inspect body)) vars))
            (*bindings* (append (loop FOR var IN vars
                                      COLLECT (local-bind var (not (find var closed-vars))))
                                *bindings*)))
-      
       ($ (loop FOR (var val) IN bindings
                COLLECT (@set!-nopush var val t))
          (compile-impl body)))))
@@ -131,6 +126,10 @@
   ($ (mapcar #'compile-no-tail args) (compile-no-tail fn) 
      (if *tail* :tail-apply :apply)))
            
+(defun @set! (exps)
+  (destructuring-bind (var val) exps
+    ($ (@set!-nopush var val) (@undef))))
+
 (defparameter *quote* nil)
 (defparameter *tail* t)
 (defun @compile-symbol (exp)
@@ -151,7 +150,7 @@
       (:begin (@begin cdr))
       (:lambda (@lambda cdr))
       (:define )
-      (:set! )
+      (:set! (@set! cdr))
       (:let (@let cdr))
       (otherwise (@apply car cdr)))))
 
@@ -210,4 +209,4 @@
               (let ((*binded-vars* (append (mapcar #'car bindings) *binded-vars*)))
                 (@inspect-impl `(:begin ,@body)))))
       (otherwise
-       (mapcar #'@inspect-impl cdr)))))
+       (mapcar #'@inspect-impl exp)))))
