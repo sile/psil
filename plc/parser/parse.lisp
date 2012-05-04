@@ -12,7 +12,8 @@
         UNTIL (member c *delimiter*)
         COLLECT c INTO list
         FINALLY 
-        (unread-char c in)
+        (unless (char= c #\Null)
+          (unread-char c in))
         (return (coerce list 'string))))
 
 (defun to-symbol (str)
@@ -23,6 +24,7 @@
 
 (defun char-type (c)
   (case c
+    (#\Null :eof)
     (#\" :string)
     (#\( :list)
     (#\) :close)
@@ -81,6 +83,7 @@
 (defun parse (in)
   (skip-whitespace in)
   (ecase (char-type (peek-ch in))
+    (:eof :|eof|)
     (:string (@parse-string in))
     (:list (@parse-list in))
     (:close (read-ch in) :|)|)
