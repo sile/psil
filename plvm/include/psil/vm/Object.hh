@@ -236,7 +236,7 @@ namespace psil {
       };
 
       // NativeLambda
-      typedef void (*NATIVE_FUN_T) (Environment&);
+      typedef void (*NATIVE_FUN_T) (Environment&, uint1);
       class NativeLambda : public Object {
       private:
         NativeLambda(NATIVE_FUN_T body) : body(body) {}
@@ -272,7 +272,7 @@ namespace psil {
       // 
       class Port : public Object {
       private:
-        Port(uint4 fd) : fd(fd) {}
+        Port(uint4 fd) : fd(fd), buf(-1) {}
 
       public:
         static Port* make(uint4 fd) { return new Port(fd); }
@@ -280,8 +280,18 @@ namespace psil {
         std::string show() const;
         uint4 getValue() const { return fd; }
 
+        char getBufferedChar() const { return (char)buf; }
+        void setBufferedChar(char ch) { buf = ch; }
+        void clearBuffer() { buf = -1; }
+        bool hasBuffer() const { return buf != -1; }
+
+        static Port STDIN;
+        static Port STDOUT;
+        static Port STDERR;
+        
       private:
         uint4 fd;
+        int buf;
       };
       
       //

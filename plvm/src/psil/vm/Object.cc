@@ -65,3 +65,7 @@ std::string Port::show() const {
   out << "<PORT " << fd << ">";
   return out.str();
 }
+
+Port Port::STDIN(0);
+Port Port::STDOUT(1);
+Port Port::STDERR(2);

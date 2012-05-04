@@ -199,7 +199,7 @@ namespace psil {
           env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
           NativeLambda& lambda = *to<NativeLambda>(o);
-          lambda.getBody()(env);
+          lambda.getBody()(env, arity);
         } 
       }
       

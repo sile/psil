@@ -17,3 +17,6 @@
 
 (defun compile-file (in-file out-file)
   (plcc:compile-file in-file out-file))
+
+(defun compile-string (str out-file)
+  (plcc::compile-string str out-file))
