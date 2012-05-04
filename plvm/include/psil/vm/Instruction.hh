@@ -129,7 +129,8 @@ namespace psil {
         push(to<Symbol>(pop())->getValue());
       }
       void _symset() {
-        to<Symbol>(pop())->setValue(pop());
+        Object* sym = pop();
+        to<Symbol>(sym)->setValue(pop());
       }
       void _constget() {
         push(env.getConstantTable().get(readUint2()));

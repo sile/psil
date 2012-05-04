@@ -43,12 +43,19 @@
            (else~ ($ (compile-impl else) (@fixjump (length then~)))))
       ($ (compile-no-tail cnd) (@fixjump-if (length else~)) else~ then~))))
 
+(defparameter *toplevel* t)
+
 (defun @begin (exps)
   (if (null exps)
       (@undef)
-    (let ((last (car (last exps)))
-          (butlast (butlast exps)))
-      ($ (mapcar #'compile-no-tail butlast) :dropn (length butlast) (compile-impl last)))))
+    (labels ((recur (exp rest)
+               (cond ((and (not *toplevel*) (consp exp) (eq :define (car exp)))
+                      (@inner-define (cdr exp) rest))
+                     (rest
+                      ($ (compile-no-tail exp) :drop (recur (car rest) (cdr rest))))
+                     (t
+                      (compile-impl exp)))))
+      (recur (car exps) (cdr exps)))))
 
 (defstruct bind 
   name
@@ -87,7 +94,7 @@
         UNLESS (bind-readonly v)
         COLLECT ($ :local-toref (bind-index v))))
 
-(defun @lambda (exps &aux (binded-vars (mapcar #'bind-name *bindings*)))
+(defun @lambda (exps &optional toplevel &aux (binded-vars (mapcar #'bind-name *bindings*)))
   (destructuring-bind (args . body) exps
     (multiple-value-bind (free-vars mutable-free-vars) (@inspect `(:begin ,@body))
       (let* ((body `(:begin ,@body))
@@ -96,6 +103,7 @@
              (closing-var-indices (mapcar (lambda (v) (bind-index (find-local-bind v)))
                                           closing-vars))
              (closed-args (intersection mutable-free-vars args)) ; XXX: name 
+             (*toplevel* toplevel)
              (*tail* t)
              (*local-var-index* 0)
              (*bindings* (append (loop FOR var IN args
@@ -115,6 +123,7 @@
     (let* ((body `(:begin ,@body))
            (vars (mapcar #'car bindings))
            (closed-vars (intersection (nth-value 1 (@inspect body)) vars))
+           (*toplevel* nil)
            (*bindings* (append (loop FOR var IN vars
                                      COLLECT (local-bind var (not (find var closed-vars))))
                                *bindings*)))
@@ -129,6 +138,14 @@
 (defun @set! (exps)
   (destructuring-bind (var val) exps
     ($ (@set!-nopush var val) (@undef))))
+
+(defun @toplevel-define (exps)
+  (destructuring-bind (var val) exps
+    ($ (compile-no-tail val) (@intern var) :symset :undef)))
+
+(defun @inner-define (exps subsequent-exps)
+  (destructuring-bind (var val) exps
+    (compile-impl `(:let ((,var ,val)) ,@subsequent-exps))))
 
 (defparameter *quote* nil)
 (defparameter *tail* t)
@@ -149,10 +166,12 @@
       (:if    (@if cdr))
       (:begin (@begin cdr))
       (:lambda (@lambda cdr))
-      (:define )
+      (:toplevel-lambda (@lambda cdr t)) ;; TODO: *toplevel*は不要かも
+      (:define (@toplevel-define cdr))
       (:set! (@set! cdr))
       (:let (@let cdr))
-      (otherwise (@apply car cdr)))))
+      (otherwise 
+       (@apply car cdr)))))
 
 (defun compile-impl (exp)
   (etypecase exp
@@ -197,7 +216,9 @@
       (:lambda (destructuring-bind (args . body) cdr
                  (let ((*binded-vars* (append args *binded-vars*)))
                    (@inspect-impl `(:begin ,@body)))))
-      (:define) ; TODO:
+      (:define (destructuring-bind (var val) cdr
+                 (@inspect-impl val)
+                 (push var *binded-vars*)))  ; TODO: toplevel云々
       (:set! (destructuring-bind (var val) cdr
                (@inspect-impl val)
                (unless (find var *binded-vars*)
