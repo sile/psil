@@ -11,6 +11,7 @@ bool Executor::execute(BytecodeObject& bcobj) {
     ins.execute();
   }
   
+  // TODO: 本当はここでpopした値を返すのが正しい
   return true;
 }
 

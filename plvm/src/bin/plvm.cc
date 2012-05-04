@@ -3,6 +3,7 @@
 #include "psil/vm/FileContent.hh"
 #include "psil/vm/ByteStream.hh"
 #include "psil/vm/BytecodeObject.hh"
+#include "psil/vm/Native.hh"
 #include <iostream>
 
 using namespace psil;
@@ -12,7 +13,8 @@ int main(int argc, char** argv) {
     std::cerr << "Usage: plvm BYTECODE_FILEPATH [BYTECODE_FILEPATH*]" << std::endl;
     return 1;
   }
-  
+  vm::Native::registerNatives();
+
   vm::Environment env;
   vm::Executor exec(env);
   
