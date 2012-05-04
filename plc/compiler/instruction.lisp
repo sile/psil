@@ -10,6 +10,7 @@
                (:true 6)
                (:false 7)
                (:list 8)
+               (:undef 9)
 
                (:symget 50)
                (:symset 51)

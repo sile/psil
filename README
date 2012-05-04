@@ -7,6 +7,7 @@
 006# TRUE
 007# FALSE
 008# element* LIST len:int
+009# UNDEF
 --
 050# symbol SYMGET
 051# value symbol SYMSET

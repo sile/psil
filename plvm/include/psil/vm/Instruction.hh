@@ -34,6 +34,7 @@ namespace psil {
         case   6: _true(); break;
         case   7: _false(); break;
         case   8: _list(); break;
+        case   9: _undef(); break;
                                                 
         case  50: _symget(); break;
         case  51: _symset(); break;
@@ -116,6 +117,10 @@ namespace psil {
           head = Cons::make(pop(), head);
         }
         push(head);
+      }
+
+      void _undef() {
+        push(Undef::make());
       }
 
       void _symget() {

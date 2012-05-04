@@ -40,10 +40,17 @@
     (compile-impl exp)))
 
 (defun @if (exps)
-  (destructuring-bind (cnd then &optional else) exps
+  (destructuring-bind (cnd then &optional (else :|undef|)) exps
     (let* ((then~ (compile-impl then))
            (else~ ($ (compile-impl else) (@fixjump (length then~)))))
       ($ (compile-no-tail cnd) (@fixjump-if (length else~)) else~ then~))))
+
+(defun @begin (exps)
+  (if (null exps)
+      (@undef)
+    (let ((last (car (last exps)))
+          (butlast (butlast exps)))
+      ($ (mapcar #'compile-no-tail butlast) :dropn (length butlast) (compile-impl last)))))
 
 (defparameter *quote* nil)
 (defparameter *tail* t)
@@ -51,6 +58,7 @@
   (case exp
     (:|true| (@true))
     (:|false| (@false))
+    (:|undef| (@undef))
     (otherwise (if *quote* 
                    (@intern exp) 
                  (@symvalue exp)))))
@@ -60,6 +68,7 @@
     (ecase car
       (:quote (@quote cdr))
       (:if    (@if cdr))
+      (:begin (@begin cdr))
       )))
 
 (defun compile-impl (exp)
