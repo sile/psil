@@ -43,14 +43,9 @@ namespace psil {
       }
 
     private:
-      static Object* pop(Environment& env) {
-        return env.getDataStack().pop();
-      }
-
-      static int4 popInt(Environment& env) { 
-        return to<Int>(pop(env))->getValue();
-      }
-
+      static Object* pop(Environment& env) { return env.getDataStack().pop(); }
+      static int4 popInt(Environment& env) { return to<Int>(pop(env))->getValue(); }
+      
       static void push(Environment& env, Object* x) {
         env.getDataStack().push(x);
       }

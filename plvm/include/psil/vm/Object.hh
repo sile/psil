@@ -56,6 +56,7 @@ namespace psil {
         std::string show() const;
         
         int4 getValue() const { return value; }
+        void setValue(int4 val) { value = val; }
         
       private:
         int4 value;
