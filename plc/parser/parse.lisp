@@ -31,7 +31,7 @@
     (#\' :quote)
     (#\# :boolean-or-char)
     (otherwise
-     (cond ((and (char<= #\0 c) (char<= c #\9))
+     (cond ((or (digit-char-p c) (char= #\- c) (char= #\+ c))
             :maybe-number)
            (t
             :symbol)))))
@@ -52,7 +52,7 @@
 
 (defun @parse-quote (in)
   (read-ch in) ; eat #\'
-  `(:|quote| ,(parse in)))
+  `(:quote ,(parse in)))
 
 (defun @parse-symbol (in)
   (read-symbol in))
@@ -76,9 +76,8 @@
 
 (defun @parse-number-or-symbol (in)
   (let ((x (read-until-delimiter in)))
-    (if (every #'digit-char-p x)
-        (parse-integer x)
-      (to-symbol x))))
+    (or (ignore-errors (parse-integer x)) ; XXX: 手抜き
+        (to-symbol x))))
 
 (defun parse (in)
   (skip-whitespace in)
