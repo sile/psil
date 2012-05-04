@@ -25,6 +25,7 @@
 (defun char-type (c)
   (case c
     (#\Null :eof)
+    (#\; :comment)
     (#\" :string)
     (#\( :list)
     (#\) :close)
@@ -79,10 +80,15 @@
     (or (ignore-errors (parse-integer x)) ; XXX: 手抜き
         (to-symbol x))))
 
+(defun @parse-comment (in)
+  (loop UNTIL (member (peek-ch in) '(#\Return #\Newline))
+        DO (read-ch in)))
+
 (defun parse (in)
   (skip-whitespace in)
   (ecase (char-type (peek-ch in))
     (:eof :|eof|)
+    (:comment (@parse-comment in))
     (:string (@parse-string in))
     (:list (@parse-list in))
     (:close (read-ch in) :|)|)
