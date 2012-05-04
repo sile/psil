@@ -7,6 +7,7 @@
 
 /*
   [layout]
+  previous-top
   previous-base
   return-address
   context
@@ -19,8 +20,9 @@ namespace psil {
     class ReturnStack {
     public:
       struct Entry {
-        Entry(unsigned b, unsigned r, Context* cx)
-          : base(b), returnAddress(r), context(cx) {}
+        Entry(unsigned t, unsigned b, unsigned r, Context* cx)
+          : top(t), base(b), returnAddress(r), context(cx) {}
+        unsigned top;
         unsigned base;
         unsigned returnAddress;
         Context* context;
@@ -35,6 +37,10 @@ namespace psil {
         const Entry& e = stack.back();
         stack.pop_back();
         return e;
+      }
+
+      bool isEmpty() const {
+        return stack.empty();
       }
 
       std::string show() const;

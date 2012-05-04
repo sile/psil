@@ -184,7 +184,11 @@ namespace psil {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(o);
-          create_tail_callframe(lambda);
+          if(env.getReturnStack().isEmpty()) { // TODO: あらかじめ番兵値を入れておいて、このチェックは不要にする
+            create_callframe(lambda);
+          } else {
+            create_tail_callframe(lambda);
+          }
           env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
           NativeLambda& lambda = *to<NativeLambda>(o);
@@ -207,10 +211,11 @@ namespace psil {
       void _return() {
         DataStack& ds = env.getDataStack();
         ReturnStack& rs = env.getReturnStack(); 
+
         ReturnStack::Entry e = rs.pop();
         Object* returnValue = pop();
-
-        ds.setTop(ds.getBase());
+          
+        ds.setTop(e.top);
         ds.setBase(e.base);
         env.restoreContext(e.context, e.returnAddress);
         push(returnValue);
@@ -299,7 +304,8 @@ namespace psil {
           push(lambda.getClosedValue(i));
         }
         
-        ReturnStack::Entry e(ds.getBase(),
+        ReturnStack::Entry e(nextBase,
+                             ds.getBase(),
                              env.getCodeStream().getPosition(), // TODO: saveContextとか用意
                              env.getContext());
         rs.push(e);
@@ -314,17 +320,13 @@ namespace psil {
       }
 
       void create_tail_callframe(Lambda& lambda) {
+        DataStack& ds = env.getDataStack();
+        unsigned nextBase = ds.getTop() - lambda.getArity();
         for(uint1 i=0; i < lambda.getClosedValueCount(); i++) {
           push(lambda.getClosedValue(i));
         }
-        DataStack& ds = env.getDataStack();
-        ds.setBase(ds.getTop());
+        ds.setBase(nextBase);
         ds.reserve(lambda.getLocalVarCount());
-        /*
-        for(uint1 i=0; i < lambda.getLocalVarCount(); i++) {
-          push(Undef::make());
-        }
-        */
       }
 
       void create_recur_tail_callframe(Lambda& lambda) {

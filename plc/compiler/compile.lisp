@@ -85,31 +85,43 @@
           ($ :local-refget (bind-index it)))
     ($ (@intern var) :symget)))
 
-(defun @lambda (exps)
+(defun adjust-args (args)
+  (loop FOR a IN args
+        FOR v = (find-local-bind a)
+        UNLESS (bind-readonly v)
+        COLLECT ($ :local-toref (bind-index v))))
+
+(defun @lambda (exps &aux (binded-vars (mapcar #'bind-name *bindings*)))
   (destructuring-bind (args . body) exps
-    (let* ((body `(:begin ,@body))
-           (closing-vars '())
-           (closing-var-indices '())
-           (closed-vars '())
-           (local-var-count 2)
-           (*tail* t)
-           (*local-var-index* 0)
-           (*bindings* (append (loop FOR var IN args
-                                     COLLECT (local-bind var (not (find var closed-vars))))
-                               *bindings*)))
-      (declare (ignore closing-vars))
-      (let ((body~ (compile-impl body)))
-        ($ (mapcar (lambda (i) ($ :localref i)) closing-var-indices)
-           :lambda (length closed-vars) (length args)
-           local-var-count (int-to-bytes (+ 2 (length body~))) body~ :show-stack :return)))))
+    (multiple-value-bind (free-vars mutable-free-vars) (@inspect `(:begin ,@body))
+      (let* ((body `(:begin ,@body))
+             (closing-vars (intersection free-vars 
+                                         (set-difference binded-vars args)))
+             (closing-var-indices (mapcar (lambda (v) (bind-index (find-local-bind v)))
+                                          closing-vars))
+             (closed-args (intersection mutable-free-vars args)) ; XXX: name 
+             (*tail* t)
+             (*local-var-index* 0)
+             (*bindings* (append (loop FOR var IN args
+                                       COLLECT (local-bind var (not (find var closed-args))))
+                                 (loop FOR var IN closing-vars
+                                       COLLECT (local-bind var (bind-readonly (find-local-bind var))))
+                                 *bindings*)))
+        (let ((body~ ($ (adjust-args args)
+                        (compile-impl body)))
+              (local-var-count (- *local-var-index* (length args) (length closing-vars))))
+          ($ (mapcar (lambda (i) ($ :localget i)) closing-var-indices)
+             :lambda (length closing-vars) (length args)
+             local-var-count (int-to-bytes (1+ (length body~))) body~ :return))))))
 
 (defun @let (exps)
   (destructuring-bind (bindings . body) exps
     (let* ((body `(:begin ,@body))
            (vars (mapcar #'car bindings))
            (closed-vars (inspect-write-closed-vars vars body))
-           (*bindings* (loop FOR var IN vars
-                             COLLECT (local-bind var (not (find var closed-vars))))))
+           (*bindings* (append (loop FOR var IN vars
+                                     COLLECT (local-bind var (not (find var closed-vars))))
+                               *bindings*)))
       
       ($ (loop FOR (var val) IN bindings
                COLLECT (@set!-nopush var val t))
@@ -126,6 +138,7 @@
     (:|true| (@true))
     (:|false| (@false))
     (:|undef| (@undef))
+    (:show-stack ($ :show-stack))
     (otherwise (if *quote* 
                    (@intern exp) 
                  (@symvalue exp)))))
@@ -153,3 +166,48 @@
 
 (defun compile-no-tail (exp &aux (*tail* nil))
   (compile-impl exp))
+
+(defparameter *free-vars* '())
+(defparameter *mutable-free-vars* '())
+(defparameter *binded-vars* '())
+(defun @inspect (exp)
+  (let ((*free-vars* '())
+        (*mutable-free-vars* '())
+        (*binded-vars* '()))
+    (@inspect-impl exp)
+    (values *free-vars* *mutable-free-vars*)))
+
+(defun @inspect-impl (exp)
+  (etypecase exp
+    ((or null integer string character))
+    (symbol (@inspect-symbol exp))
+    (list (@inspect-list exp))))
+
+(defun @inspect-symbol (exp)
+  (case exp
+    ((:|true| :|false| :|undef| :show-stack))
+    (otherwise 
+     (unless (find exp *binded-vars*)
+       (pushnew exp *free-vars*)))))
+
+(defun @inspect-list (exp)
+  (destructuring-bind (car . cdr) exp
+    (case car
+      (:quote)
+      ((:if :begin) (mapcar #'@inspect-impl cdr))
+      (:lambda (destructuring-bind (args . body) cdr
+                 (let ((*binded-vars* (append args *binded-vars*)))
+                   (@inspect-impl `(:begin ,@body)))))
+      (:define) ; TODO:
+      (:set! (destructuring-bind (var val) cdr
+               (@inspect-impl val)
+               (unless (find var *binded-vars*)
+                 (pushnew var *free-vars*)
+                 (pushnew var *mutable-free-vars*))))
+      (:let (destructuring-bind (bindings . body) cdr
+              (loop FOR (var val) IN bindings
+                    DO (@inspect-impl val))
+              (let ((*binded-vars* (append (mapcar #'car bindings) *binded-vars*)))
+                (@inspect-impl `(:begin ,@body)))))
+      (otherwise
+       (mapcar #'@inspect-impl cdr)))))
