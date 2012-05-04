@@ -170,34 +170,43 @@ namespace psil {
       }
       
       void _apply() {
-        Object* o = pop();
-        if(o->getType() == TYPE_LAMBDA) {
-          Lambda& lambda = *to<Lambda>(o);
-          create_callframe(lambda);
-          env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
-        } else {
-          NativeLambda& lambda = *to<NativeLambda>(o);
-          lambda.getBody()(env);
-        }
+        apply_impl(false);
       }
 
       void _tail_apply() {
+        apply_impl(true);
+      }
+
+      void apply_impl(bool isTailCall) {
+        uint1 arity = readUint1();
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(o);
-          if(env.getReturnStack().isEmpty()) { // TODO: あらかじめ番兵値を入れておいて、このチェックは不要にする
-            create_callframe(lambda);
-          } else {
+          if(lambda.getArity() < arity) {
+            Object* head = Nil::make();
+            for(uint1 i=lambda.getArity(); i < arity; i++) {
+              head = Cons::make(pop(), head);
+            }
+            push(head);           
+          }
+          if(isTailCall && 
+             // TODO: あらかじめ番兵値を入れておいて、このチェックは不要にする
+             env.getReturnStack().isEmpty() == false) { 
             create_tail_callframe(lambda);
+          } else {
+            create_callframe(lambda);
           }
           env.restoreContext(lambda.getContext(), lambda.getBodyAddress());
         } else {
           NativeLambda& lambda = *to<NativeLambda>(o);
           lambda.getBody()(env);
-        }
+        } 
       }
-
+      
       void _recur_tail_apply() {
+        assert(false);
+        /*
+        uint1 arity = readUint1();
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(o);
@@ -207,6 +216,7 @@ namespace psil {
           NativeLambda& lambda = *to<NativeLambda>(o);
           lambda.getBody()(env);
         }
+        */
       }
       
       void _return() {

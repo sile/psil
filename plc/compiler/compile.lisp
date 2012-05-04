@@ -133,7 +133,8 @@
 
 (defun @apply (fn args)
   ($ (mapcar #'compile-no-tail args) (compile-no-tail fn) 
-     (if *tail* :tail-apply :apply)))
+     (if *tail* :tail-apply :apply)
+     (length args)))
            
 (defun @set! (exps)
   (destructuring-bind (var val) exps

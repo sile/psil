@@ -13,12 +13,12 @@
 051# value symbol SYMSET
 052# CONSTGET index:short
 --
-101# arg* fun APPLY
-102# arg* fun TAIL_APPLY
+101# arg* fun APPLY arity:byte
+102# arg* fun TAIL_APPLY arity:byte
 103# value RETURN
 104# CONTI
 105# value NUATE
-106# arg* fun RECUR_TAIL_APPLY
+106# arg* fun RECUR_TAIL_APPLY arity:byte
 --
 150# rel-pos JUMP
 151# condition:boolean rel-pos JUMP-IF
