@@ -85,6 +85,24 @@
           ($ :local-refget (bind-index it)))
     ($ (@intern var) :symget)))
 
+(defun @lambda (exps)
+  (destructuring-bind (args . body) exps
+    (let* ((body `(:begin ,@body))
+           (closing-vars '())
+           (closing-var-indices '())
+           (closed-vars '())
+           (local-var-count 2)
+           (*tail* t)
+           (*local-var-index* 0)
+           (*bindings* (append (loop FOR var IN args
+                                     COLLECT (local-bind var (not (find var closed-vars))))
+                               *bindings*)))
+      (declare (ignore closing-vars))
+      (let ((body~ (compile-impl body)))
+        ($ (mapcar (lambda (i) ($ :localref i)) closing-var-indices)
+           :lambda (length closed-vars) (length args)
+           local-var-count (int-to-bytes (1+ (length body~))) body~ :return)))))
+
 (defun @let (exps)
   (destructuring-bind (bindings . body) exps
     (let* ((body `(:begin ,@body))
@@ -93,10 +111,13 @@
            (*bindings* (loop FOR var IN vars
                              COLLECT (local-bind var (not (find var closed-vars))))))
       
-      ($ :reserve (length vars)
-         (loop FOR (var val) IN bindings
+      ($ (loop FOR (var val) IN bindings
                COLLECT (@set!-nopush var val t))
          (compile-impl body)))))
+
+(defun @apply (fn args)
+  ($ (mapcar #'compile-no-tail args) (compile-no-tail fn) 
+     (if *tail* :tail-apply :apply)))
            
 (defparameter *quote* nil)
 (defparameter *tail* t)
@@ -111,15 +132,15 @@
 
 (defun @compile-list (exp)
   (destructuring-bind (car . cdr) exp
-    (ecase car
+    (case car
       (:quote (@quote cdr))
       (:if    (@if cdr))
       (:begin (@begin cdr))
-      (:lambda )
+      (:lambda (@lambda cdr))
       (:define )
       (:set! )
       (:let (@let cdr))
-      )))
+      (otherwise (@apply car cdr)))))
 
 (defun compile-impl (exp)
   (etypecase exp

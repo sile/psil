@@ -12,7 +12,7 @@
          (*tail* t)
          (*bindings* '())
          (*local-var-index* 0)
-         (rlt (compile-impl exp)))
+         (rlt (compile-impl `((:lambda () ,exp)))))
     (make-bcobj :constants (hashmap-to-list *constants*)
                 :code rlt)))
 
