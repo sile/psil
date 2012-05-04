@@ -62,6 +62,7 @@ namespace psil {
         case 205: _local_refget(); break;
         case 206: _local_refset(); break;
         case 207: _local_toref(); break;
+        case 208: _reserve(); break;
           
         case 250: _print(); break;
           
@@ -267,6 +268,10 @@ namespace psil {
       void _local_toref() {
         Object* o = env.getDataStack().localGet(readUint1());
         env.getDataStack().localSet(readUint1(), Reference::make(o));
+      }
+
+      void _reserve() {
+        env.getDataStack().reserve(readUint1());
       }
 
       // 
