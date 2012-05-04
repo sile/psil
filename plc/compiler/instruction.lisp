@@ -38,6 +38,7 @@
                (:local-refget 205)
                (:local-refset 206)
                (:local-toref 207)
+               (:reserve 208)
 
                (:print 250))))
     (loop FOR (name code) IN ins

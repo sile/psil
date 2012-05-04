@@ -35,6 +35,7 @@
 205# LOCAL_REFGET index:byte
 206# value LOCAL_REFSET index:byte
 207# LOCAL_TOREF index:byte
+208# RESERVE count:byte
 --
 250# value PRINT
 

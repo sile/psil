@@ -10,6 +10,8 @@
   (let* ((*constants* (make-hash-table))
          (*quote* nil)
          (*tail* t)
+         (*bindings* '())
+         (*local-var-index* 0)
          (rlt (compile-impl exp)))
     (make-bcobj :constants (hashmap-to-list *constants*)
                 :code rlt)))

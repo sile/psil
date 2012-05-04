@@ -16,3 +16,7 @@
 (defun write-int (out n)
   (loop FOR i FROM 3 DOWNTO 0
         DO (write-byte (ldb (byte 8 (* 8 i)) n) out)))
+
+(defmacro a.if (exp then &optional else)
+  `(let ((it ,exp))
+     (if it ,then ,else)))

@@ -1,17 +1,19 @@
 (in-package :plcc)
 
-(defmacro $ (&rest exps)
+(defmacro $ (&rest exps &aux (x (gensym)))
   `(flatten 
     (list ,@(loop FOR e IN exps
-                  COLLECT (typecase e
-                            (keyword `(ins ,e))
-                            (t e))))))
+                  COLLECT `(let ((,x ,e))
+                             (typecase ,x
+                               (keyword (ins ,x))
+                               (t ,x)))))))
 
 (defun @int (exp) ($ :int (int-to-bytes exp)))
 (defun @char (exp) ($ :char (int-to-bytes (char-code exp))))
 (defun @true () ($ :true))
 (defun @false () ($ :false))
 (defun @nil () ($ :nil))
+(defun @undef () ($ :undef))
 (defun @string (exp &aux (o (sb-ext:string-to-octets exp)))
   ($ :string (int-to-bytes (length o)) (coerce o 'list)))
 
@@ -19,15 +21,11 @@
 (defun @symbol (exp &aux (o (sb-ext:string-to-octets exp)))
   ($ :symbol (short-to-bytes (length o)) (coerce o 'list))) ;; => to const
 
-
 (defparameter *constants* (make-hash-table))
 (defun @intern (exp)
   (unless #1=(gethash exp *constants*)
     (setf #1# (hash-table-count *constants*)))
   ($ :constget (short-to-bytes #1#)))
-
-(defun @symvalue (exp)
-  ($ (@intern exp) :symget))
 
 (defun @fixjump (offset)
   ($ :fix-jump (short-to-bytes offset)))
@@ -52,6 +50,54 @@
           (butlast (butlast exps)))
       ($ (mapcar #'compile-no-tail butlast) :dropn (length butlast) (compile-impl last)))))
 
+(defun inspect-write-closed-vars (a b)
+  (declare (ignore a b))
+  '())
+
+(defstruct bind 
+  name
+  index
+  readonly) ;; XXX:name => writable-closedとかなんとか
+
+(defparameter *bindings* '())
+(defparameter *local-var-index* 0)
+
+(defun local-bind (name readonly)
+  (make-bind :name name
+             :index (1- (incf *local-var-index*))
+             :readonly readonly))
+
+(defun find-local-bind (var)
+  (find var *bindings* :key #'bind-name))
+
+(defun @set!-nopush (var val &optional initial &aux (val~ (compile-no-tail val)))
+  (a.if (find-local-bind var)
+        (let ((op (cond ((bind-readonly it) :localset)
+                        (initial            :local-mkref)
+                        (t                  :local-refset))))
+          ($ val~ op (bind-index it)))
+    ($ val~ (@intern var) :symset)))
+
+(defun @symvalue (var)
+  (a.if (find-local-bind var)
+        (if (bind-readonly it)
+            ($ :localget (bind-index it))
+          ($ :local-refget (bind-index it)))
+    ($ (@intern var) :symget)))
+
+(defun @let (exps)
+  (destructuring-bind (bindings . body) exps
+    (let* ((body `(:begin ,@body))
+           (vars (mapcar #'car bindings))
+           (closed-vars (inspect-write-closed-vars vars body))
+           (*bindings* (loop FOR var IN vars
+                             COLLECT (local-bind var (not (find var closed-vars))))))
+      
+      ($ :reserve (length vars)
+         (loop FOR (var val) IN bindings
+               COLLECT (@set!-nopush var val t))
+         (compile-impl body)))))
+           
 (defparameter *quote* nil)
 (defparameter *tail* t)
 (defun @compile-symbol (exp)
@@ -69,6 +115,10 @@
       (:quote (@quote cdr))
       (:if    (@if cdr))
       (:begin (@begin cdr))
+      (:lambda )
+      (:define )
+      (:set! )
+      (:let (@let cdr))
       )))
 
 (defun compile-impl (exp)
