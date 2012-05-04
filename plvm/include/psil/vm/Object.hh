@@ -23,7 +23,8 @@ namespace psil {
         TYPE_ARRAY,
         TYPE_LAMBDA,
         TYPE_NATIVE_LAMBDA,
-        TYPE_REF
+        TYPE_REF,
+        TYPE_PORT
       };
 
       // Object
@@ -267,6 +268,21 @@ namespace psil {
       private:
         Object* value;
       };
+
+      // 
+      class Port : public Object {
+      private:
+        Port(uint4 fd) : fd(fd) {}
+
+      public:
+        static Port* make(uint4 fd) { return new Port(fd); }
+        OBJ_TYPE getType() const { return TYPE_PORT; }
+        std::string show() const;
+        uint4 getValue() const { return fd; }
+
+      private:
+        uint4 fd;
+      };
       
       //
       namespace {
@@ -282,6 +298,7 @@ namespace psil {
         template<> OBJ_TYPE getType<Lambda>() { return TYPE_LAMBDA; }
         template<> OBJ_TYPE getType<NativeLambda>() { return TYPE_NATIVE_LAMBDA; }
         template<> OBJ_TYPE getType<Reference>() { return TYPE_REF; }
+        template<> OBJ_TYPE getType<Port>() { return TYPE_PORT; }
       }
       
       //

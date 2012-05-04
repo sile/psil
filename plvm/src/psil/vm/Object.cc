@@ -59,3 +59,9 @@ std::string Lambda::show() const {
       << ">";
   return out.str();
 }
+
+std::string Port::show() const {
+  std::ostringstream out;
+  out << "<PORT " << fd << ">";
+  return out.str();
+}
