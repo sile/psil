@@ -9,11 +9,35 @@
        (begin (read-char in)
               (!skip-whitespace in)))))
  
+ (define !char-type (lambda (c)
+   (case c
+     ((#\;) '@comment)
+     ((#\") '@string)
+     ((#\() '@list)
+     ((#\)) '@list-close)
+     ((#\') '@quote)
+     ((#\#) '@boolean-or-char)
+     (else 
+      (if (eqv? c (integer->char 0))
+          '@eof
+        (if (or (and (char<= #\0 c) (char<= c #\9))
+                (char= #\- c) (char= #\+ c))
+            '@maybe-number
+          '@symbol))))))
+
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
    (let ((ch (read-char in)))
-     ch)
-   ))
+     (case (!char-type ch)
+       ((@eof) 1)
+       ((@comment) 2)
+       ((@string) 3)
+       ((@list) 4)
+       ((@list-close) 5)
+       ((@quote) 6)
+       ((@symbol) 7)
+       ((@boolean-or-char) 8)
+       ((@maybe-number) 9)))))
  
  (define !parse-file (lambda (filepath)
    (call-with-input-file filepath (lambda (in) (!parse-port in)))))

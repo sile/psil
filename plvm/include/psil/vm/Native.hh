@@ -185,6 +185,10 @@ namespace psil {
       static void _is_pair(Environment& env, uint1 arity) {
         push(env, Boolean::make(pop(env)->getType() == TYPE_CONS));
       }
+
+      static void _is_null(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_NIL));
+      }
       
       static void _car(Environment& env, uint1 arity) {
         push(env, to<Cons>(pop(env))->getCar());
@@ -256,6 +260,7 @@ namespace psil {
         reg("CURRENT-INPUT-PORT", _current_input_port);
         reg("CURRENT-OUTPUT-PORT", _current_output_port);
         reg("PAIR?", _is_pair);
+        reg("NULL?", _is_null);
         reg("CAR", _car);
         reg("CDR", _cdr);
         reg("INTEGER->CHAR", _integer_to_char);

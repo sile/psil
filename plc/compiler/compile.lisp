@@ -161,6 +161,32 @@
 (defun @list (exps)
   ($ (mapcar #'compile-impl exps) :list (int-to-bytes (length exps))))
 
+(defun @case-expand (exps)
+  (destructuring-bind (exp . clauses) exps
+    (labels ((recur (clauses)
+               (if (null clauses)
+                   :|undef|
+                 (destructuring-bind ((data . exps) . rest) clauses 
+                   `(if (:or (eqv? 'else ',data)
+                             (memv :case-tmp-x ',data))
+                        (:begin ,@exps)
+                      ,(recur rest))))))
+      `(:let ((:case-tmp-x ,exp))
+             ,(recur clauses)))))
+
+(defun @case (exps)
+  (compile-impl (@case-expand exps)))
+
+(defun @or-expand (exps)
+  (if (null exps)
+      :|false|
+    (destructuring-bind (exp . rest) exps
+      `(:let ((:or-tmp-x ,exp))
+         (:if :or-tmp-x :or-tmp-x ,(@or-expand rest))))))
+
+(defun @or (exps)
+  (compile-impl (@or-expand exps)))
+
 (defparameter *quote* nil)
 (defparameter *tail* t)
 (defun @compile-symbol (exp)
@@ -186,6 +212,8 @@
         (:define (@toplevel-define cdr))
         (:set! (@set! cdr))
         (:let (@let cdr))
+        (:case (@case cdr))
+        (:or (@or cdr))
         (otherwise 
          (@apply car cdr))))))
 
@@ -245,5 +273,7 @@
                     DO (@inspect-impl val))
               (let ((*binded-vars* (append (mapcar #'car bindings) *binded-vars*)))
                 (@inspect-impl `(:begin ,@body)))))
+      (:case (@inspect-impl (@case-expand cdr)))
+      (:or   (@inspect-impl (@or-expand cdr)))
       (otherwise
        (mapcar #'@inspect-impl exp)))))
