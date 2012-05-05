@@ -1,4 +1,8 @@
 (begin
+ (define !skip-whitespace (lambda (in)
+   
+   ))
+ 
  (define !parse-port (lambda (in)
    in
    ))

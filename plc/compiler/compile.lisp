@@ -158,6 +158,9 @@
   (destructuring-bind (var val) exps
     (compile-impl `(:let ((,var ,val)) ,@subsequent-exps))))
 
+(defun @list (exps)
+  ($ (mapcar #'compile-impl exps) :list (int-to-bytes (length exps))))
+
 (defparameter *quote* nil)
 (defparameter *tail* t)
 (defun @compile-symbol (exp)
@@ -171,18 +174,20 @@
                  (@symvalue exp)))))
 
 (defun @compile-list (exp)
-  (destructuring-bind (car . cdr) exp
-    (case car
-      (:quote (@quote cdr))
-      (:if    (@if cdr))
-      (:begin (@begin cdr))
-      (:lambda (@lambda cdr))
-      (:toplevel-lambda (@lambda cdr t)) ;; TODO: *toplevel*は不要かも
-      (:define (@toplevel-define cdr))
-      (:set! (@set! cdr))
-      (:let (@let cdr))
-      (otherwise 
-       (@apply car cdr)))))
+  (if *quote*
+      (@list exp)
+    (destructuring-bind (car . cdr) exp
+      (case car
+        (:quote (@quote cdr))
+        (:if    (@if cdr))
+        (:begin (@begin cdr))
+        (:lambda (@lambda cdr))
+        (:toplevel-lambda (@lambda cdr t)) ;; TODO: *toplevel*は不要かも
+        (:define (@toplevel-define cdr))
+        (:set! (@set! cdr))
+        (:let (@let cdr))
+        (otherwise 
+         (@apply car cdr))))))
 
 (defun compile-impl (exp)
   (etypecase exp
