@@ -206,8 +206,38 @@ namespace psil {
         push(env, head);
       }
 
+      static void _is_eqv(Environment& env, uint1 arity) {
+        Object* x = pop(env);
+        Object* y = pop(env);
+        if(x == y) {
+          // boolean, symbol
+          push(env, Boolean::make(true));
+          return;
+        }
+
+        if(x->getType() != y->getType()) {
+          push(env, Boolean::make(false));
+          return;
+        }
+
+        if(x->getType() == TYPE_INT && to<Int>(x)->getValue() == to<Int>(y)->getValue()) {
+          // integer
+          push(env, Boolean::make(true));
+          return;
+        }
+        
+        if(x->getType() == TYPE_CHAR && to<Char>(x)->getCode() == to<Char>(y)->getCode()) {
+          // character
+          push(env, Boolean::make(true));
+          return;
+        }
+        
+        push(env, Boolean::make(false));
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
+        reg("EQV?", _is_eqv);
         reg("UNDEF?", _is_undef);
         reg("+", _i_add);
         reg("-", _i_sub);
