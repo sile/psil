@@ -12,6 +12,11 @@
        (begin (read-char in)
               (!skip-whitespace in)))))
  
+ (define !read-until-delimiter (lambda (in)
+   (if (memv (peek-char in) *delimiters*)
+       '()
+     (cons (read-char in) (!read-until-delimiter in)))))
+
  (define !char-type (lambda (c)
    (case c
      ((#\;) '@comment)
@@ -29,11 +34,11 @@
           '@symbol))))))
 
  (define !parse-symbol (lambda (in)
-   (string->symbol (list->string (read-until-delimiter in)))))
+   (string->symbol (list->string (!read-until-delimiter in)))))
 
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
-   (let ((ch (read-char in)))
+   (let ((ch (peek-char in)))
      (case (!char-type ch)
        ((@eof) 1)
        ((@comment) 2)
