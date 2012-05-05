@@ -75,7 +75,7 @@ namespace psil {
       }
 
       static void _read_char(Environment& env, uint1 arity) {
-        Port& p = (arity==0) ? *Port::CURRENT_INPUT : *to<Port>(pop(env));
+        Port& p = *to<Port>(arity==0 ? Symbol::make("CURRENT-INPUT")->getValue() : pop(env));
         if(p.hasBuffer()) {
           push(env, Char::make(p.getBufferedChar()));
           p.clearBuffer();
@@ -96,8 +96,21 @@ namespace psil {
         }
       }
 
+      static void _write_char(Environment& env, uint1 arity) {
+        char ch = (char)to<Char>(pop(env))->getCode(); 
+        Port& p = *to<Port>(arity==1 ? Symbol::make("CURRENT-OUTPUT")->getValue() : pop(env));
+        
+        int fd = p.getValue();
+        int ret = write(fd, (void*)&ch, 1);
+
+        if(ret == -1) {
+          std::cerr << "write failed(" << errno << "): " << fd << std::endl;
+        } 
+        push(env, Undef::make());
+      }
+
       static void _peek_char(Environment& env, uint1 arity) {
-        Port& p = (arity==0) ? *Port::CURRENT_INPUT : *to<Port>(pop(env));
+        Port& p = *to<Port>(arity==0 ? Symbol::make("CURRENT-INPUT")->getValue() : pop(env));
         if(p.hasBuffer()) {
           push(env, Char::make(p.getBufferedChar()));
           return;
@@ -123,7 +136,7 @@ namespace psil {
       }
 
       static void _is_char_ready(Environment& env, uint1 arity) {
-        Port& p = (arity==0) ? *Port::CURRENT_INPUT : *to<Port>(pop(env));
+        Port& p = *to<Port>(arity==0 ? Symbol::make("CURRENT-INPUT")->getValue() : pop(env));
         if(p.hasBuffer()) {
           push(env, Boolean::make(true));
           return;
@@ -158,11 +171,27 @@ namespace psil {
       }
       
       static void _current_input_port(Environment& env, uint1 arity) {
-        push(env, Port::CURRENT_INPUT);
+        push(env, Symbol::make("CURRENT-INPUT")->getValue());
       }
 
       static void _current_output_port(Environment& env, uint1 arity) {
-        push(env, Port::CURRENT_OUTPUT);
+        push(env, Symbol::make("CURRENT-OUTPUT")->getValue());
+      }
+
+      static void _is_pair(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_CONS));
+      }
+      
+      static void _car(Environment& env, uint1 arity) {
+        push(env, to<Cons>(pop(env))->getCar());
+      }
+
+      static void _cdr(Environment& env, uint1 arity) {
+        push(env, to<Cons>(pop(env))->getCdr());
+      }
+
+      static void _integer_to_char(Environment& env, uint1 arity) {
+        push(env, Char::make(to<Int>(pop(env))->getValue()));
       }
 
       static void registerNatives() {
@@ -175,17 +204,24 @@ namespace psil {
         reg("OPEN-OUTPUT-FILE", _open_output_file);
         reg("CLOSE-INPUT-PORT", _close_input_port);
         reg("CLOSE-OUTPUT-PORT", _close_output_port);
-        reg("READ-CHAR", _read_char);
         reg("PEEK-CHAR", _peek_char);
+        reg("READ-CHAR", _read_char);
+        reg("WRITE-CHAR", _write_char);
         reg("CHAR-READY?", _is_char_ready);
         reg("INPUT-PORT?", _is_input_port);
         reg("OUTPUT-PORT?", _is_output_port);
         reg("CURRENT-INPUT-PORT", _current_input_port);
         reg("CURRENT-OUTPUT-PORT", _current_output_port);
+        reg("PAIR?", _is_pair);
+        reg("CAR", _car);
+        reg("CDR", _cdr);
+        reg("INTEGER->CHAR", _integer_to_char);
 
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);
         regval("STDERR", &Port::STDERR);
+        regval("CURRENT-INPUT", Port::CURRENT_INPUT);
+        regval("CURRENT-OUTPUT", Port::CURRENT_OUTPUT);
       }
 
     private:
