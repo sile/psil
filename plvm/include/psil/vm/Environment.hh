@@ -15,6 +15,8 @@ namespace psil {
       Environment() {}
       void ready(BytecodeObject* bcobj) {
         this->bcobj = bcobj;
+        dataStack.clear();
+        returnStack.clear();
       }
       
       std::string show() const { return dataStack.show() + "\n" + returnStack.show(); }

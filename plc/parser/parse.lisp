@@ -105,7 +105,7 @@
   (skip-whitespace in)
   (ecase (char-type (peek-ch in))
     (:eof :|eof|)
-    (:comment (@parse-comment in))
+    (:comment (@parse-comment in) (parse in))
     (:string (@parse-string in))
     (:list (@parse-list in))
     (:close (read-ch in) :|)|)

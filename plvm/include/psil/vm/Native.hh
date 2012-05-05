@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/select.h>
 
 namespace psil {
   namespace vm {
@@ -15,6 +16,10 @@ namespace psil {
     
     class Native { // => Built In Function
       public:
+      static void _eq(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env) == pop(env)));
+      }
+
       static void _i_add(Environment& env, uint1 arity) {
         int4 x = popInt(env);
         int4 y = popInt(env);
@@ -46,7 +51,7 @@ namespace psil {
           std::cerr << "Can't open input file: " << path << std::endl;
           assert(false);
         }
-        push(env, Port::make(fd));
+        push(env, Port::make(fd, true));
       }
 
       static void _open_output_file(Environment& env, uint1 arity) {
@@ -56,7 +61,7 @@ namespace psil {
           std::cerr << "Can't open input file(" << errno << "): " << path << std::endl;
           assert(false);
         }
-        push(env, Port::make(fd));
+        push(env, Port::make(fd, false));
       }
       
       static void _close_input_port(Environment& env, uint1 arity) {
@@ -70,7 +75,7 @@ namespace psil {
       }
 
       static void _read_char(Environment& env, uint1 arity) {
-        Port& p = (arity==0) ? Port::STDIN : *to<Port>(pop(env));
+        Port& p = (arity==0) ? *Port::CURRENT_INPUT : *to<Port>(pop(env));
         if(p.hasBuffer()) {
           push(env, Char::make(p.getBufferedChar()));
           p.clearBuffer();
@@ -92,7 +97,7 @@ namespace psil {
       }
 
       static void _peek_char(Environment& env, uint1 arity) {
-        Port& p = (arity==0) ? Port::STDIN : *to<Port>(pop(env));
+        Port& p = (arity==0) ? *Port::CURRENT_INPUT : *to<Port>(pop(env));
         if(p.hasBuffer()) {
           push(env, Char::make(p.getBufferedChar()));
           return;
@@ -106,15 +111,58 @@ namespace psil {
           std::cerr << "read failed(" << errno << "): " << fd << std::endl;
           push(env, Undef::make());
         } else if (ret == 0){
-          push(env, Symbol::make("EOF"));
+          push(env, Port::EOF);
         } else {
           p.setBufferedChar(ch);
           push(env, Char::make(ch));
         }
       }
+      
+      static void _is_eof_object(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env) == Port::EOF));
+      }
 
-      static void _eq(Environment& env, uint1 arity) {
-        push(env, Boolean::make(pop(env) == pop(env)));
+      static void _is_char_ready(Environment& env, uint1 arity) {
+        Port& p = (arity==0) ? *Port::CURRENT_INPUT : *to<Port>(pop(env));
+        if(p.hasBuffer()) {
+          push(env, Boolean::make(true));
+          return;
+        }
+        
+        int fd = p.getValue();
+
+        int flag = fcntl(fd, F_GETFL, 0);
+        fcntl(fd, F_SETFL, O_NONBLOCK|flag);
+        char ch = 0;
+        int ret = read(fd, (void*)&ch, 1);
+        if(ret == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+          push(env, Boolean::make(false));
+        } else if (ret == -1) {
+          std::cerr << "read failed(" << errno << "): " << fd << std::endl;
+          push(env, Undef::make());
+        } else {
+          if(ret != 0) {
+            p.setBufferedChar(ch);
+          }
+          push(env, Boolean::make(true));
+        }
+        fcntl(fd, F_SETFL, flag);
+      }
+
+      static void _is_input_port(Environment& env, uint1 arity) {
+        push(env, Boolean::make(to<Port>(pop(env))->isInputPort()));
+      }
+
+      static void _is_output_port(Environment& env, uint1 arity) {
+        push(env, Boolean::make(to<Port>(pop(env))->isInputPort() == false));
+      }
+      
+      static void _current_input_port(Environment& env, uint1 arity) {
+        push(env, Port::CURRENT_INPUT);
+      }
+
+      static void _current_output_port(Environment& env, uint1 arity) {
+        push(env, Port::CURRENT_OUTPUT);
       }
 
       static void registerNatives() {
@@ -129,6 +177,11 @@ namespace psil {
         reg("CLOSE-OUTPUT-PORT", _close_output_port);
         reg("READ-CHAR", _read_char);
         reg("PEEK-CHAR", _peek_char);
+        reg("CHAR-READY?", _is_char_ready);
+        reg("INPUT-PORT?", _is_input_port);
+        reg("OUTPUT-PORT?", _is_output_port);
+        reg("CURRENT-INPUT-PORT", _current_input_port);
+        reg("CURRENT-OUTPUT-PORT", _current_output_port);
 
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);

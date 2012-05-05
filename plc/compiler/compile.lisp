@@ -164,7 +164,7 @@
     (:|true| (@true))
     (:|false| (@false))
     (:|undef| (@undef))
-    (:show-stack ($ :show-stack))
+    (:show-stack ($ :show-stack (@undef)))
     (otherwise (if *quote* 
                    (@intern exp) 
                  (@symvalue exp)))))

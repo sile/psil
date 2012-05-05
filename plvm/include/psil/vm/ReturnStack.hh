@@ -29,6 +29,10 @@ namespace psil {
       };
 
     public:
+      void clear() {
+        stack.clear();
+      }
+
       void push(const Entry& e) {
         stack.push_back(e);
       }

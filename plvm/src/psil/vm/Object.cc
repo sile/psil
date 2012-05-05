@@ -66,6 +66,9 @@ std::string Port::show() const {
   return out.str();
 }
 
-Port Port::STDIN(0);
-Port Port::STDOUT(1);
-Port Port::STDERR(2);
+Port Port::STDIN(0, true);
+Port Port::STDOUT(1, false);
+Port Port::STDERR(2, false);
+Port* Port::CURRENT_INPUT = &Port::STDIN;
+Port* Port::CURRENT_OUTPUT = &Port::STDOUT;
+Symbol* Port::EOF = Symbol::make("eof");

@@ -272,10 +272,10 @@ namespace psil {
       // 
       class Port : public Object {
       private:
-        Port(uint4 fd) : fd(fd), buf(-1) {}
+        Port(uint4 fd, bool is_input) : fd(fd), buf(-1), is_input(is_input) {}
 
       public:
-        static Port* make(uint4 fd) { return new Port(fd); }
+        static Port* make(uint4 fd, bool is_input) { return new Port(fd, is_input); }
         OBJ_TYPE getType() const { return TYPE_PORT; }
         std::string show() const;
         uint4 getValue() const { return fd; }
@@ -284,14 +284,19 @@ namespace psil {
         void setBufferedChar(char ch) { buf = ch; }
         void clearBuffer() { buf = -1; }
         bool hasBuffer() const { return buf != -1; }
+        bool isInputPort() const { return is_input; }
 
         static Port STDIN;
         static Port STDOUT;
         static Port STDERR;
+        static Port* CURRENT_INPUT;
+        static Port* CURRENT_OUTPUT;
         
+        static Symbol* EOF;
       private:
         uint4 fd;
         int buf;
+        bool is_input;
       };
       
       //
