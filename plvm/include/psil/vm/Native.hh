@@ -198,6 +198,14 @@ namespace psil {
         push(env, Char::make(to<Int>(pop(env))->getValue()));
       }
 
+      static void _list(Environment& env, uint1 arity) {
+        Object* head = Nil::make();
+        for(uint1 i=0; i < arity; i++) {
+          head = Cons::make(pop(env), head);
+        }
+        push(env, head);
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("UNDEF?", _is_undef);
@@ -221,6 +229,7 @@ namespace psil {
         reg("CAR", _car);
         reg("CDR", _cdr);
         reg("INTEGER->CHAR", _integer_to_char);
+        reg("LIST", _list);
 
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);
