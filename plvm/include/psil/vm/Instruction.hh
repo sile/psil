@@ -182,6 +182,7 @@ namespace psil {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(o);
+          /* => 可変長引数は、パーサ側で関数情報を保持できるようになるまで保留する
           if(lambda.getArity() < arity) {
             Object* head = Nil::make();
             for(uint1 i=lambda.getArity(); i < arity; i++) {
@@ -189,6 +190,7 @@ namespace psil {
             }
             push(head);           
           }
+          */
           if(isTailCall && 
              // TODO: あらかじめ番兵値を入れておいて、このチェックは不要にする
              env.getReturnStack().isEmpty() == false) { 

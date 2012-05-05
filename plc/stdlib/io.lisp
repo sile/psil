@@ -33,13 +33,8 @@
             (set! current-output old)
             result))))))
 
- (define newline (lambda port
-                   show-stack
+ (define newline (lambda ()
                    (let ((nl (integer->char 10)))
-                     port)))
-;                     (if (pair? port)
-;                         (write-char nl (car port))
-;                       (write-char nl)))))
+                     (write-char nl))))
  )
 
-;; (plc:compile-string "(with-output-to-file \"/tmp/www.txt\" (lambda () (write-char #\\a) (newline (current-output-port) 1 2)))" "/tmp/x.bc")
