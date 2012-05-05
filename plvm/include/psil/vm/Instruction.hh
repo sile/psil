@@ -184,17 +184,12 @@ namespace psil {
           Lambda& lambda = *to<Lambda>(o);
 
           if(lambda.isVarArg()) {
-            std::cerr << "--" << std::endl
-                      << env.getDataStack().getBase() << "~" << env.getDataStack().getTop() 
-                      << std::endl;
             assert(lambda.getArity() <= arity+1);
             Object* head = Nil::make();
             for(uint1 i=lambda.getArity(); i < arity + 1; i++) {
               head = Cons::make(pop(), head);
             }
             push(head);
-            std::cerr << env.getDataStack().getBase() << "~" << env.getDataStack().getTop() 
-                      << std::endl << std::endl;
           } else {
             assert(lambda.getArity() == arity);
           }

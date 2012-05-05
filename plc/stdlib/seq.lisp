@@ -10,6 +10,20 @@
                   (if (pair? list)
                       (+ 1 (length (cdr list)))
                     0)))
+ 
+ 
+ (define append2 (lambda (lst1 lst2)
+                   (if (null? lst1)
+                       lst2
+                     (cons (car lst1) (append2 (cdr lst1) lst2)))))
+
+ (define append (lambda lists
+                  (if (null? lists)
+                      lists
+                    (reduce (lambda (acc lst)
+                              (append2 acc lst))
+                            (car lists)
+                            (cdr lists)))))
 
  (define reduce (lambda (fn acc list)
                   (if (pair? list)

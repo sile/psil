@@ -3,7 +3,10 @@
                             (integer->char  9)
                             (integer->char 10)
                             (integer->char 13)))
-                            
+ 
+ (define *delimiters* (append *whitespace*
+                              (list #\' #\" #\# #\( #\) (integer->char 0))))
+
  (define !skip-whitespace (lambda (in)
    (if (memv (peek-char in) *whitespace*)
        (begin (read-char in)
@@ -25,6 +28,9 @@
             '@maybe-number
           '@symbol))))))
 
+ (define !parse-symbol (lambda (in)
+   (string->symbol (list->string (read-until-delimiter in)))))
+
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
    (let ((ch (read-char in)))
@@ -35,7 +41,7 @@
        ((@list) 4)
        ((@list-close) 5)
        ((@quote) 6)
-       ((@symbol) 7)
+       ((@symbol) (!parse-symbol in))
        ((@boolean-or-char) 8)
        ((@maybe-number) 9)))))
  

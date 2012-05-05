@@ -198,6 +198,12 @@ namespace psil {
         push(env, to<Cons>(pop(env))->getCdr());
       }
 
+      static void _cons(Environment& env, uint1 arity) {
+        Object* cdr = pop(env);
+        Object* car = pop(env);
+        push(env, Cons::make(car, cdr));
+      }
+
       static void _integer_to_char(Environment& env, uint1 arity) {
         push(env, Char::make(to<Int>(pop(env))->getValue()));
       }
@@ -280,6 +286,11 @@ namespace psil {
         push(env, Undef::make());
       }
 
+      static void _string_to_symbol(Environment& env, uint1 arity) {
+        std::string& s = to<String>(pop(env))->getValue();
+        push(env, Symbol::make(s));
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("EQV?", _is_eqv);
@@ -304,6 +315,7 @@ namespace psil {
         reg("NULL?", _is_null);
         reg("CAR", _car);
         reg("CDR", _cdr);
+        reg("CONS", _cons);
         reg("INTEGER->CHAR", _integer_to_char);
         reg("CHAR->INTEGER", _char_to_integer);
         reg("CHAR=", _char_eql);
@@ -312,7 +324,8 @@ namespace psil {
         reg("MAKE-STRING", _make_string);
         reg("STRING-REF", _string_ref);
         reg("STRING-SET!", _string_set);
-        
+        reg("STRING->SYMBOL", _string_to_symbol);
+
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);
         regval("STDERR", &Port::STDERR);
