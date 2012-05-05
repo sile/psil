@@ -167,8 +167,8 @@
                (if (null clauses)
                    :|undef|
                  (destructuring-bind ((data . exps) . rest) clauses 
-                   `(if (:or (eqv? 'else ',data)
-                             (memv :case-tmp-x ',data))
+                   `(:if (:or (:eqv? (:quote :else) (:quote ,data))
+                             (:memv :case-tmp-x (:quote ,data)))
                         (:begin ,@exps)
                       ,(recur rest))))))
       `(:let ((:case-tmp-x ,exp))
