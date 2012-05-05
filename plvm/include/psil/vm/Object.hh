@@ -74,6 +74,7 @@ namespace psil {
         std::string show() const { return std::string("<STRING ")+value+">"; }
         
         const std::string& getValue() const { return value; }
+        std::string& getValue() { return value; }
         
       private:
         std::string value;

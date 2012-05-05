@@ -202,6 +202,22 @@ namespace psil {
         push(env, Char::make(to<Int>(pop(env))->getValue()));
       }
 
+      static void _char_to_integer(Environment& env, uint1 arity) {
+        push(env, Int::make(to<Char>(pop(env))->getCode()));
+      }
+
+      static void _char_eql(Environment& env, uint1 arity) {
+        Char& y = *to<Char>(pop(env));
+        Char& x = *to<Char>(pop(env));
+        push(env, Boolean::make(x.getCode() == y.getCode()));
+      }
+
+      static void _char_less_eql_than(Environment& env, uint1 arity) {
+        Char& y = *to<Char>(pop(env));
+        Char& x = *to<Char>(pop(env));
+        push(env, Boolean::make(x.getCode() <= y.getCode()));        
+      }
+
       static void _list(Environment& env, uint1 arity) {
         Object* head = Nil::make();
         for(uint1 i=0; i < arity; i++) {
@@ -239,6 +255,31 @@ namespace psil {
         push(env, Boolean::make(false));
       }
 
+      static void _make_string(Environment& env, uint1 arity) {
+        char ch = arity == 1 ? 0 : (char)to<Char>(pop(env))->getCode();
+        uint4 len = popInt(env);
+        std::string s;
+        s.resize(len);
+        for(uint4 i=0; i < len; i++) {
+          s[i] = ch;
+        }
+        push(env, String::make(s));
+      }
+
+      static void _string_ref(Environment& env, uint1 arity) {
+        uint4 index = popInt(env);
+        std::string& s = to<String>(pop(env))->getValue();
+        push(env, Char::make(s[index]));
+      }
+
+      static void _string_set(Environment& env, uint1 arity) {
+        char ch = (char)to<Char>(pop(env))->getCode();
+        uint4 index = popInt(env);
+        std::string& s = to<String>(pop(env))->getValue();
+        s[index] = ch;
+        push(env, Undef::make());
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("EQV?", _is_eqv);
@@ -264,8 +305,14 @@ namespace psil {
         reg("CAR", _car);
         reg("CDR", _cdr);
         reg("INTEGER->CHAR", _integer_to_char);
+        reg("CHAR->INTEGER", _char_to_integer);
+        reg("CHAR=", _char_eql);
+        reg("CHAR<=", _char_less_eql_than);
         reg("LIST", _list);
-
+        reg("MAKE-STRING", _make_string);
+        reg("STRING-REF", _string_ref);
+        reg("STRING-SET!", _string_set);
+        
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);
         regval("STDERR", &Port::STDERR);

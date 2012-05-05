@@ -187,6 +187,23 @@
 (defun @or (exps)
   (compile-impl (@or-expand exps)))
 
+(defun @and-expand (exps)
+  (if (null exps)
+      :|true|
+    (destructuring-bind (exp . rest) exps
+      `(:let ((:and-tmp-x ,exp))
+         (:if :and-tmp-x ,(if rest (@or-expand rest) :and-tmp-x) :|false|)))))
+
+(defun @let*-expand (cdr)
+  (destructuring-bind (bindings . body) cdr
+    (labels ((recur (bindings)
+               (if (null bindings)
+                   `(:begin ,@body)
+                 (destructuring-bind (binding . rest) bindings
+                   `(:let (,binding)
+                      ,(recur rest))))))
+      (recur bindings))))
+
 (defparameter *quote* nil)
 (defparameter *tail* t)
 (defun @compile-symbol (exp)
@@ -212,8 +229,10 @@
         (:define (@toplevel-define cdr))
         (:set! (@set! cdr))
         (:let (@let cdr))
+        (:let* (compile-impl (@let*-expand cdr)))
         (:case (@case cdr))
         (:or (@or cdr))
+        (:and (compile-impl (@and-expand cdr)))
         (otherwise 
          (@apply car cdr))))))
 
@@ -273,7 +292,9 @@
                     DO (@inspect-impl val))
               (let ((*binded-vars* (append (mapcar #'car bindings) *binded-vars*)))
                 (@inspect-impl `(:begin ,@body)))))
+      (:let* (@inspect-impl (@let*-expand cdr)))
       (:case (@inspect-impl (@case-expand cdr)))
       (:or   (@inspect-impl (@or-expand cdr)))
+      (:and  (@inspect-impl (@and-expand cdr)))
       (otherwise
        (mapcar #'@inspect-impl exp)))))
