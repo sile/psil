@@ -20,6 +20,10 @@ namespace psil {
         push(env, Boolean::make(pop(env) == pop(env)));
       }
 
+      static void _is_undef(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env) == Undef::make()));
+      }
+
       static void _i_add(Environment& env, uint1 arity) {
         int4 x = popInt(env);
         int4 y = popInt(env);
@@ -196,6 +200,7 @@ namespace psil {
 
       static void registerNatives() {
         reg("EQ", _eq);
+        reg("UNDEF?", _is_undef);
         reg("+", _i_add);
         reg("-", _i_sub);
         reg("=", _i_eql);

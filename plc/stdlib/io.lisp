@@ -33,8 +33,10 @@
             (set! current-output old)
             result))))))
 
- (define newline (lambda ()
+ (define newline (lambda port
                    (let ((nl (integer->char 10)))
-                     (write-char nl))))
+                     (if (pair? port)
+                         (write-char nl (car port))
+                       (write-char nl)))))
  )
 

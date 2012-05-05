@@ -202,9 +202,9 @@ namespace psil {
         
       private:
         Lambda(Closed closed, uint1 arity, uint1 local_var_count, 
-               unsigned body_addr, Context* context) 
+               unsigned body_addr, Context* context, bool vararg) 
           : closed(closed), arity(arity), local_var_count(local_var_count), 
-            body_addr(body_addr), context(context) {}
+            body_addr(body_addr), context(context), vararg(vararg) {}
         
         ~Lambda() {
           delete [] closed.vals;
@@ -213,9 +213,10 @@ namespace psil {
       public:
         static Lambda* make(Object** closed_vals, uint1 closed_val_count,
                             uint1 arity, uint1 local_var_count, 
-                            unsigned body_addr, Context* context) {
+                            unsigned body_addr, Context* context,
+                            bool vararg) {
           return new Lambda(Closed(closed_vals, closed_val_count),
-                            arity, local_var_count, body_addr, context);
+                            arity, local_var_count, body_addr, context, vararg);
         }
         OBJ_TYPE getType() const { return TYPE_LAMBDA; }
         std::string show() const;
@@ -226,13 +227,15 @@ namespace psil {
         uint1 getLocalVarCount() const { return local_var_count; }
         unsigned getBodyAddress() const { return body_addr; }
         Context* getContext() { return context; }
-        
+        bool isVarArg() const { return vararg; }
+
       private:
         Closed closed;
-        uint1 arity;  // 不要かも
-        uint1 local_var_count; // TODO: コンパイラが賢ければ不要 (body内でのstackの使い方を追跡) 
+        uint1 arity;  
+        uint1 local_var_count; 
         unsigned body_addr;
         Context* context;
+        bool vararg;
       };
 
       // NativeLambda

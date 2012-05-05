@@ -182,15 +182,23 @@ namespace psil {
         Object* o = pop();
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(o);
-          /* => 可変長引数は、パーサ側で関数情報を保持できるようになるまで保留する
-          if(lambda.getArity() < arity) {
+
+          if(lambda.isVarArg()) {
+            std::cerr << "--" << std::endl
+                      << env.getDataStack().getBase() << "~" << env.getDataStack().getTop() 
+                      << std::endl;
+            assert(lambda.getArity() <= arity+1);
             Object* head = Nil::make();
-            for(uint1 i=lambda.getArity(); i < arity; i++) {
+            for(uint1 i=lambda.getArity(); i < arity + 1; i++) {
               head = Cons::make(pop(), head);
             }
-            push(head);           
+            push(head);
+            std::cerr << env.getDataStack().getBase() << "~" << env.getDataStack().getTop() 
+                      << std::endl << std::endl;
+          } else {
+            assert(lambda.getArity() == arity);
           }
-          */
+
           if(isTailCall && 
              // TODO: あらかじめ番兵値を入れておいて、このチェックは不要にする
              env.getReturnStack().isEmpty() == false) { 
@@ -247,6 +255,7 @@ namespace psil {
         uint1 closed_val_count = readUint1();
         uint1 arity = readUint1();
         uint1 local_var_count = readUint1();
+        bool vararg = readUint1() != 0;
         unsigned body_size = readUint4();
         
         Object** closed_vals = closed_val_count==0 ? NULL : new Object*[closed_val_count];
@@ -257,7 +266,7 @@ namespace psil {
         Lambda* lambda = 
           Lambda::make(closed_vals, closed_val_count, arity, local_var_count, 
                        env.getCodeStream().getPosition(),
-                       env.getContext());
+                       env.getContext(), vararg);
 
         env.getCodeStream().jump(body_size);
         push(lambda);

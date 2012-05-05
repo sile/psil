@@ -97,14 +97,14 @@
 (defun normalize-args (args)
   (labels ((recur (cons n acc)
              (typecase cons
-               (null (values (nreverse acc) n))
+               (null (values (nreverse acc) n nil))
                (cons (recur (cdr cons) (1+ n) (cons (car cons) acc)))
-               (t    (values (nreverse `(,cons ,@acc)) n)))))
+               (t    (values (nreverse `(,cons ,@acc)) (1+ n) t)))))
     (recur args 0 '())))
 
 (defun @lambda (exps &optional toplevel &aux (binded-vars (mapcar #'bind-name *bindings*)))
   (destructuring-bind (args . body) exps
-    (multiple-value-bind (args arity) (normalize-args args)
+    (multiple-value-bind (args arity vararg) (normalize-args args)
       (multiple-value-bind (free-vars mutable-free-vars) (@inspect `(:begin ,@body))
         (let* ((body `(:begin ,@body))
                (closing-vars (intersection free-vars 
@@ -125,7 +125,8 @@
                 (local-var-count (- *local-var-index* (length args) (length closing-vars))))
             ($ (mapcar (lambda (i) ($ :localget i)) closing-var-indices)
                :lambda (length closing-vars) arity
-               local-var-count (int-to-bytes (1+ (length body~))) body~ :return)))))))
+               local-var-count (if vararg 1 0)
+               (int-to-bytes (1+ (length body~))) body~ :return)))))))
 
 (defun @let (exps)
   (destructuring-bind (bindings . body) exps

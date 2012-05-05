@@ -28,7 +28,7 @@
 180# x DROP
 181# x* DROPN n:byte
 --
-201# close-val* LAMBDA close-val-count:byte arity:byte local-var-count:byte body-len:int body*
+201# close-val* LAMBDA close-val-count:byte arity:byte local-var-count:byte vararg:byte body-len:int body*
 202# LOCALGET index:byte
 203# value LOCALSET index:byte
 204# value LOCAL_MKREF index:byte
