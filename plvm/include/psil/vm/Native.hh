@@ -240,6 +240,10 @@ namespace psil {
         push(env, head);
       }
 
+      static void _undef(Environment& env, uint1 arity) {
+        push(env, Undef::make());
+      }
+
       static void _is_eqv(Environment& env, uint1 arity) {
         Object* x = pop(env);
         Object* y = pop(env);
@@ -335,6 +339,7 @@ namespace psil {
         reg("STRING-REF", _string_ref);
         reg("STRING-SET!", _string_set);
         reg("STRING->SYMBOL", _string_to_symbol);
+        reg("UNDEF", _undef);
 
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);
