@@ -323,6 +323,7 @@ namespace psil {
         reg("OUTPUT-PORT?", _is_output_port);
         reg("CURRENT-INPUT-PORT", _current_input_port);
         reg("CURRENT-OUTPUT-PORT", _current_output_port);
+        reg("EOF-OBJECT?", _is_eof_object);
         reg("PAIR?", _is_pair);
         reg("NULL?", _is_null);
         reg("CAR", _car);

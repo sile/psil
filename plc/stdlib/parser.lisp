@@ -41,8 +41,8 @@
      ((#\') '@quote)
      ((#\#) '@boolean-or-char)
      (else 
-      (if (eqv? c (integer->char 0))
-          '@eof
+      (if (eof-object? c)
+          c
         (if (or (and (char<= #\0 c) (char<= c #\9))
                 (char= #\- c) (char= #\+ c))
             '@maybe-number
@@ -74,6 +74,9 @@
    (read-char in) ; eat #\)
    (!parse-list-impl in)))
 
+ (define !parse-char (lambda (in)
+   (read-char in)))
+
  (define !parse-boolean-or-char (lambda (in)
    (read-char in) ; eat #\#
    (case (read-char in)
@@ -86,14 +89,14 @@
    (!skip-whitespace in)
    (let ((ch (peek-char in)))
      (case (!char-type ch)
-       ((@eof) (undef))
        ((@comment) (!skip-comment-line in) (!parse-port in))
        ((@string) (!parse-string in))
        ((@list) (!parse-list in))
        ((@quote) (!parse-quote in))
        ((@symbol) (!parse-symbol in))
        ((@boolean-or-char) (!parse-boolean-or-char in))
-       ((@maybe-number) 9)))))
+       ((@maybe-number) 9)
+       (else ch))))) ; eof
  
  (define !parse-file (lambda (filepath)
    (call-with-input-file filepath (lambda (in) (!parse-port in)))))
