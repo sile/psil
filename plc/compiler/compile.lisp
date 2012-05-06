@@ -223,6 +223,10 @@
                    (@intern exp) 
                  (@symvalue exp)))))
 
+(defun @eval (exps)
+  (destructuring-bind (exp) exps
+    ($ (compile-no-tail exp) :eval)))
+
 (defun @compile-list (exp)
   (if *quote*
       (@list exp)
@@ -241,6 +245,7 @@
         (:or (@or cdr))
         (:and (compile-impl (@and-expand cdr)))
         (:__apply (@list-apply cdr))
+        (:__eval (@eval cdr))
         (otherwise 
          (@apply car cdr))))))
 

@@ -44,9 +44,28 @@ namespace psil {
         assert(cur >= 0 && cur <= size);
       }
       
+      unsigned getSize() const { return size; }
+
+      // XXX:
+      static ByteStream emptyStream() {
+        ByteStream bs;
+        return bs;
+      }
+
+      void append(const char* bytes, unsigned size) {
+        char* new_bytes = new char[this->size + size];
+        memcpy(new_bytes, this->bytes, this->size);
+        memcpy(new_bytes+this->size, bytes, size);
+        this->bytes = new_bytes;
+        this->size += size;
+      }
+
+    private:
+      ByteStream() : bytes(NULL), size(0), cur(0) {}
+
     private:
       const char* bytes;
-      const unsigned size;
+      /*const*/ unsigned size;
       unsigned cur;
     };
   }

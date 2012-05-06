@@ -16,3 +16,5 @@ std::string BytecodeObject::show() const {
       << const_table.show() << std::endl;
   return out.str();
 }
+
+BytecodeObject BytecodeObject::runtimeBcobj;

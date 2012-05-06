@@ -24,6 +24,8 @@
                (:recur-tal-aply 106)
                (:list-apply 107)
                
+               (:eval 130)
+               
                (:jump 150)
                (:jump-if 151)
                (:fix-jump 152)

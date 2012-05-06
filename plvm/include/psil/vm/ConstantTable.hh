@@ -19,6 +19,8 @@ namespace psil {
 
       type::Object* get(unsigned index) const { return table[index]; }
       
+      // XXX:
+      ConstantTable() {}
     private:
       std::vector<type::Symbol*> table;
     };

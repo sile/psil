@@ -48,6 +48,8 @@ namespace psil {
         case 106: _recur_tail_apply(); break;
         case 107: _list_apply(); break;
 
+        case 130: _eval(); break;
+
         case 150: _jump(); break;
         case 151: _jump_if(); break;
         case 152: _fix_jump(); break;
@@ -135,6 +137,34 @@ namespace psil {
       }
       void _constget() {
         push(env.getConstantTable().get(readUint2()));
+      }
+      
+      //
+      void _eval() {
+        // XXX: 空リストは来ないと仮定
+        Cons* list = to<Cons>(pop());
+
+        int len = 1;
+        Cons* head = list;
+        while(head->getCdr() != Nil::make()) {
+          head = to<Cons>(head->getCdr());
+          len++;
+        }
+        
+        char* bytes = new char[len + 1];
+        head = list;
+        bytes[0] = (char)to<Int>(head->getCar())->getValue();
+        for(int i=1; i < len; i++) {
+          head = to<Cons>(head->getCdr());
+          bytes[i] = (char)to<Int>(head->getCar())->getValue();
+        }
+        bytes[len] = 103; // return
+
+        create_eval_callframe();
+
+        BytecodeObject::appendRuntimeCode(bytes, len + 1);
+        env.restoreContext(&BytecodeObject::getRuntime(), 
+                           BytecodeObject::getRuntime().getCodeStream().getPosition());
       }
 
       //
@@ -327,6 +357,19 @@ namespace psil {
       }
 
     private:
+      void create_eval_callframe() {
+        DataStack& ds = env.getDataStack();
+        ReturnStack& rs = env.getReturnStack();
+        unsigned nextBase = ds.getTop();
+        
+        ReturnStack::Entry e(nextBase,
+                             ds.getBase(),
+                             env.getCodeStream().getPosition(), // TODO: saveContextとか用意
+                             env.getContext());
+        rs.push(e);
+        ds.setBase(nextBase);
+      }
+
       void create_callframe(Lambda& lambda) {
         DataStack& ds = env.getDataStack();
         ReturnStack& rs = env.getReturnStack();

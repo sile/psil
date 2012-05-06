@@ -21,6 +21,8 @@
 106# arg* fun RECUR_TAIL_APPLY arity:byte
 107# arg:list fun LIST_APPLY
 --
+130# bytecodes:list EVAL
+--
 150# rel-pos JUMP
 151# condition:boolean rel-pos JUMP-IF
 152# FIX_JUMP rel-pos:short
