@@ -82,4 +82,6 @@
    (if (null? lsts)
        (map1 fn lst)
      (mapN fn (cons lst lsts)))))
+
+ (define not (lambda (x) (if x #f #t)))
  )

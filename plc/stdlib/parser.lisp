@@ -17,6 +17,18 @@
        '()
      (cons (read-char in) (!read-until-delimiter in)))))
 
+ (define !read-string (lambda (in escape)
+   (if (and (not escape) 
+            (char= (peek-char in) #\"))
+       (begin (read-char in)
+              '())
+     (let* ((ch (read-char in))
+            (escape (and (not escape)
+                         (char= ch #\\))))
+       (if escape
+           (!read-string in escape)
+         (cons ch (!read-string in escape)))))))
+
  (define !char-type (lambda (c)
    (case c
      ((#\;) '@comment)
@@ -40,13 +52,17 @@
    (read-char in) ; eat #\'
    (cons 'quote (!parse-port in))))
 
+ (define !parse-string (lambda (in)
+   (read-char in) ; eat #\"
+   (list->string (!read-string in #f))))
+
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
    (let ((ch (peek-char in)))
      (case (!char-type ch)
        ((@eof) 1)
        ((@comment) 2)
-       ((@string) 3)
+       ((@string) (!parse-string in))
        ((@list) 4)
        ((@list-close) 5)
        ((@quote) (!parse-quote in))
