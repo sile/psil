@@ -224,6 +224,14 @@ namespace psil {
         push(env, Boolean::make(x.getCode() <= y.getCode()));        
       }
 
+      static void _char_upcase(Environment& env, uint1 arity) {
+        push(env, Char::make(toupper(to<Char>(pop(env))->getCode())));
+      }
+
+      static void _char_downcase(Environment& env, uint1 arity) {
+        push(env, Char::make(tolower(to<Char>(pop(env))->getCode())));
+      }
+
       static void _list(Environment& env, uint1 arity) {
         Object* head = Nil::make();
         for(uint1 i=0; i < arity; i++) {
@@ -318,6 +326,8 @@ namespace psil {
         reg("CONS", _cons);
         reg("INTEGER->CHAR", _integer_to_char);
         reg("CHAR->INTEGER", _char_to_integer);
+        reg("CHAR-UPCASE", _char_upcase);
+        reg("CHAR-DOWNCASE", _char_downcase);
         reg("CHAR=", _char_eql);
         reg("CHAR<=", _char_less_eql_than);
         reg("LIST", _list);

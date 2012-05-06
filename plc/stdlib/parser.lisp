@@ -36,6 +36,10 @@
  (define !parse-symbol (lambda (in)
    (string->symbol (list->string (map char-upcase (!read-until-delimiter in))))))
 
+ (define !parse-quote (lambda (in)
+   (read-char in) ; eat #\'
+   (cons 'quote (!parse-port in))))
+
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
    (let ((ch (peek-char in)))
@@ -45,7 +49,7 @@
        ((@string) 3)
        ((@list) 4)
        ((@list-close) 5)
-       ((@quote) 6)
+       ((@quote) (!parse-quote in))
        ((@symbol) (!parse-symbol in))
        ((@boolean-or-char) 8)
        ((@maybe-number) 9)))))
