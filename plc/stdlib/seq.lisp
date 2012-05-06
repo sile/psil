@@ -39,4 +39,47 @@
                                   0
                                   lst)
                           str)))
+
+ (define butlast (lambda (lst)
+   (if (null? lst)
+       '()
+     (if (null? (cdr lst))
+         '()
+       (cons (car lst)
+             (butlast (cdr lst)))))))
+
+ (define last (lambda (lst)
+   (if (null? lst)
+       '()
+     (if (null? (cdr lst))
+         lst
+       (last (cdr lst))))))
+
+ (define apply (lambda (fn arg . args)
+   (let ((args1 (cons arg args)))
+     (__apply fn (append (butlast args1)
+                         (car (last args1)))))))
+
+ (define any (lambda (fn lst)
+   (if (null? lst)
+       #f
+     (or (fn (car lst))
+         (any fn (cdr lst))))))
+
+ (define map1 (lambda (fn lst)
+   (if (null? lst)
+       '()
+     (cons (fn (car lst))
+           (map1 fn (cdr lst))))))
+
+ (define mapN (lambda (fn lsts)
+   (if (any null? lsts)
+       '()
+     (cons (apply fn (map1 car lsts))
+           (mapN fn (map1 cdr lsts))))))
+
+ (define map (lambda (fn lst . lsts)
+   (if (null? lsts)
+       (map1 fn lst)
+     (mapN fn (cons lst lsts)))))
  )

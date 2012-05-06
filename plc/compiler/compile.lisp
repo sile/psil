@@ -145,6 +145,10 @@
   ($ (mapcar #'compile-no-tail args) (compile-no-tail fn) 
      (if *tail* :tail-apply :apply)
      (length args)))
+
+(defun @list-apply (exps)
+  (destructuring-bind (fn args) exps
+    ($ (compile-no-tail args) (compile-no-tail fn) :list-apply)))
            
 (defun @set! (exps)
   (destructuring-bind (var val) exps
@@ -233,6 +237,7 @@
         (:case (@case cdr))
         (:or (@or cdr))
         (:and (compile-impl (@and-expand cdr)))
+        (:__apply (@list-apply cdr))
         (otherwise 
          (@apply car cdr))))))
 
@@ -296,5 +301,6 @@
       (:case (@inspect-impl (@case-expand cdr)))
       (:or   (@inspect-impl (@or-expand cdr)))
       (:and  (@inspect-impl (@and-expand cdr)))
+      (:__apply (mapcar #'@inspect-impl cdr))
       (otherwise
        (mapcar #'@inspect-impl exp)))))

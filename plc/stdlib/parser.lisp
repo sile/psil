@@ -34,7 +34,7 @@
           '@symbol))))))
 
  (define !parse-symbol (lambda (in)
-   (string->symbol (list->string (!read-until-delimiter in)))))
+   (string->symbol (list->string (map char-upcase (!read-until-delimiter in))))))
 
  (define !parse-port (lambda (in)
    (!skip-whitespace in)

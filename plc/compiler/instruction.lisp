@@ -22,6 +22,7 @@
                (:conti 104)
                (:nuate 105)
                (:recur-tal-aply 106)
+               (:list-apply 107)
                
                (:jump 150)
                (:jump-if 151)

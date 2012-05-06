@@ -46,6 +46,7 @@ namespace psil {
         case 104: _conti(); break;
         case 105: _nuate(); break;
         case 106: _recur_tail_apply(); break;
+        case 107: _list_apply(); break;
 
         case 150: _jump(); break;
         case 151: _jump_if(); break;
@@ -168,21 +169,35 @@ namespace psil {
       void _dropn() {
         env.getDataStack().drop(readUint1());
       }
-      
+
+      void _list_apply() {
+        Object* fn = pop();
+        Object* head = pop();
+        uint1 arity = 0;
+        while(head != Nil::make()) {
+          Cons* cons = to<Cons>(head);
+          push(cons->getCar());
+          head = cons->getCdr();
+          arity++;
+        }
+        apply_impl(fn, false, arity);
+      }      
+
       void _apply() {
-        apply_impl(false);
+        Object* fn = pop();
+        uint1 arity = readUint1();
+        apply_impl(fn, false, arity);
       }
 
       void _tail_apply() {
-        apply_impl(true);
+        Object* fn = pop();
+        uint1 arity = readUint1();
+        apply_impl(fn, true, arity);
       }
 
-      void apply_impl(bool isTailCall) {
-        uint1 arity = readUint1();
-        Object* o = pop();
+      void apply_impl(Object* o, bool isTailCall, uint1 arity) {
         if(o->getType() == TYPE_LAMBDA) {
           Lambda& lambda = *to<Lambda>(o);
-
           if(lambda.isVarArg()) {
             assert(lambda.getArity() <= arity+1);
             Object* head = Nil::make();
