@@ -38,4 +38,14 @@
                      (if (pair? port)
                          (write-char nl (car port))
                        (write-char nl)))))
+
+ (define !get-output-port (lambda (maybe-port)
+                            (if (null? maybe-port)
+                                (current-output-port)
+                              (car maybe-port))))
+
+ (define write-string (lambda (str . port)
+                        (let ((port (!get-output-port port)))
+                          (for-each (lambda (ch) (write-char ch port))
+                                    (string->list str)))))
  )

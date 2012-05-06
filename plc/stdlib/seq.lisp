@@ -40,6 +40,15 @@
                                   lst)
                           str)))
 
+ (define string->list-impl (lambda (str len i)
+   (if (= i len)
+       '()
+     (cons (string-ref str i)
+           (string->list-impl str len (+ i 1))))))
+
+ (define string->list (lambda (str)
+   (string->list-impl str (string-length str) 0)))
+
  (define butlast (lambda (lst)
    (if (null? lst)
        '()
@@ -82,6 +91,10 @@
    (if (null? lsts)
        (map1 fn lst)
      (mapN fn (cons lst lsts)))))
+ 
+ (define for-each (lambda (fn lst . lsts)
+    (apply map fn lst lsts)
+    (undef)))
 
  (define not (lambda (x) (if x #f #t)))
  )

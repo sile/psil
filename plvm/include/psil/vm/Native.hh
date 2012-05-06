@@ -113,8 +113,8 @@ namespace psil {
       }
 
       static void _write_char(Environment& env, uint1 arity) {
-        char ch = (char)to<Char>(pop(env))->getCode(); 
         Port& p = *to<Port>(arity==1 ? Symbol::make("CURRENT-OUTPUT")->getValue() : pop(env));
+        char ch = (char)to<Char>(pop(env))->getCode(); 
         
         int fd = p.getValue();
         int ret = write(fd, (void*)&ch, 1);
@@ -315,6 +315,11 @@ namespace psil {
         push(env, Symbol::make(s));
       }
 
+      static void _string_length(Environment& env, uint1 arity) {
+        std::string& s = to<String>(pop(env))->getValue();
+        push(env, Int::make(s.size()));
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("EQV?", _is_eqv);
@@ -354,6 +359,7 @@ namespace psil {
         reg("STRING-REF", _string_ref);
         reg("STRING-SET!", _string_set);
         reg("STRING->SYMBOL", _string_to_symbol);
+        reg("STRING-LENGTH", _string_length);
         reg("UNDEF", _undef);
 
         regval("STDIN", &Port::STDIN);
