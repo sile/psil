@@ -16,7 +16,7 @@ namespace psil {
       // TODO: endian
       uint1 readUint1() { assert(! eos()); return (uint1)bytes[cur++]; }
       uint2 readUint2() { return (uint2)(readUint1() << 8 | readUint1()); }
-      uint2 readUint4() { return (uint4)(readUint2() << 16 | readUint2()); }
+      uint4 readUint4() { return (uint4)(readUint2() << 16 | readUint2()); }
       void readBytes(char* buffer, unsigned size) {
         assert(cur + size <= this->size);
         memcpy(buffer, bytes, size);

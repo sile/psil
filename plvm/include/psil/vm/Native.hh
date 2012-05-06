@@ -36,6 +36,18 @@ namespace psil {
         push(env, Int::make(y-x));
       }
 
+      static void _i_mul(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Int::make(y*x));
+      }
+
+      static void _i_div(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Int::make(y/x));
+      }
+
       static void _i_eql(Environment& env, uint1 arity) {
         int4 x = popInt(env);
         int4 y = popInt(env);
@@ -309,6 +321,8 @@ namespace psil {
         reg("UNDEF?", _is_undef);
         reg("+", _i_add);
         reg("-", _i_sub);
+        reg("*", _i_mul);
+        reg("/", _i_div);
         reg("=", _i_eql);
         reg("<", _i_less_than);
         reg("OPEN-INPUT-FILE", _open_input_file);

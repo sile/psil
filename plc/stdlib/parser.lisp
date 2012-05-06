@@ -16,7 +16,8 @@
               (!skip-whitespace in)))))
  
  (define !read-until-delimiter (lambda (in)
-   (if (memv (peek-char in) *delimiters*)
+   (if (or (eof-object? (peek-char in))
+           (memv (peek-char in) *delimiters*))
        '()
      (cons (read-char in) (!read-until-delimiter in)))))
 
@@ -45,7 +46,7 @@
           c
         (if (or (and (char<= #\0 c) (char<= c #\9))
                 (char= #\- c) (char= #\+ c))
-            '@maybe-number
+            '@number
           '@symbol))))))
 
  (define !parse-symbol (lambda (in)
@@ -84,6 +85,20 @@
      ((#\t) #t)
      ((#\f) #f)
      (else (undef)))))
+ 
+ (define !parse-number-impl (lambda (in)
+   (reduce
+    (lambda (acc c)
+      (let ((n (- (char->integer c) (char->integer #\0))))
+        (+ (* acc 10) n)))
+    0
+    (!read-until-delimiter in))))
+
+ (define !parse-number (lambda (in)
+   (case (peek-char in)
+     ((#\-) (read-char in) (* -1 (!parse-number-impl in)))
+     ((#\+) (read-char in) (!parse-number-impl in))
+     (else (!parse-number-impl in)))))
 
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
@@ -95,7 +110,7 @@
        ((@quote) (!parse-quote in))
        ((@symbol) (!parse-symbol in))
        ((@boolean-or-char) (!parse-boolean-or-char in))
-       ((@maybe-number) 9)
+       ((@number) (!parse-number in))
        (else ch))))) ; eof
  
  (define !parse-file (lambda (filepath)
