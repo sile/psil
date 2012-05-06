@@ -333,11 +333,59 @@ namespace psil {
         push(env, Int::make(s.size()));
       }
 
+      static void _is_boolean(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_BOOL));
+      }
+
+      static void _is_symbol(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_SYMBOL));
+      }
+
+      static void _is_char(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_CHAR));
+      }
+
+      static void _is_number(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_INT));
+      }
+
+      static void _is_string(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_STRING));
+      }
+      
+      /*
+      static void _is_vector(Environment& env, uint1 arity) {
+      }
+      */
+
+      static void _is_port(Environment& env, uint1 arity) {
+        push(env, Boolean::make(pop(env)->getType() == TYPE_PORT));
+      }
+
+      static void _is_procedure(Environment& env, uint1 arity) {
+        Object* o = pop(env);
+        push(env, Boolean::make(o->getType() == TYPE_LAMBDA || o->getType() == TYPE_NATIVE_LAMBDA));
+      }
+
+      static void _is_list(Environment& env, uint1 arity) {
+        Object* o = pop(env);        
+        push(env, Boolean::make(o->getType() == TYPE_NIL || o->getType() == TYPE_CONS));
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("EQ?", _eq);
         reg("EQV?", _is_eqv);
         reg("UNDEF?", _is_undef);
+        reg("BOOLEAN?", _is_boolean);
+        reg("SYMBOL?", _is_symbol);
+        reg("CHAR?", _is_char);
+        reg("NUMBER?", _is_number);
+        reg("STRING?", _is_symbol);
+        // reg("VECTOR?", _is_vector);
+        reg("PORT?", _is_port);
+        reg("PROCEDURE?", _is_procedure);
+        reg("LIST?", _is_list);
         reg("+", _i_add);
         reg("-", _i_sub);
         reg("*", _i_mul);
