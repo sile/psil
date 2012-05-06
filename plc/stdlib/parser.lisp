@@ -1,8 +1,11 @@
 (begin
+ (define *char-return* (integer->char 13))
+ (define *char-newline* (integer->char 10))
+ 
  (define *whitespace* (list (integer->char 32)
                             (integer->char  9)
-                            (integer->char 10)
-                            (integer->char 13)))
+                            *char-newline*
+                            *char-return*))
  
  (define *delimiters* (append *whitespace*
                               (list #\' #\" #\# #\( #\) (integer->char 0))))
@@ -56,12 +59,17 @@
    (read-char in) ; eat #\"
    (list->string (!read-string in #f))))
 
+ (define !skip-comment-line (lambda (in)
+   (if (not (memv (read-char in) (list *char-return* *char-newline*)))
+       (!skip-comment-line in)
+     (!parse-port in))))
+
  (define !parse-port (lambda (in)
    (!skip-whitespace in)
    (let ((ch (peek-char in)))
      (case (!char-type ch)
        ((@eof) 1)
-       ((@comment) 2)
+       ((@comment) (!skip-comment-line in))
        ((@string) (!parse-string in))
        ((@list) 4)
        ((@list-close) 5)
