@@ -73,13 +73,13 @@
 (defun find-local-bind (var)
   (find var *bindings* :key #'bind-name))
 
-(defun @set!-nopush (var val &optional initial &aux (val~ (compile-no-tail val)))
+(defun @set!-nopush (var val &optional initial)
   (a.if (find-local-bind var)
         (let ((op (cond ((bind-readonly it) :localset)
                         (initial            :local-mkref)
                         (t                  :local-refset))))
-          ($ val~ op (bind-index it)))
-    ($ val~ (@intern var) :symset)))
+          ($ val op (bind-index it)))
+    ($ val (@intern var) :symset)))
 
 (defun @symvalue (var)
   (a.if (find-local-bind var)
@@ -134,11 +134,14 @@
            (vars (mapcar #'car bindings))
            (closed-vars (intersection (nth-value 1 (@inspect body)) vars))
            (*toplevel* nil)
+           (old-bindings *bindings*)
            (*bindings* (append (loop FOR var IN vars
                                      COLLECT (local-bind var (not (find var closed-vars))))
                                *bindings*)))
       ($ (loop FOR (var val) IN bindings
-               COLLECT (@set!-nopush var val t))
+               FOR val~ = (let ((*bindings* old-bindings)) 
+                            (compile-no-tail val))
+               COLLECT (@set!-nopush var val~ t))
          (compile-impl body)))))
 
 (defun @apply (fn args)
@@ -152,7 +155,7 @@
            
 (defun @set! (exps)
   (destructuring-bind (var val) exps
-    ($ (@set!-nopush var val) (@undef))))
+    ($ (@set!-nopush var (compile-no-tail val)) (@undef))))
 
 (defun @toplevel-define (exps)
   (destructuring-bind (var val) exps

@@ -56,9 +56,9 @@
        (last (cdr lst))))))
 
  (define apply (lambda (fn arg . args)
-   (let ((args1 (cons arg args)))
-     (__apply fn (append (butlast args1)
-                         (car (last args1)))))))
+   (let ((args (cons arg args)))
+     (__apply fn (append (butlast args)
+                         (car (last args)))))))
 
  (define any (lambda (fn lst)
    (if (null? lst)
