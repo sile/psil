@@ -48,4 +48,8 @@
                         (let ((port (!get-output-port port)))
                           (for-each (lambda (ch) (write-char ch port))
                                     (string->list str)))))
+
+ (define write-byte-list (lambda (lst)
+   (for-each (lambda (byte) (write-byte byte))
+             lst)))
  )

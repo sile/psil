@@ -125,6 +125,19 @@ namespace psil {
         push(env, Undef::make());
       }
 
+      static void _write_byte(Environment& env, uint1 arity) {
+        Port& p = *to<Port>(arity==1 ? Symbol::make("CURRENT-OUTPUT")->getValue() : pop(env));
+        char ch = (char)popInt(env);
+        
+        int fd = p.getValue();
+        int ret = write(fd, (void*)&ch, 1);
+
+        if(ret == -1) {
+          std::cerr << "write failed(" << errno << "): " << fd << std::endl;
+        } 
+        push(env, Undef::make());
+      }
+      
       static void _peek_char(Environment& env, uint1 arity) {
         Port& p = *to<Port>(arity==0 ? Symbol::make("CURRENT-INPUT")->getValue() : pop(env));
         if(p.hasBuffer()) {
@@ -338,6 +351,7 @@ namespace psil {
         reg("PEEK-CHAR", _peek_char);
         reg("READ-CHAR", _read_char);
         reg("WRITE-CHAR", _write_char);
+        reg("WRITE-BYTE", _write_byte);
         reg("CHAR-READY?", _is_char_ready);
         reg("INPUT-PORT?", _is_input_port);
         reg("OUTPUT-PORT?", _is_output_port);
