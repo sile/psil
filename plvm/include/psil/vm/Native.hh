@@ -322,6 +322,7 @@ namespace psil {
 
       static void registerNatives() {
         reg("EQ", _eq);
+        reg("EQ?", _eq);
         reg("EQV?", _is_eqv);
         reg("UNDEF?", _is_undef);
         reg("+", _i_add);
