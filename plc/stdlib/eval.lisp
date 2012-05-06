@@ -1,11 +1,15 @@
 (begin
- (define compile (lambda (exp)
-   ))
+ (define __int__ 1)
 
- (define eval-bytecode (lambda (bytecode)
-   ))
+ (define !cp-number (lambda (n)
+   (flat-list __int__ (int->list n))))
+
+ (define compile (lambda (exp)
+   (case (type-of exp)
+     ((number) (!cp-number exp))
+     (else (undef)))))
 
  (define eval (lambda (exp . environment-specifier)
-   (let ((bytecode (compile exp)))
-     (eval-bytecode bytecode))))
+   (let ((bytecode-list (compile exp)))
+     (__eval bytecode-list))))
  )

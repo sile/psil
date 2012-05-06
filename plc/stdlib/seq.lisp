@@ -97,4 +97,36 @@
     (undef)))
 
  (define not (lambda (x) (if x #f #t)))
+
+ (define flat-list-impl (lambda (xs)
+   (if (null? xs)
+       '()
+     (if (pair? (car xs))
+         (append (flat-list-impl (car xs))
+                 (flat-list-impl (cdr xs)))
+       (cons (car xs)
+             (flat-list-impl (cdr xs)))))))
+
+ (define flat-list (lambda xs
+   (flat-list-impl xs)))
+ 
+ (define range-list (lambda (start end)
+   (if (> start end)
+       '()
+     (cons start (range-list (+ start 1) end)))))
+
+ (define reverse-impl (lambda (lst acc)
+   (if (null? lst)
+       acc
+     (reverse-impl (cdr lst) (cons (car lst) acc)))))
+
+ (define reverse (lambda (lst)
+   (reverse-impl lst '())))
+
+ (define int->list (lambda (n) ; bit-endian
+   (reduce (lambda (acc i)
+             (let ((offset (* i 8)))
+               (cons (bit-field n offset (+ offset 8)) acc)))
+           '()
+           (range-list 0 3))))
  )

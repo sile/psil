@@ -48,16 +48,46 @@ namespace psil {
         push(env, Int::make(y/x));
       }
 
+      static void _i_mod(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Int::make(y % x));
+      }
+
       static void _i_eql(Environment& env, uint1 arity) {
         int4 x = popInt(env);
         int4 y = popInt(env);
         push(env, Boolean::make(x==y));
       }
 
+      static void _i_not_eql(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Boolean::make(x!=y));
+      }
+
       static void _i_less_than(Environment& env, uint1 arity) {
         int4 x = popInt(env);
         int4 y = popInt(env);
         push(env, Boolean::make(y < x));
+      }
+
+      static void _i_less_eql_than(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Boolean::make(y <= x));
+      }
+
+      static void _i_greater_than(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Boolean::make(y > x));
+      }
+
+      static void _i_greater_eql_than(Environment& env, uint1 arity) {
+        int4 x = popInt(env);
+        int4 y = popInt(env);
+        push(env, Boolean::make(y >= x));
       }
 
       static void _open_input_file(Environment& env, uint1 arity) {
@@ -372,6 +402,14 @@ namespace psil {
         push(env, Boolean::make(o->getType() == TYPE_NIL || o->getType() == TYPE_CONS));
       }
 
+      static void _bit_field(Environment& env, uint1 arity) {
+        uint4 end = popInt(env);
+        uint4 start = popInt(env);
+        uint4 n = popInt(env);
+        uint4 n2 = (n & (((1 << end)-1) - ((1 << start) -1))) >> start;
+        push(env, Int::make(n2));
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("EQ?", _eq);
@@ -390,8 +428,14 @@ namespace psil {
         reg("-", _i_sub);
         reg("*", _i_mul);
         reg("/", _i_div);
+        reg("MODULO", _i_mod);
         reg("=", _i_eql);
+        reg("/=", _i_not_eql);
         reg("<", _i_less_than);
+        reg("<=", _i_less_eql_than);
+        reg(">=", _i_greater_eql_than);
+        reg(">", _i_greater_than);
+        reg("BIT-FIELD", _bit_field);
         reg("OPEN-INPUT-FILE", _open_input_file);
         reg("OPEN-OUTPUT-FILE", _open_output_file);
         reg("CLOSE-INPUT-PORT", _close_input_port);
