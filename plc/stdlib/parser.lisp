@@ -96,8 +96,8 @@
 
  (define !parse-number (lambda (in)
    (case (peek-char in)
-     ((#\-) (read-char in) (* -1 (!parse-number-impl in)))
-     ((#\+) (read-char in) (!parse-number-impl in))
+     ((#\-) (read-char in) (if (memv (peek-char in) *delimiters*) '- (* -1 (!parse-number-impl in))))
+     ((#\+) (read-char in) (if (memv (peek-char in) *delimiters*) '+ (!parse-number-impl in)))
      (else (!parse-number-impl in)))))
 
  (define !parse-port (lambda (in)

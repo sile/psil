@@ -129,4 +129,12 @@
                (cons (bit-field n offset (+ offset 8)) acc)))
            '()
            (range-list 0 3))))
+
+ (define short->list (lambda (n) ; bit-endian
+   (reduce (lambda (acc i)
+             (let ((offset (* i 8)))
+               (cons (bit-field n offset (+ offset 8)) acc)))
+           '()
+           (range-list 0 1))))
+
  )

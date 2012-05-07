@@ -16,9 +16,19 @@
               (!write-number-impl (* -1 n)))
      (!write-number-impl n))))
 
+ (define !write-symbol (lambda (sym)
+   (write-string (symbol->string sym))))
+
+ (define !write-procedure (lambda (proc)
+   (write-string "<PROC>")))
+
  (define write (lambda (x)
    (case (type-of x)
      ((number) (!write-number x))
-     (else (write-string "Not Implemented")))
+     ((symbol) (!write-symbol x))
+     ((procedure) (!write-procedure x))
+     (else (if (eq x (undef))
+               (write-string "<UNDEF>")
+             (write-string "Not Implemented"))))
    (newline))) ; XXX
  )
