@@ -71,4 +71,4 @@ Port Port::STDOUT(1, false);
 Port Port::STDERR(2, false);
 Port* Port::CURRENT_INPUT = &Port::STDIN;
 Port* Port::CURRENT_OUTPUT = &Port::STDOUT;
-Symbol* Port::EOF = Symbol::make("eof");
+Symbol* Port::END_OF_FILE = Symbol::make("eof");

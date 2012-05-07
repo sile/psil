@@ -10,8 +10,8 @@ OBJ = $(SRC:.cc=.o)
 all: bin/plvm $(OBJS)
 
 clean:
-	rm bin/*
-	rm `find . -name '*.o'`
+	-rm bin/*
+	-rm `find . -name '*.o'`
 
 bin/plvm: $(OBJ)
 	mkdir -p bin

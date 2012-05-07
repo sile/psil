@@ -296,7 +296,7 @@ namespace psil {
         static Port* CURRENT_INPUT;
         static Port* CURRENT_OUTPUT;
         
-        static Symbol* EOF;
+        static Symbol* END_OF_FILE;
       private:
         uint4 fd;
         int buf;

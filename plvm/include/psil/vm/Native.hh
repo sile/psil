@@ -136,7 +136,7 @@ namespace psil {
           std::cerr << "read failed(" << errno << "): " << fd << std::endl;
           push(env, Undef::make());
         } else if (ret == 0){
-          push(env, Symbol::make("EOF"));
+          push(env, Port::END_OF_FILE);
         } else {
           push(env, Char::make(ch));
         }
@@ -183,7 +183,7 @@ namespace psil {
           std::cerr << "read failed(" << errno << "): " << fd << std::endl;
           push(env, Undef::make());
         } else if (ret == 0){
-          push(env, Port::EOF);
+          push(env, Port::END_OF_FILE);
         } else {
           p.setBufferedChar(ch);
           push(env, Char::make(ch));
@@ -191,7 +191,7 @@ namespace psil {
       }
       
       static void _is_eof_object(Environment& env, uint1 arity) {
-        push(env, Boolean::make(pop(env) == Port::EOF));
+        push(env, Boolean::make(pop(env) == Port::END_OF_FILE));
       }
 
       static void _is_char_ready(Environment& env, uint1 arity) {
