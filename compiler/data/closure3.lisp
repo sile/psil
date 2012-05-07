@@ -1,5 +1,0 @@
-(let ((f1 (lambda (a b)
-	    (let ((f2 (lambda () (setval a ($- a b)))))
-              (f2)
-              a))))
-  (f1 8 20))
