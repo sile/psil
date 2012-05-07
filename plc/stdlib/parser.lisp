@@ -54,7 +54,7 @@
 
  (define !parse-quote (lambda (in)
    (read-char in) ; eat #\'
-   (cons 'quote (!parse-port in))))
+   (list 'quote (!parse-port in))))
 
  (define !parse-string (lambda (in)
    (read-char in) ; eat #\"
@@ -68,8 +68,13 @@
    (if (char= (peek-char in) #\))
        (begin (read-char in)
               '())
-     (cons (!parse-port in)
-           (!parse-list-impl in)))))
+     (let ((x (!parse-port in)))
+       (if (eq? x '.)
+           (let ((last (!parse-port in)))
+             (read-char in) ; expect #\)
+             last)
+         (cons x (!parse-list-impl in)))))))
+               
 
  (define !parse-list (lambda (in)
    (read-char in) ; eat #\)

@@ -137,4 +137,10 @@
            '()
            (range-list 0 1))))
 
+ (define assv (lambda (obj lst)
+   (if (null? lst)
+       #f
+     (if (eqv? obj (car (car lst)))
+         (car lst)
+       (assv obj (cdr lst))))))
  )

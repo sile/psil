@@ -129,7 +129,10 @@ namespace psil {
       }
 
       void _symget() {
-        push(to<Symbol>(pop())->getValue());
+        Symbol* sym = to<Symbol>(pop());
+        // std::cerr << "# " << sym->getName() << ": " << sym->getValue()->getType() << std::endl;
+        push(sym->getValue());
+        //push(to<Symbol>(pop())->getValue());
       }
       void _symset() {
         Object* sym = pop();

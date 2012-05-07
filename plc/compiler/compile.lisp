@@ -165,7 +165,15 @@
   (destructuring-bind (var val) exps
     (compile-impl `(:let ((,var ,val)) ,@subsequent-exps))))
 
+(defun @list-impl (exps)
+  (if (atom exps)
+      `(:quote ,exps)
+    `(:cons (:quote ,(car exps)) ,(@list-impl (cdr exps)))))
+
 (defun @list (exps)
+  (let ((*quote* nil))
+    (compile-impl (@list-impl exps)))
+  #+C
   ($ (mapcar #'compile-impl exps) :list (int-to-bytes (length exps))))
 
 (defun @case-expand (exps)
