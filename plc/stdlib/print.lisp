@@ -54,6 +54,9 @@
              (string->list str))
    (write-char #\")))
 
+ (define !write-port (lambda (port)
+   (write-string "<PORT>")))
+
  (define write-no-nl (lambda (x)
    (case (type-of x)
      ((null)   (write-string "()"))
@@ -64,6 +67,7 @@
      ((string) (!write-string x))
      ((pair)   (!write-pair x))
      ((procedure) (!write-procedure x))
+     ((port)   (!write-port x))
      (else (if (eq x (undef))
                (write-string "<UNDEF>")
              (write-string "Not Implemented"))))))

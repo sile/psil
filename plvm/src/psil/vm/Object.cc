@@ -72,3 +72,10 @@ Port Port::STDERR(2, false);
 Port* Port::CURRENT_INPUT = &Port::STDIN;
 Port* Port::CURRENT_OUTPUT = &Port::STDOUT;
 Symbol* Port::END_OF_FILE = Symbol::make("eof");
+
+
+std::string Opaque::show() const {
+  std::ostringstream out;
+  out << "<OPAQUE " << id << ">";
+  return out.str();
+}

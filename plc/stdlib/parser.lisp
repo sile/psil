@@ -65,6 +65,7 @@
        (!skip-comment-line in))))
 
  (define !parse-list-impl (lambda (in)
+   (!skip-whitespace in)
    (if (char= (peek-char in) #\))
        (begin (read-char in)
               '())

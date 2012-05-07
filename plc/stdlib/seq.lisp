@@ -104,8 +104,10 @@
      (if (pair? (car xs))
          (append (flat-list-impl (car xs))
                  (flat-list-impl (cdr xs)))
-       (cons (car xs)
-             (flat-list-impl (cdr xs)))))))
+       (if (null? (car xs))
+           (flat-list-impl (cdr xs))
+         (cons (car xs)
+               (flat-list-impl (cdr xs))))))))
 
  (define flat-list (lambda xs
    (flat-list-impl xs)))

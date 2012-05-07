@@ -24,7 +24,8 @@ namespace psil {
         TYPE_LAMBDA,
         TYPE_NATIVE_LAMBDA,
         TYPE_REF,
-        TYPE_PORT
+        TYPE_PORT,
+        TYPE_OPAQUE
       };
 
       // Object
@@ -302,6 +303,22 @@ namespace psil {
         int buf;
         bool is_input;
       };
+
+      // XXX: 不要っぽい (いつか役に立つ時がありそうだけど)
+      class Opaque : public Object {
+      private:
+        Opaque(uint8 id) : id(id) {}
+
+      public:
+        static Opaque* make(Object* obj) { return new Opaque((uint8)obj); }
+        OBJ_TYPE getType() const { return TYPE_OPAQUE; }
+        std::string show() const;
+        uint8 getId() const { return  id; }
+        Object* toObject() const { return (Object*)id; }
+        
+      private:
+        uint8 id;
+      };
       
       //
       namespace {
@@ -318,6 +335,7 @@ namespace psil {
         template<> OBJ_TYPE getType<NativeLambda>() { return TYPE_NATIVE_LAMBDA; }
         template<> OBJ_TYPE getType<Reference>() { return TYPE_REF; }
         template<> OBJ_TYPE getType<Port>() { return TYPE_PORT; }
+        template<> OBJ_TYPE getType<Opaque>() { return TYPE_OPAQUE; }
       }
       
       //
