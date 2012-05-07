@@ -10,7 +10,7 @@
              'number
            (if (char? x)
                'char
-             (if (string x)
+             (if (string? x)
                  'string
                (if (port? x)
                    'port

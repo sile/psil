@@ -419,7 +419,7 @@ namespace psil {
         reg("SYMBOL?", _is_symbol);
         reg("CHAR?", _is_char);
         reg("NUMBER?", _is_number);
-        reg("STRING?", _is_symbol);
+        reg("STRING?", _is_string);
         // reg("VECTOR?", _is_vector);
         reg("PORT?", _is_port);
         reg("PROCEDURE?", _is_procedure);
