@@ -12,21 +12,25 @@ namespace psil {
     class SymbolTable {
     public:
       static type::Symbol* find(const std::string& name) {
-        symbol_table_t::iterator rlt = table.find(name);
-        return rlt == table.end() ? NULL : rlt->second;
+        symbol_table_t::iterator rlt = getTable().find(name);
+        return rlt == getTable().end() ? NULL : rlt->second;
       }
 
       static type::Symbol* intern(type::Symbol* symbol) {
         type::Symbol* cur = find(symbol->getName());
         if(cur == NULL) {
-          table[symbol->getName()] = symbol;
+          getTable()[symbol->getName()] = symbol;
           cur = symbol;
         }
         return cur;
       }
 
     private:
-      static symbol_table_t table;
+      static symbol_table_t& getTable() {
+        static symbol_table_t table;
+        return table;
+      }
+      // static symbol_table_t table;
     };
   }
 }
