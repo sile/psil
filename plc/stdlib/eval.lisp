@@ -1,7 +1,11 @@
 (begin
  (define __int__ 1)
+ (define __string__ 2)
+ (define __char__ 3)
  (define __symbol__ 4)
  (define __nil__ 5)
+ (define __true__ 6)
+ (define __false__ 7)
  (define __undef__ 9)
  (define __apply__ 101)
  (define __symget__ 50)
@@ -54,6 +58,16 @@
  (define !cp-symbol (lambda (sym env)
    (!cp-symbol-value sym env)))
 
+ (define !cp-char (lambda (ch)
+   (flat-list __char__ (int->list (char->integer ch)))))
+ 
+ (define !cp-string (lambda (str)
+   (let ((str (map char->integer (string->list str))))
+     (flat-list __string__ (int->list (length str)) str))))
+
+ (define !cp-boolean (lambda (bool)
+   (if bool (flat-list __true__) (flat-list __false__))))
+
  (define !init-env (lambda ()
    '(
      (quote . #f)
@@ -70,6 +84,9 @@
    (case (type-of exp)
      ((null)   (!cp-null))
      ((number) (!cp-number exp))
+     ((boolean)(!cp-boolean exp))
+     ((char)   (!cp-char exp))
+     ((string) (!cp-string exp))
      ((pair)   (!cp-pair exp env))
      ((symbol) (if (!env-quote? env)
                    (!cp-symbol-self exp env)

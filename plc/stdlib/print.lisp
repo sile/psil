@@ -37,11 +37,31 @@
    (!write-pair-impl pair)
    (write-string ")")))
 
+ (define !write-boolean (lambda (bool)
+   (if bool (write-string "#t") (write-string "#f"))))
+
+ (define !write-char (lambda (ch)
+   (write-char #\#)
+   (write-char #\\)
+   (write-char ch)))
+
+ (define !write-string (lambda (str)
+   (write-char #\")                         
+   (for-each (lambda (ch)
+               (case ch
+                 ((#\\ #\") (write-char #\\) (write-char ch))
+                 (else      (write-char ch))))
+             (string->list str))
+   (write-char #\")))
+
  (define write-no-nl (lambda (x)
    (case (type-of x)
      ((null)   (write-string "()"))
      ((number) (!write-number x))
      ((symbol) (!write-symbol x))
+     ((boolean)(!write-boolean x))
+     ((char)   (!write-char x))
+     ((string) (!write-string x))
      ((pair)   (!write-pair x))
      ((procedure) (!write-procedure x))
      (else (if (eq x (undef))
