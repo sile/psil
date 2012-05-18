@@ -123,7 +123,7 @@
           (let ((body~ ($ (adjust-args args)
                           (compile-impl body)))
                 (local-var-count (- *local-var-index* (length args) (length closing-vars))))
-            ($ (mapcar (lambda (i) ($ :localget i)) closing-var-indices)
+            ($ (mapcar (lambda (i) ($ :localget i)) (reverse closing-var-indices))
                :lambda (length closing-vars) arity
                local-var-count (if vararg 1 0)
                (int-to-bytes (1+ (length body~))) body~ :return)))))))
