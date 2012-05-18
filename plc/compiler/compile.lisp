@@ -207,7 +207,7 @@
       :|true|
     (destructuring-bind (exp . rest) exps
       `(:let ((:and-tmp-x ,exp))
-         (:if :and-tmp-x ,(if rest (@or-expand rest) :and-tmp-x) :|false|)))))
+         (:if :and-tmp-x ,(if rest (@and-expand rest) :and-tmp-x) :|false|)))))
 
 (defun @let*-expand (cdr)
   (destructuring-bind (bindings . body) cdr

@@ -46,21 +46,11 @@
  (define !cp-list (lambda (pair env)
    (compile (!cp-list-impl pair) (!env-quote env #f))))
 
-;; (defun @let (exps)
-;;   (destructuring-bind (bindings . body) exps
-;;     (let* ((body `(:begin ,@body))
-;;            (vars (mapcar #'car bindings))
-;;            (closed-vars (intersection (nth-value 1 (@inspect body)) vars))
-;;            (*toplevel* nil)
-;;            (old-bindings *bindings*)
-;;            (*bindings* (append (loop FOR var IN vars
-;;                                      COLLECT (local-bind var (not (find var closed-vars))))
-;;                                *bindings*)))
-;;       ($ (loop FOR (var val) IN bindings
-;;                FOR val~ = (let ((*bindings* old-bindings)) 
-;;                             (compile-no-tail val))
-;;                COLLECT (@set!-nopush var val~ t))
-;;          (compile-impl body)))))
+ (define !cp-set-nopush (lambda (var val initial)
+   ;; TODO:
+   '()
+   ;; TODO: 合わせてシンボル参照部分もローカルも考慮するように変更する
+  ))
 
  (define !make-local-bind (lambda (var read-only? env)
    (list 'local var (!env-get-and-incr-local-var-index env) read-only?)))
@@ -76,8 +66,14 @@
                                      vars)
                                 old-bindings))
           (env (!env-bindings env new-bindings)))
-     (compile (list 'quote new-bindings) env)
-  )))
+     (flat-list 
+      (map (lambda (bind)
+             (let ((var (car bind))
+                   (val (let ((env (!env-bindings env old-bindings)))
+                          (compile (cadr bind) env))))
+               (!cp-set-nopush var val #t)))
+           bindings)
+      (compile body env)))))
 
  (define !cp-begin-impl (lambda (exp rest env)
    (if (and (not (!env-toplevel? env))
@@ -94,19 +90,19 @@
      (!cp-begin-impl (car body) (cdr body) env))))
 
  (define !cp-pair (lambda (pair env)
-   (case (car pair)
-     ((quote) (!cp-quote (cdr pair) env))
-     ((begin) (!cp-begin (cdr pair) env))
-     ((lambda) )
-     ((when-compile) )
-     ((let) (let ((bindings (car (cdr pair)))
-                  (body     (cdr (cdr pair))))
-              (!cp-let bindings body env)))
-
-     ;; etc
-     (else
-      (if (!env-quote? env)
-          (!cp-list pair env)
+   (if (!env-quote? env)
+       (!cp-list pair env)
+     (case (car pair)
+       ((quote) (!cp-quote (cdr pair) env))
+       ((begin) (!cp-begin (cdr pair) env))
+       ((lambda) )
+       ((when-compile) )
+       ((let) (let ((bindings (car (cdr pair)))
+                    (body     (cdr (cdr pair))))
+                (!cp-let bindings body env)))
+       
+       ;; etc
+       (else
         (!cp-apply (car pair) (cdr pair) env))))))
 
  (define !cp-symbol (lambda (sym env)

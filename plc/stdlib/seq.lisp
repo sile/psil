@@ -1,4 +1,9 @@
 (begin
+ (define cadr (lambda (lst) (car (cdr lst))))
+ (define caddr (lambda (lst) (cadr (cdr lst))))
+ (define cadddr (lambda (lst) (caddr (cdr lst))))
+ (define caddddr (lambda (lst) (cadddr (cdr lst))))
+
  (define memv (lambda (obj list)
                 (if (pair? list)
                     (if (eqv? obj (car list))
