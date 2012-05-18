@@ -259,6 +259,20 @@ namespace psil {
         push(env, Cons::make(car, cdr));
       }
 
+      static void _set_car(Environment& env, uint1 arity) {
+        Object* val = pop(env);
+        Cons* cons = to<Cons>(pop(env));
+        cons->setCar(val);
+        push(env, Undef::make());
+      }
+
+      static void _set_cdr(Environment& env, uint1 arity) {
+        Object* val = pop(env);
+        Cons* cons = to<Cons>(pop(env));
+        cons->setCdr(val);
+        push(env, Undef::make());
+      }
+
       static void _integer_to_char(Environment& env, uint1 arity) {
         push(env, Char::make(to<Int>(pop(env))->getValue()));
       }
@@ -459,6 +473,8 @@ namespace psil {
         reg("CAR", _car);
         reg("CDR", _cdr);
         reg("CONS", _cons);
+        reg("SET-CAR!", _set_car);
+        reg("SET-CDR!", _set_cdr);
         reg("INTEGER->CHAR", _integer_to_char);
         reg("CHAR->INTEGER", _char_to_integer);
         reg("CHAR-UPCASE", _char_upcase);

@@ -161,6 +161,8 @@ namespace psil {
         Object* getCar() const { return car; }
         Object* getCdr() const { return cdr; }
         
+        void setCar(Object* car) { this->car = car; }
+        void setCdr(Object* cdr) { this->cdr = cdr; }
       private:
         Object* car;
         Object* cdr;

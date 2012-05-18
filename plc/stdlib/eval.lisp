@@ -62,21 +62,22 @@
 ;;                COLLECT (@set!-nopush var val~ t))
 ;;          (compile-impl body)))))
 
+ (define !make-local-bind (lambda (var read-only? env)
+   (list 'local var (!env-get-and-incr-local-var-index env) read-only?)))
+ 
  (define !cp-let (lambda (bindings body env)
-   ;; TODO:
-  ))
-
-;; (defun @begin (exps)
-;;   (if (null exps)
-;;       (@undef)
-;;     (labels ((recur (exp rest)
-;;                (cond ((and (not *toplevel*) (consp exp) (eq :define (car exp)))
-;;                       (@inner-define (cdr exp) rest))
-;;                      (rest
-;;                       ($ (compile-no-tail exp) :drop (recur (car rest) (cdr rest))))
-;;                      (t
-;;                       (compile-impl exp)))))
-;;       (recur (car exps) (cdr exps)))))
+   (let* ((body (cons 'begin body))  ; implicit body
+          (vars (map car bindings))
+          (closed-vars '()) ; (intersection (!inspect-closed-vars body) vars)) ; TODO:
+          (env (!env-toplevel env #f))
+          (old-bindings (!env-get-bindings env))
+          (new-bindings (append (map (lambda (var)
+                                       (!make-local-bind var (not (memv var closed-vars))))
+                                     vars)
+                                old-bindings))
+          (env (!env-bindings env new-bindings)))
+     (compile (list 'quote new-bindings) env)
+  )))
 
  (define !cp-begin-impl (lambda (exp rest env)
    (if (and (not (!env-toplevel? env))
@@ -100,7 +101,7 @@
      ((when-compile) )
      ((let) (let ((bindings (car (cdr pair)))
                   (body     (cdr (cdr pair))))
-              (!cp-let args body env)))
+              (!cp-let bindings body env)))
 
      ;; etc
      (else
@@ -125,7 +126,15 @@
    '(
      (quote . #f)
      (toplevel . #t)
+     (bindings . '())
+     (local-var-index . 0)
      )))
+
+ (define !env-get-and-incr-local-var-index (lambda (env)
+   (let ((x (assv 'local-var-index env))
+         (n (cdr x)))
+     (set-car! x (1+ n))
+     n)))
 
  (define !env-quote (lambda (env bool)
    (cons (cons 'quote bool) env)))
@@ -140,6 +149,12 @@
  (define !env-toplevel? (lambda (env)
    (let ((x (assv 'toplevel env)))
      (and x (cdr x)))))
+
+ (define !env-get-bindings (lambda (env)
+   (assv 'bindings env)))
+ 
+ (define !env-bindings (lambda (env bindings)
+   (cons (cons 'bindings bindings) env)))
 
  (define compile (lambda (exp env)
    (case (type-of exp)

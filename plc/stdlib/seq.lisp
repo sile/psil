@@ -145,4 +145,11 @@
      (if (eqv? obj (car (car lst)))
          (car lst)
        (assv obj (cdr lst))))))
+
+ (define intersection (lambda (lst1 lst2)
+   (if (null? lst1)
+       '()
+     (if (memv (car lst1) lst2)
+         (cons (car lst1) (intersection (cdr lst1) lst2))
+       (intersection (cdr lst1) lst2)))))
  )
