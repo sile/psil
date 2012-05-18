@@ -72,11 +72,13 @@
           (env (!env-toplevel env #f))
           (old-bindings (!env-get-bindings env))
           (new-bindings (append (map (lambda (var)
-                                       (!make-local-bind var (not (memv var closed-vars))))
+                                       ;; XXX: closeできていない
+                                       (!make-local-bind var (not (memv var closed-vars))
+                                                         env))
                                      vars)
                                 old-bindings))
           (env (!env-bindings env new-bindings)))
-     (compile (list 'quote new-bindings) env)
+     (compile (list 'quote closed-vars) env)
   )))
 
  (define !cp-begin-impl (lambda (exp rest env)
@@ -126,15 +128,15 @@
    '(
      (quote . #f)
      (toplevel . #t)
-     (bindings . '())
+     (bindings . ())
      (local-var-index . 0)
      )))
-
+ 
  (define !env-get-and-incr-local-var-index (lambda (env)
-   (let ((x (assv 'local-var-index env))
-         (n (cdr x)))
-     (set-car! x (1+ n))
-     n)))
+   (let* ((x (assv 'local-var-index env))
+          (n (cdr x)))
+     (set-cdr! x (+ n 1))
+     x)))
 
  (define !env-quote (lambda (env bool)
    (cons (cons 'quote bool) env)))
@@ -151,7 +153,7 @@
      (and x (cdr x)))))
 
  (define !env-get-bindings (lambda (env)
-   (assv 'bindings env)))
+   (cdr (assv 'bindings env))))
  
  (define !env-bindings (lambda (env bindings)
    (cons (cons 'bindings bindings) env)))
