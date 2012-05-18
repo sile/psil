@@ -7,8 +7,9 @@
  (define __true__ 6)
  (define __false__ 7)
  (define __undef__ 9)
- (define __apply__ 101)
  (define __symget__ 50)
+ (define __apply__ 101)
+ (define __drop__ 180)
 
  (define !cp-number (lambda (n)
    (flat-list __int__ (int->list n))))
@@ -45,10 +46,62 @@
  (define !cp-list (lambda (pair env)
    (compile (!cp-list-impl pair) (!env-quote env #f))))
 
+;; (defun @let (exps)
+;;   (destructuring-bind (bindings . body) exps
+;;     (let* ((body `(:begin ,@body))
+;;            (vars (mapcar #'car bindings))
+;;            (closed-vars (intersection (nth-value 1 (@inspect body)) vars))
+;;            (*toplevel* nil)
+;;            (old-bindings *bindings*)
+;;            (*bindings* (append (loop FOR var IN vars
+;;                                      COLLECT (local-bind var (not (find var closed-vars))))
+;;                                *bindings*)))
+;;       ($ (loop FOR (var val) IN bindings
+;;                FOR val~ = (let ((*bindings* old-bindings)) 
+;;                             (compile-no-tail val))
+;;                COLLECT (@set!-nopush var val~ t))
+;;          (compile-impl body)))))
+
+ (define !cp-let (lambda (bindings body env)
+   ;; TODO:
+  ))
+
+;; (defun @begin (exps)
+;;   (if (null exps)
+;;       (@undef)
+;;     (labels ((recur (exp rest)
+;;                (cond ((and (not *toplevel*) (consp exp) (eq :define (car exp)))
+;;                       (@inner-define (cdr exp) rest))
+;;                      (rest
+;;                       ($ (compile-no-tail exp) :drop (recur (car rest) (cdr rest))))
+;;                      (t
+;;                       (compile-impl exp)))))
+;;       (recur (car exps) (cdr exps)))))
+
+ (define !cp-begin-impl (lambda (exp rest env)
+   (if (and (not (!env-toplevel? env))
+            (pair? exp)
+            (eq? (car exp) 'define))
+       (!cp-inner-define (cdr exp) rest env) ; TODO:
+     (if (not (null? rest))
+         (flat-list (compile exp env) __drop__ (!cp-begin-impl (car rest) (cdr rest) env))
+       (compile exp env)))))
+
+ (define !cp-begin (lambda (body env)
+   (if (null? body)
+       (!cp-undef)
+     (!cp-begin-impl (car body) (cdr body) env))))
+
  (define !cp-pair (lambda (pair env)
    (case (car pair)
      ((quote) (!cp-quote (cdr pair) env))
+     ((begin) (!cp-begin (cdr pair) env))
      ((lambda) )
+     ((when-compile) )
+     ((let) (let ((bindings (car (cdr pair)))
+                  (body     (cdr (cdr pair))))
+              (!cp-let args body env)))
+
      ;; etc
      (else
       (if (!env-quote? env)
@@ -71,6 +124,7 @@
  (define !init-env (lambda ()
    '(
      (quote . #f)
+     (toplevel . #t)
      )))
 
  (define !env-quote (lambda (env bool)
@@ -78,6 +132,13 @@
 
  (define !env-quote? (lambda (env)
    (let ((x (assv 'quote env)))
+     (and x (cdr x)))))
+
+ (define !env-toplevel (lambda (env bool)
+   (cons (cons 'toplevel bool) env)))
+
+ (define !env-toplevel? (lambda (env)
+   (let ((x (assv 'toplevel env)))
      (and x (cdr x)))))
 
  (define compile (lambda (exp env)
