@@ -52,4 +52,21 @@
  (define write-byte-list (lambda (lst)
    (for-each (lambda (byte) (write-byte byte))
              lst)))
+
+ (define read (lambda port
+   (let ((port (if (null? port) (current-input-port) port)))
+     (!parse-port port))))
+
+ (define load-read-contents (lambda ()
+   (let ((exp (read)))
+     (if (eof-object? exp)
+         '()
+       (cons exp (load-read-contents))))))
+
+ (define load (lambda (filepath)
+                (with-input-from-file 
+                 filepath
+                 (lambda ()
+                   (let ((exps (cons 'begin (load-read-contents))))
+                     (eval exps))))))
  )
