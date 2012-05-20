@@ -37,7 +37,6 @@
    ;; TODO: handling tail call
    (flat-list (map (lambda (a) (compile a env)) args) (compile fn env) __apply__ (length args))))
 
-
  (define !cp-symbol-self (lambda (sym env)
    ;; TODO: handling local variable
    (let ((name (map char->integer (string->list (symbol->string sym)))))
@@ -126,7 +125,7 @@
          (!normalize-args (cdr args) (+ arity 1) (cons (car args) acc))
        (list (reverse (cons args acc)) (+ arity 1) #t)))))
 
- (define !cp-lambda (lambda (args body env)
+ (define !cp-lambda (lambda (args body env toplevel?)
    (let* ((body (cons 'begin body))
 
           (tmp1 (!normalize-args args 0 '()))
@@ -144,6 +143,7 @@
           (closing-var-indices (map (lambda (v) (!local-bind-index (!find-local-bind v env)))
                                     closing-vars))
           (closed-args (intersection mutable-free-vars args))
+          (env (!env-toplevel env toplevel?))
           (env (!env-reset-local-var-index env))
           (new-bindings (append (map (lambda (var) 
                                        (!make-local-bind var (not (memv var closed-args)) env))
@@ -161,6 +161,11 @@
                   __lambda__ (length closing-vars) arity
                   local-var-count (if vararg? 1 0)
                   (int->list (+ 1 (length body~))) body~ __return__)))))
+
+ (define !cp-inner-define (lambda (exps subsequent-exps env)
+   (let ((var (car exps))
+         (val (cadr exps)))
+     (compile (append (list 'let (list (list var val))) subsequent-exps) env))))
 
  (define !cp-begin-impl (lambda (exp rest env)
    (if (and (not (!env-toplevel? env))
@@ -184,19 +189,27 @@
           (else~ (flat-list (compile else env) (!fixjump (length then~)))))
      (flat-list (compile exp env) (!fixjump-if (length else~)) else~ then~))))
 
+ (define !cp-define (lambda (var val env)
+   (flat-list (compile val env) (!cp-symbol-self var env) __symset__ (!cp-undef))))
+
  (define !cp-pair (lambda (pair env)
    (if (!env-quote? env)
        (!cp-list pair env)
      (case (car pair)
        ((quote) (!cp-quote (cdr pair) env))
        ((begin) (!cp-begin (cdr pair) env))
-       ((lambda) (!cp-lambda (cadr pair) (cddr pair) env))
+       ((lambda) (!cp-lambda (cadr pair) (cddr pair) env #f))
+       ((toplevel-lambda) (!cp-lambda (cadr pair) (cddr pair) env #t))
        ((let) (let ((bindings (car (cdr pair)))
                     (body     (cdr (cdr pair))))
                 (!cp-let bindings body env)))
        ((if) (if (= (length (cdr pair)) 2)
                  (!cp-if (cadr pair) (caddr pair) '(undef) env)
                (!cp-if (cadr pair) (caddr pair) (cadddr pair) env)))
+       ((define) (!cp-define (cadr pair) (caddr pair) env))
+       ((set!)) ; TODO:
+       ;; TODO: macro
+
        ;; etc
        (else
         (!cp-apply (car pair) (cdr pair) env))))))
@@ -328,7 +341,7 @@
      (else     (!cp-undef)))))
 
  (define eval (lambda (exp . environment-specifier)
-   (let ((bytecode-list (compile (list (list 'lambda '()  exp)) ; toplevel-lambda
+   (let ((bytecode-list (compile (list (list 'toplevel-lambda '()  exp)) ; toplevel-lambda
                                  (!init-env))))
      (__eval bytecode-list))))
  )
