@@ -93,7 +93,7 @@
  (define !cp-let (lambda (bindings body env)
    (let* ((body (cons 'begin body))  ; implicit body
           (vars (map car bindings))
-          (closed-vars '()) ; (intersection (!inspect-closed-vars body) vars)) ; TODO:
+          (closed-vars (intersection (cadr (!inspect body)) vars))
           (env (!env-toplevel env #f))
           (old-bindings (!env-get-bindings env))
           (new-bindings (append (map (lambda (var)
@@ -134,14 +134,14 @@
           (arity (cadr tmp1))
           (vararg? (caddr tmp1))
 
-          (tmp2 (!inspect body env))
+          (tmp2 (!inspect body))
           (free-vars (car tmp2))
           (mutable-free-vars (cadr tmp2))
           
           (binded-vars (map !local-bind-var (!env-get-bindings env)))
-          (closing-vars (intersection free-vars 
+          (closing-vars (intersection free-vars
                                       (set-difference binded-vars args)))
-          (closing-var-indices (map (lambda (v) (!local-bind-index (!find-local-bind v) env))
+          (closing-var-indices (map (lambda (v) (!local-bind-index (!find-local-bind v env)))
                                     closing-vars))
           (closed-args (intersection mutable-free-vars args))
           (env (!env-reset-local-var-index env))
@@ -256,10 +256,63 @@
  (define !env-bindings (lambda (env bindings)
    (cons (cons 'bindings bindings) env)))
 
- (define !inspect (lambda (exp env)
-  ;; TODO:
-  (list '() '())
-  ))
+ ;;
+ (define !state-binded-vars-pair (lambda (state) (assv 'binded-vars state)))
+ (define !state-binded-vars (lambda (state) (cdr (!state-binded-vars-pair state))))
+ 
+ (define !state-mutable-free-vars-pair (lambda (state) (assv 'mutable-free-vars state)))
+ (define !state-mutable-free-vars (lambda (state) (cdr (!state-mutable-free-vars-pair state))))
+ 
+ (define !state-free-vars-pair (lambda (state) (assv 'free-vars state)))
+ (define !state-free-vars (lambda (state) (cdr (!state-free-vars-pair state))))
+ 
+ (define !inspect (lambda (exp)
+   (let ((state (list (cons 'free-vars '())
+                      (cons 'mutable-free-vars '())
+                      (cons 'binded-vars '()))))
+     (!inspect-impl exp state)
+     (list (!state-free-vars state)
+           (!state-mutable-free-vars state)))))
+
+ (define !inspect-impl (lambda (exp state)
+   (case (type-of exp)
+     ((symbol) (!inspect-symbol exp state))
+     ((pair)   (!inspect-list exp state)))))
+
+ (define !inspect-symbol (lambda (exp state)
+   (if (and (not (memv exp (!state-binded-vars state)))
+            (not (memv exp (!state-free-vars state))))
+       (set-cdr! (!state-free-vars-pair state) 
+                 (cons exp (!state-free-vars state))))))
+
+ (define !inspect-list (lambda (pair state)
+   (let ((hd (car pair))
+         (tl (cdr pair)))
+     (case hd
+       ((quote))
+       ((if begin) (for-each (lambda (exp) (!inspect-impl exp state)) tl))
+       ((lambda) (let* ((args (car tl))
+                        (body (cdr tl))
+                        (new-binded-vars (append (!normalize-args args 0 '())
+                                                 (!state-binded-vars state)))
+                        (new-state (cons (cons 'binded-vars new-binded-vars)
+                                         state)))
+                   (!inspect-impl (cons 'begin body) new-state)))
+       ((define) (let ((var (car tl))
+                       (val (cadr tl)))
+                   (!inspect-impl val state)
+                   ;; TODO: toplevelかどうかを考慮する
+                   (set-cdr! (!state-binded-vars-pair state)
+                             (cons var (!state-binded-vars state)))))
+       ((set!) (let ((var (car tl))
+                     (val (cadr tl)))
+                 (!inspect-impl val state)
+                 (if (not (memv var (!state-binded-vars state)))
+                     (let ((free-vars-pair (!state-free-vars-pair state))
+                           (mutable-free-vars-pair (!state-mutable-free-vars-pair state)))
+                       (set-cdr! free-vars-pair (cons var (cdr free-vars-pair)))
+                       (set-cdr! mutable-free-vars-pair (cons var (cdr mutable-free-vars-pair)))))))
+       (else (for-each (lambda (exp) (!inspect-impl exp state)) tl))))))
 
  (define compile (lambda (exp env)
    (case (type-of exp)
