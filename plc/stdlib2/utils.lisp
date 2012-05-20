@@ -1,4 +1,4 @@
-(define-macro or (lambda exps
+(define or (macro-lambda exps
   (if (null? exps)
       #f
     (let ((exp (car exps))
@@ -6,4 +6,3 @@
           (it (gensym)))
       (list 'let (list (list it exp))
             (list 'if it it (cons 'or rest)))))))
-
