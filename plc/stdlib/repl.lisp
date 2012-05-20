@@ -6,5 +6,6 @@
          (begin (write (eval exp))
                 (repl))))))
 
+ (load "../plc/stdlib2/utils.lisp")
  (repl)
  )
