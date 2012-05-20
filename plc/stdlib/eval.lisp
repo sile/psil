@@ -11,10 +11,12 @@
  (define __symset__ 51)
 
  (define __apply__ 101)
+ (define __return__ 103)
  (define __fix_jump__ 152)
  (define __fix_jump_if__ 153)
  
  (define __drop__ 180)
+ (define __lambda__ 201)
  (define __localget__ 202)
  (define __localset__ 203)
  (define __local_mkref__ 204)
@@ -108,6 +110,14 @@
            bindings)
       (compile body env)))))
 
+ (define !adjust-args (lambda (args env)
+   (map (lambda (a)
+              (let ((it (!find-local-bind a env)))
+                (if (!local-bind-readonly? it)
+                    '()
+                  (flat-list __local_toref__ (!local-bind-index it)))))
+        args)))
+                    
  ;; 可変長引数対策
  (define !normalize-args (lambda (args arity acc)
    (if (null? args)
@@ -131,12 +141,26 @@
           (binded-vars (map !local-bind-var (!env-get-bindings env)))
           (closing-vars (intersection free-vars 
                                       (set-difference binded-vars args)))
-        
-          )
+          (closing-var-indices (map (lambda (v) (!local-bind-index (!find-local-bind v) env))
+                                    closing-vars))
+          (closed-args (intersection mutable-free-vars args))
+          (env (!env-reset-local-var-index env))
+          (new-bindings (append (map (lambda (var) 
+                                       (!make-local-bind var (not (memv var closed-args)) env))
+                                     args)
+                                (map (lambda (var) 
+                                       (!make-local-bind var (!local-bind-readonly? (!find-local-bind var env)) env))
+                                     closing-vars)
+                                (!env-get-bindings env)))
+          (env (!env-bindings env new-bindings)))
 
-     (write (list args arity vararg? free-vars mutable-free-vars
-                  binded-vars closing-vars))
-     (compile '(undef) env))))
+     (let ((body~ (flat-list (!adjust-args args env)
+                             (compile body env)))
+           (local-var-count (- (- (!env-get-local-var-index env) (length args)) (length closing-vars))))
+       (flat-list (map (lambda (i) (flat-list __localget__ i)) (reverse closing-var-indices))
+                  __lambda__ (length closing-vars) arity
+                  local-var-count (if vararg? 1 0)
+                  (int->list (+ 1 (length body~))) body~ __return__)))))
 
  (define !cp-begin-impl (lambda (exp rest env)
    (if (and (not (!env-toplevel? env))
@@ -198,11 +222,19 @@
      (local-var-index . 0)
      )))
  
+ (define !env-reset-local-var-index (lambda (env)
+   (cons (cons 'local-var-index 0) env)))
+
+ (define !env-get-local-var-index (lambda (env)
+   (let* ((x (assv 'local-var-index env))
+          (n (cdr x)))
+     n)))
+
  (define !env-get-and-incr-local-var-index (lambda (env)
    (let* ((x (assv 'local-var-index env))
           (n (cdr x)))
      (set-cdr! x (+ n 1))
-     (+ n 1)))) ; TODO: evalの冒頭をtoplevel-lambdaで囲んだらなくす
+     n)))
 
  (define !env-quote (lambda (env bool)
    (cons (cons 'quote bool) env)))
@@ -243,6 +275,7 @@
      (else     (!cp-undef)))))
 
  (define eval (lambda (exp . environment-specifier)
-   (let ((bytecode-list (compile exp (!init-env))))
+   (let ((bytecode-list (compile (list (list 'lambda '()  exp)) ; toplevel-lambda
+                                 (!init-env))))
      (__eval bytecode-list))))
  )
