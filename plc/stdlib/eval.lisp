@@ -108,6 +108,36 @@
            bindings)
       (compile body env)))))
 
+ ;; 可変長引数対策
+ (define !normalize-args (lambda (args arity acc)
+   (if (null? args)
+       (list (reverse acc) arity #f)
+     (if (pair? args)
+         (!normalize-args (cdr args) (+ arity 1) (cons (car args) acc))
+       (list (reverse (cons args acc)) (+ arity 1) #t)))))
+
+ (define !cp-lambda (lambda (args body env)
+   (let* ((body (cons 'begin body))
+
+          (tmp1 (!normalize-args args 0 '()))
+          (args (car tmp1))
+          (arity (cadr tmp1))
+          (vararg? (caddr tmp1))
+
+          (tmp2 (!inspect body env))
+          (free-vars (car tmp2))
+          (mutable-free-vars (cadr tmp2))
+          
+          (binded-vars (map !local-bind-var (!env-get-bindings env)))
+          (closing-vars (intersection free-vars 
+                                      (set-difference binded-vars args)))
+        
+          )
+
+     (write (list args arity vararg? free-vars mutable-free-vars
+                  binded-vars closing-vars))
+     (compile '(undef) env))))
+
  (define !cp-begin-impl (lambda (exp rest env)
    (if (and (not (!env-toplevel? env))
             (pair? exp)
@@ -136,7 +166,7 @@
      (case (car pair)
        ((quote) (!cp-quote (cdr pair) env))
        ((begin) (!cp-begin (cdr pair) env))
-       ((lambda) )
+       ((lambda) (!cp-lambda (cadr pair) (cddr pair) env))
        ((let) (let ((bindings (car (cdr pair)))
                     (body     (cdr (cdr pair))))
                 (!cp-let bindings body env)))
@@ -172,7 +202,7 @@
    (let* ((x (assv 'local-var-index env))
           (n (cdr x)))
      (set-cdr! x (+ n 1))
-     (+ n 1))))
+     (+ n 1)))) ; TODO: evalの冒頭をtoplevel-lambdaで囲んだらなくす
 
  (define !env-quote (lambda (env bool)
    (cons (cons 'quote bool) env)))
@@ -193,6 +223,11 @@
  
  (define !env-bindings (lambda (env bindings)
    (cons (cons 'bindings bindings) env)))
+
+ (define !inspect (lambda (exp env)
+  ;; TODO:
+  (list '() '())
+  ))
 
  (define compile (lambda (exp env)
    (case (type-of exp)

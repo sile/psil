@@ -4,6 +4,10 @@
  (define cadddr (lambda (lst) (caddr (cdr lst))))
  (define caddddr (lambda (lst) (cadddr (cdr lst))))
 
+ (define cddr (lambda (lst) (cdr (cdr lst))))
+ (define cdddr (lambda (lst) (cdr (cddr lst))))
+ (define cddddr (lambda (lst) (cdr (cdddr lst))))
+
  (define memv (lambda (obj list)
                 (if (pair? list)
                     (if (eqv? obj (car list))
@@ -164,4 +168,11 @@
      (if (memv (car lst1) lst2)
          (cons (car lst1) (intersection (cdr lst1) lst2))
        (intersection (cdr lst1) lst2)))))
+
+ (define set-difference (lambda (lst1 lst2)
+   (if (null? lst1)
+       '()
+     (if (memv (car lst1) lst2)
+         (set-difference (cdr lst1) lst2)
+       (cons (car lst1) (set-difference (cdr lst1) lst2))))))
  )
