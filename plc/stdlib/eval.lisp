@@ -11,6 +11,9 @@
  (define __symset__ 51)
 
  (define __apply__ 101)
+ (define __fix_jump__ 152)
+ (define __fix_jump_if__ 153)
+ 
  (define __drop__ 180)
  (define __localget__ 202)
  (define __localset__ 203)
@@ -119,6 +122,14 @@
        (!cp-undef)
      (!cp-begin-impl (car body) (cdr body) env))))
 
+ (define !fixjump (lambda (offset) (flat-list __fix_jump__ (short->list offset))))
+ (define !fixjump-if (lambda (offset) (flat-list __fix_jump_if__ (short->list offset))))
+
+ (define !cp-if (lambda (exp then else env)
+   (let* ((then~ (compile then env))
+          (else~ (flat-list (compile else env) (!fixjump (length then~)))))
+     (flat-list (compile exp env) (!fixjump-if (length else~)) else~ then~))))
+
  (define !cp-pair (lambda (pair env)
    (if (!env-quote? env)
        (!cp-list pair env)
@@ -126,11 +137,12 @@
        ((quote) (!cp-quote (cdr pair) env))
        ((begin) (!cp-begin (cdr pair) env))
        ((lambda) )
-       ((when-compile) )
        ((let) (let ((bindings (car (cdr pair)))
                     (body     (cdr (cdr pair))))
                 (!cp-let bindings body env)))
-       
+       ((if) (if (= (length (cdr pair)) 2)
+                 (!cp-if (cadr pair) (caddr pair) '(undef) env)
+               (!cp-if (cadr pair) (caddr pair) (cadddr pair) env)))
        ;; etc
        (else
         (!cp-apply (car pair) (cdr pair) env))))))
