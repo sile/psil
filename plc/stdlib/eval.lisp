@@ -195,6 +195,16 @@
  (define !cp-set! (lambda (var val env)
    (flat-list (!cp-set-nopush var (compile val env) #f env) (!cp-undef))))
 
+ (define !macro-function? (lambda (exp)
+   ;; XXX: マクロのこの表現方法は暫定 => symbolに専用のフィールドを持たせるべき
+   (and (symbol? exp)
+        (pair? (symbol-value exp))
+        (eq (car (symbol-value exp)) 'macro-lambda))))
+       
+ (define !macro-apply (lambda (macro-fn args)
+   (let ((fn (cdr (symbol-value macro-fn))))
+     (apply fn args))))
+
  (define !cp-pair (lambda (pair env)
    (if (!env-quote? env)
        (!cp-list pair env)
@@ -210,14 +220,32 @@
                  (!cp-if (cadr pair) (caddr pair) '(undef) env)
                (!cp-if (cadr pair) (caddr pair) (cadddr pair) env)))
        ((define) (!cp-define (cadr pair) (caddr pair) env))
+       ((define-macro) (!cp-define (cadr pair) (list 'cons ''macro-lambda (caddr pair)) env))
        ((set!) (let ((var (car (cdr pair)))
                      (val (cadr (cdr pair))))
                  (!cp-set! var val env)))
-       ;; TODO: macro
-
        ;; etc
        (else
-        (!cp-apply (car pair) (cdr pair) env))))))
+        (let ((fn (car pair))
+              (args (cdr pair)))
+          (if (!macro-function? fn) ;; XXX: とりあえずローカルなマクロ関数は非対応
+              (compile (!macro-apply fn args) env)
+            (!cp-apply fn args env))))))))
+
+ ;; XXX:
+ (define gensym 0)
+ (let ((i -1))
+   (set! gensym (lambda ()
+                  (set! i (+ i 1))
+                  (string->symbol (list->string (append (string->list "__TMP")
+                                                        (integer->list i)))))))
+ ;; XXX:
+ (define integer->list-impl (lambda (n)
+   (let ((a (/ n 10))
+         (b (modulo n 10)))
+     (cons (digit->char b)
+           (if (= a 0) '() (integer->list-impl a))))))
+ (define integer->list (lambda (n) (reverse (integer->list-impl n))))
 
  (define !cp-symbol (lambda (sym env)
    (!cp-symbol-value sym env)))
@@ -316,12 +344,13 @@
                         (new-state (cons (cons 'binded-vars new-binded-vars)
                                          state)))
                    (!inspect-impl (cons 'begin body) new-state)))
-       ((define) (let ((var (car tl))
-                       (val (cadr tl)))
-                   (!inspect-impl val state)
-                   ;; TODO: toplevelかどうかを考慮する
-                   (set-cdr! (!state-binded-vars-pair state)
-                             (cons var (!state-binded-vars state)))))
+       ((define)
+        (let ((var (car tl))
+              (val (cadr tl)))
+          (!inspect-impl val state)
+          ;; TODO: toplevelかどうかを考慮する
+          (set-cdr! (!state-binded-vars-pair state)
+                    (cons var (!state-binded-vars state)))))
        ((set!) (let ((var (car tl))
                      (val (cadr tl)))
                  (!inspect-impl val state)
@@ -330,7 +359,9 @@
                            (mutable-free-vars-pair (!state-mutable-free-vars-pair state)))
                        (set-cdr! free-vars-pair (cons var (cdr free-vars-pair)))
                        (set-cdr! mutable-free-vars-pair (cons var (cdr mutable-free-vars-pair)))))))
-       (else (for-each (lambda (exp) (!inspect-impl exp state)) tl))))))
+       (else (if (!macro-function? hd)
+                 (!inspect-impl (!macro-apply hd tl) state)
+               (for-each (lambda (exp) (!inspect-impl exp state)) tl)))))))
 
  (define compile (lambda (exp env)
    (case (type-of exp)

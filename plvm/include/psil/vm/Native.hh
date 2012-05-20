@@ -428,6 +428,10 @@ namespace psil {
         push(env, String::make(to<Symbol>(pop(env))->getName()));
       }
 
+      static void _symbol_value(Environment& env, uint1 arity) {
+        push(env, to<Symbol>(pop(env))->getValue());
+      }
+
       static void registerNatives() {
         reg("EQ", _eq);
         reg("EQ?", _eq);
@@ -489,6 +493,7 @@ namespace psil {
         reg("STRING-LENGTH", _string_length);
         reg("UNDEF", _undef);
         reg("SYMBOL->STRING", _symbol_to_string);
+        reg("SYMBOL-VALUE", _symbol_value);
 
         regval("STDIN", &Port::STDIN);
         regval("STDOUT", &Port::STDOUT);
