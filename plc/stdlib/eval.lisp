@@ -361,7 +361,7 @@
                        (set-cdr! mutable-free-vars-pair (cons var (cdr mutable-free-vars-pair)))))))
        (else (if (!macro-function? hd)
                  (!inspect-impl (!macro-apply hd tl) state)
-               (for-each (lambda (exp) (!inspect-impl exp state)) tl)))))))
+               (for-each (lambda (exp) (!inspect-impl exp state)) pair)))))))
 
  (define compile (lambda (exp env)
    (case (type-of exp)
