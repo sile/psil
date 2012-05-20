@@ -11,6 +11,13 @@
                       (memv obj (cdr list)))
                   #f)))
 
+ (define member-if (lambda (fn list)
+                     (if (pair? list)
+                         (if (fn (car list))
+                             list
+                           (member-if fn (cdr list)))
+                       #f)))
+
  (define length (lambda (list)
                   (if (pair? list)
                       (+ 1 (length (cdr list)))

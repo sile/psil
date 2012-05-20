@@ -8,8 +8,16 @@
  (define __false__ 7)
  (define __undef__ 9)
  (define __symget__ 50)
+ (define __symset__ 51)
+
  (define __apply__ 101)
  (define __drop__ 180)
+ (define __localget__ 202)
+ (define __localset__ 203)
+ (define __local_mkref__ 204)
+ (define __local_refget__ 205)
+ (define __local_refset__ 206)
+ (define __local_toref__ 207)
 
  (define !cp-number (lambda (n)
    (flat-list __int__ (int->list n))))
@@ -24,10 +32,6 @@
    ;; TODO: handling tail call
    (flat-list (map (lambda (a) (compile a env)) args) (compile fn env) __apply__ (length args))))
 
- (define !cp-symbol-value (lambda (sym env)
-   ;; TODO: handling local variable
-   (let ((name (map char->integer (string->list (symbol->string sym)))))
-     (flat-list __symbol__ (short->list (length name)) name __symget__))))
 
  (define !cp-symbol-self (lambda (sym env)
    ;; TODO: handling local variable
@@ -46,14 +50,40 @@
  (define !cp-list (lambda (pair env)
    (compile (!cp-list-impl pair) (!env-quote env #f))))
 
- (define !cp-set-nopush (lambda (var val initial)
-   ;; TODO:
-   '()
-   ;; TODO: 合わせてシンボル参照部分もローカルも考慮するように変更する
-  ))
+ (define !cp-intern (lambda (sym)
+   (let ((name (map char->integer (string->list (symbol->string sym)))))
+     (flat-list __symbol__ (short->list (length name)) name __symget__))))
+
+ (define !cp-symbol-value (lambda (sym env)
+   (let ((it (!find-local-bind sym env)))
+     (if it
+         (if (!local-bind-readonly? it)
+             (flat-list __localget__ (!local-bind-index it))
+           (flat-list __local_refget__ (!local-bind-index it)))
+       (!cp-intern sym)))))
+
+ (define !cp-set-nopush (lambda (var val initial env)
+   (let ((it (!find-local-bind var env)))
+     (if it
+         (let ((op (if (!local-bind-readonly? it)
+                       __localset__
+                     (if initial
+                         __local_mkref__
+                       __local_refset))))
+           (flat-list val op (!local-bind-index it)))
+       (flat-list val (!cp-symbol-self var env) __symset__)))))
 
  (define !make-local-bind (lambda (var read-only? env)
    (list 'local var (!env-get-and-incr-local-var-index env) read-only?)))
+
+ (define !local-bind-readonly? (lambda (bind) (cadddr bind)))
+ (define !local-bind-index (lambda (bind) (caddr bind)))
+ (define !local-bind-var (lambda (bind) (cadr bind)))
+ (define !find-local-bind (lambda (var env)
+   (let ((it (member-if (lambda (bind) 
+                          (eq? var (!local-bind-var bind)))
+                        (!env-get-bindings env))))
+     (and it (car it)))))
  
  (define !cp-let (lambda (bindings body env)
    (let* ((body (cons 'begin body))  ; implicit body
@@ -71,7 +101,7 @@
              (let ((var (car bind))
                    (val (let ((env (!env-bindings env old-bindings)))
                           (compile (cadr bind) env))))
-               (!cp-set-nopush var val #t)))
+               (!cp-set-nopush var val #t env)))
            bindings)
       (compile body env)))))
 
@@ -130,7 +160,7 @@
    (let* ((x (assv 'local-var-index env))
           (n (cdr x)))
      (set-cdr! x (+ n 1))
-     n)))
+     (+ n 1))))
 
  (define !env-quote (lambda (env bool)
    (cons (cons 'quote bool) env)))
