@@ -73,7 +73,7 @@
                        __localset__
                      (if initial
                          __local_mkref__
-                       __local_refset))))
+                       __local_refset__))))
            (flat-list val op (!local-bind-index it)))
        (flat-list val (!cp-symbol-self var env) __symset__)))))
 
@@ -171,7 +171,7 @@
    (if (and (not (!env-toplevel? env))
             (pair? exp)
             (eq? (car exp) 'define))
-       (!cp-inner-define (cdr exp) rest env) ; TODO:
+       (!cp-inner-define (cdr exp) rest env) 
      (if (not (null? rest))
          (flat-list (compile exp env) __drop__ (!cp-begin-impl (car rest) (cdr rest) env))
        (compile exp env)))))
@@ -192,6 +192,9 @@
  (define !cp-define (lambda (var val env)
    (flat-list (compile val env) (!cp-symbol-self var env) __symset__ (!cp-undef))))
 
+ (define !cp-set! (lambda (var val env)
+   (flat-list (!cp-set-nopush var (compile val env) #f env) (!cp-undef))))
+
  (define !cp-pair (lambda (pair env)
    (if (!env-quote? env)
        (!cp-list pair env)
@@ -207,7 +210,9 @@
                  (!cp-if (cadr pair) (caddr pair) '(undef) env)
                (!cp-if (cadr pair) (caddr pair) (cadddr pair) env)))
        ((define) (!cp-define (cadr pair) (caddr pair) env))
-       ((set!)) ; TODO:
+       ((set!) (let ((var (car (cdr pair)))
+                     (val (cadr (cdr pair))))
+                 (!cp-set! var val env)))
        ;; TODO: macro
 
        ;; etc
