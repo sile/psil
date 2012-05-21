@@ -85,8 +85,12 @@ $O_WRONLY
 $O_RDWR
 $O_CREAT
 
-
-[directory]
-vm/ => VirtualMachine
-core/ => ブートストラップとなるミニマムなパーサなどが定義されたバイトコードを生成する
-???/ => coreで生成されたバイトコードの上に構築されたscheme処理系
+[memo]
+TODO:
+ - namespace or module or package
+ - type system (optional)
+  - 型推論、オプショナルな型指定、コンパイル時の型情報取得
+ - minimul OOP
+  - class, method, trait
+ - exception
+# - generic function
