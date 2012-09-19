@@ -7,5 +7,6 @@
   :serial t
   :components ((:file "package")
                (:file "parser/package")
+               (:file "parser/util")
                (:file "parser/parser")
                (:file "plint")))
