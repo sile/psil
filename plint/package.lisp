@@ -4,6 +4,8 @@
            parse-file
            parse-string
            
+           eval-ast
+           
            run))
 (in-package :plint)
 

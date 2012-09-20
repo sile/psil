@@ -10,3 +10,7 @@
 (defun parse-file (filepath)
   (with-open-file (in filepath)
     (parse in)))
+
+(defun eval-ast (ast)  ; ast = result of parse function
+  (plint.eval:eval-ast ast))
+

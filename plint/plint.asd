@@ -12,6 +12,9 @@
                (:file "parser/parser")
                
                (:file "eval/package")
+               (:file "eval/type")
+               (:file "eval/env")
+               (:file "eval/special")
                (:file "eval/eval")
 
                (:file "plint")))
