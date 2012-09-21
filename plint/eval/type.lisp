@@ -68,4 +68,8 @@
 (defstruct type.undef)
 (defmethod print-object ((o type.undef) out)
   (format out "!<UNDEF>"))
+
+(defstruct type.null)
+(defmethod print-object ((o type.null) out)
+  (format out "!<NULL>"))
   

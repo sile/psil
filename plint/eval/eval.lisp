@@ -31,7 +31,8 @@
 
 (defun eval-list (value env)
   (labels ((recur (list)
-             (when list
+             (if (null list)
+                 (make-type.null)
                (make-type.cons :car (eval-ast (car list) env)
                                :cdr (recur (cdr list))))))
     (recur value)))
